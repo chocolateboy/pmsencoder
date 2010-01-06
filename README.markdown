@@ -1,0 +1,1 @@
+See [this thread](http://ps3mediaserver.org/forum/viewtopic.php?f=6&t=5002) ([start here](http://ps3mediaserver.org/forum/viewtopic.php?f=6&t=5002#p22479)) for installation instructions and troubleshooting.

@@ -12,7 +12,7 @@ use IO::All;
 use LWP::Simple qw(get head);
 use List::MoreUtils qw(first_index);
 
-my $APPLE_TRAILERS    = qr{^http://(?:(?:movies|www)\.)?apple\.com/}; # apple trailers URI
+my $APPLE_TRAILERS    = qr{^http://(?:(?:movies|www)\.)?apple\.com/}; # Apple trailers URI
 my $APPLE_USER_AGENT  = 'Quicktime/7.6.4'; # user agent for Apple trailers
 my $CACHE_SIZE        = 16384; # streaming cache size in Kb
 my $DEFAULT_FPS       = 25; # default framerate
@@ -125,7 +125,7 @@ sub mencoder() {
         $mencoder = which('mencoder') || my_die("can't find mencoder");
     }
 
-    $SIG{CHLD} = 'IGNORE'; # FIXME try to ensure mencoder is reaped
+    $SIG{CHLD} = 'IGNORE'; # XXX try to ensure mencoder is reaped
     my_warn "exec: $mencoder @ARGV";
     my_die "can't exec $mencoder @ARGV: $!" unless (system($mencoder, @ARGV) == 0);
     
