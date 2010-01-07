@@ -17,6 +17,7 @@ my $APPLE_USER_AGENT  = 'Quicktime/7.6.4'; # user agent for Apple trailers
 my $CACHE_SIZE        = 16384; # streaming cache size in Kb
 my $DEFAULT_FPS       = 25; # default framerate
 my $LOGFILE           = io(File::Spec->catdir(File::Spec->tmpdir, 'ps3mencoder.log')); # debug log
+my $VERSION           = '0.01';
 my $WINDOWS           = $Config{osname} eq 'MSWin32'; # is this running on Windows?
 my $YOUTUBE           = qr{http://(?:\w+\.)?youtube\.com/watch\?v=([^&]+)}; # YouTube page
 my @YOUTUBE_FORMATS   = qw(22 18 5); # YouTube formats (see below)
@@ -101,35 +102,45 @@ sub my_die($) {
     my $message = shift;
     my $now = localtime();
 
-    $LOGFILE->append("$now: ERROR: $message", $/);
+    $LOGFILE->append("$now: $VERSION: $$: ERROR: $message", $/);
 
-    die "$0: ERROR: $message", $/;
+    die "$0: $VERSION: $$: ERROR: $message", $/;
 }
 
 sub my_warn($) {
     my $message = shift;
     my $now = localtime();
 
-    $LOGFILE->append("$now: $message", $/);
+    $LOGFILE->append("$now: $VERSION: $$: $message", $/);
 
-    warn "$0: $message", $/;
+    warn "$0: $VERSION: $$: $message", $/;
 }
 
 sub mencoder() {
     my $mencoder;
 
     if ($WINDOWS) {
-        chdir abs_path($Bin) or die "can't chdir to $Bin";
+        chdir abs_path($Bin) or my_die "can't chdir to $Bin";
         $mencoder = 'mencoder.exe';
     } else {
         $mencoder = which('mencoder') || my_die("can't find mencoder");
     }
 
-    $SIG{CHLD} = 'IGNORE'; # XXX try to ensure mencoder is reaped
     my_warn "exec: $mencoder @ARGV";
-    my_die "can't exec $mencoder @ARGV: $!" unless (system($mencoder, @ARGV) == 0);
-    
-    exit $?;
+
+    if ($WINDOWS) { # exec() doesn't work on Windows
+        local $SIG{CHLD} = 'IGNORE'; # XXX try to ensure mencoder is reaped
+
+        my $rc = system($mencoder, @ARGV);
+
+        if (($rc == 0) || (($rc == -1) && defined($!) && ($! eq 'No child processes'))) {
+            exit 0;
+        } else {
+            my_die "can't exec $mencoder @ARGV: $! ($?)";
+        }
+    } else {
+        exec($mencoder, @ARGV) || my_die "can't exec $mencoder @ARGV: $!";
+    }
 }
 
 ###################################################################################
