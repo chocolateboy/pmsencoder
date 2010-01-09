@@ -35,22 +35,23 @@ On Debian/Ubuntu these can be installed with:
 
 * Save [bin/ps3mencoder](http://github.com/chocolateboy/ps3mencoder/raw/master/bin/ps3mencoder)
   e.g. to /home/user/bin/ps3mencoder
+* Make it executable: `chmod a+x /home/user/bin/ps3mencoder`
 * Save [conf/ps3mencoder.conf](http://github.com/chocolateboy/ps3mencoder/raw/master/conf/ps3mencoder.conf)
   to the PMS directory ($PMS_HOME)
 * Move "MEncoder Web" to the top of the list of "Video Web Streaming Engines" on the PMS "Transcoding Settings" tab
 * Quit PMS
-* Add something like the following line to your $PMS_HOME/PMS.conf (create the file/line if it doesn't exist):
+* Add your pmsencoder path to $PMS_HOME/PMS.conf (create the file/line if it doesn't exist):
   * `mencoder_path = \/home\/user\/bin\/ps3mencoder`
 * Restart PMS
 
 # Support #
 
-Check the ps3mencoder.log logfile in the PMS directory (i.e. the same directory the debug is in).
+Check the ps3mencoder.log logfile in the PMS directory (i.e. the same directory as the the debug log).
 
-For more details ,discussion and troubleshooting tips, see [this thread](http://ps3mediaserver.org/forum/viewtopic.php?f=6&t=5002) ([start here](http://ps3mediaserver.org/forum/viewtopic.php?f=6&t=5002#p22479)).
+For more details, discussion and troubleshooting tips, see [this thread](http://ps3mediaserver.org/forum/viewtopic.php?f=6&t=5002) ([start here](http://ps3mediaserver.org/forum/viewtopic.php?f=6&t=5002#p22479)).
 
 # LICENSE
 
-Copyright 2009 chocolateboy.
+Copyright 2009 [chocolateboy](http://github.com/chocolateboy).
 
-ps3mencoder is free software; you can redistribute it and/or modify it under the terms of the Artistic License 2.0.
+ps3mencoder is free software; you can redistribute it and/or modify it under the terms of the [Artistic License 2.0](http://www.opensource.org/licenses/artistic-license-2.0.php).
