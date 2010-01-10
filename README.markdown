@@ -14,7 +14,7 @@ These instructions assume you have the latest version of [PS3 Media Server](http
 * Save [conf/ps3mencoder.conf](http://github.com/chocolateboy/ps3mencoder/raw/master/conf/ps3mencoder.conf)
   to the current directory (e.g. alongside PMS.conf if it exists)
 * Move "MEncoder Web" to the top of the list of "Video Web Streaming Engines" on the PMS "Transcoding Settings" tab
-* Quit PMS
+* Save your settings and quit PMS
 * Add the following line to PMS.conf (create the file/line if it doesn't exist):
   * `mencoder_path = C:\\Program Files\\PS3 Media Server\\win32\\ps3mencoder.exe`
 * Restart PMS
@@ -39,7 +39,7 @@ On Debian/Ubuntu these can be installed with:
 * Save [conf/ps3mencoder.conf](http://github.com/chocolateboy/ps3mencoder/raw/master/conf/ps3mencoder.conf)
   to the PMS directory ($PMS_HOME)
 * Move "MEncoder Web" to the top of the list of "Video Web Streaming Engines" on the PMS "Transcoding Settings" tab
-* Quit PMS
+* Save your settings and quit PMS
 * Add your ps3mencoder path to $PMS_HOME/PMS.conf (create the file/line if it doesn't exist):
   * `mencoder_path = \/home\/user\/bin\/ps3mencoder`
 * Restart PMS
@@ -50,8 +50,12 @@ Check the ps3mencoder.log logfile in the PMS directory (i.e. the same directory 
 
 For more details, discussion and troubleshooting tips, see [this thread](http://ps3mediaserver.org/forum/viewtopic.php?f=6&t=5002) ([start here](http://ps3mediaserver.org/forum/viewtopic.php?f=6&t=5002#p22479)).
 
-# LICENSE
+# Version
 
-Copyright 2009 [chocolateboy](http://github.com/chocolateboy).
+0.20
+
+# License
+
+Copyright 2009 [chocolateboy](mailto:chocolate@cpan.org)
 
 ps3mencoder is free software; you can redistribute it and/or modify it under the terms of the [Artistic License 2.0](http://www.opensource.org/licenses/artistic-license-2.0.php).

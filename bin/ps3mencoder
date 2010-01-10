@@ -4,23 +4,23 @@ use strict;
 use warnings;
 
 use Cwd qw(abs_path getcwd);
-use File::Which qw(which);
 use FindBin qw($Bin);
+use POSIX qw(strftime);
+
+use File::Which qw(which);
 use IO::All;
 use List::MoreUtils qw(first_index);
 use LWP::Simple qw(get head);
-use POSIX qw(strftime);
 use YAML qw(LoadFile);
 
-my $CACHE_SIZE        = 16384; # streaming cache size in Kb
-my $CWD               = getcwd();
-my $DEFAULT_FPS       = 25; # default framerate
+my $CWD               = getcwd();          # current working directory
+my $DEFAULT_FPS       = 25;                # default framerate
 my $LOGFILE_PATH      = 'ps3mencoder.log'; # save alongside debug.log
 my $LOGFILE           = io($LOGFILE_PATH); # debug log
-my $VERSION           = '0.10';
-my $WINDOWS           = $^O eq 'MSWin32'; # is this running on Windows?
-my $YOUTUBE           = qr{http://(?:\w+\.)?youtube\.com/watch\?v=([^&]+)}; # YouTube page
-my @YOUTUBE_FORMATS   = qw(22 18 5); # YouTube formats (see below)
+my $VERSION           = '0.20';            # logged to aid diagnostics
+my $WINDOWS           = $^O eq 'MSWin32';  # is this running on Windows?
+my $YOUTUBE           = qr{http://(?:\w+\.)?youtube\.com/watch\?v=([^&]+)}; # YouTube page (HTML)
+my @YOUTUBE_FORMATS   = qw(22 18 6 5);        # YouTube formats (see below)
 
 =for comment
 
@@ -43,7 +43,7 @@ sub debug($) {
 sub fatal($) {
     my $message = shift;
 
-    debug("ERROR: $message");
+    debug "ERROR: $message";
 
     die "$0: $VERSION: $$: ERROR: $message", $/;
 }
@@ -96,6 +96,7 @@ sub add($;@) {
     }
 }
 
+# XXX unused
 sub value($) {
     my $name = shift;
     my $index = first_index { $_ eq $name } @ARGV;
@@ -114,13 +115,37 @@ sub isdef($) {
     return ($index != -1);
 }
 
+sub isopt($) {
+    my $arg = shift;
+    return (defined($arg) && (substr($arg, 0, 1) eq '-'));
+}
+
 sub remove($) {
     my $name = shift;
-    my $index = first_index { $_ eq $name } @ARGV;
+    my @argv = @ARGV;
+    my @keep;
 
-    unless ($index == -1) {
+    while (@argv) {
+        my $arg = shift @argv;
+
+        if (isopt($arg)) { # -foo ...
+            if (@argv && not(isopt($argv[0]))) { # -foo bar
+                my $value = shift @argv;
+
+                if ($arg ne $name) {
+                    push @keep, $arg, $value;
+                }
+            } elsif ($arg ne $name) { # just -foo
+                push @keep, $arg;
+            }
+        } else {
+            push @keep, $arg;
+        }
+    }
+
+    if (@keep < @ARGV) {
         debug "removing $name";
-        splice @ARGV, $index, 1;
+        @ARGV = @keep;
     }
 }
 
@@ -132,14 +157,6 @@ sub replace($@) {
         debug "replacing $old with @new";
         splice @ARGV, $index, 1, @new;
     }
-}
-
-sub fps($) {
-    set('-ofps', shift);
-}
-
-sub user_agent($) {
-    set('-user-agent', shift);
 }
 
 sub mencoder() {
@@ -156,7 +173,7 @@ sub mencoder() {
 
     my $rc;
 
-    debug "exec: $mencoder @ARGV";
+    debug "exec: $mencoder" . (@ARGV ? " @ARGV" : '');
 
     {
         local $SIG{CHLD} = 'IGNORE'; # XXX try to ensure mencoder is reaped
@@ -166,116 +183,146 @@ sub mencoder() {
     if (($rc == 0) || (($rc == -1) && defined($!) && ($! eq 'No child processes'))) {
         exit 0;
     } else {
-        fatal "can't exec $mencoder @ARGV: $! ($?)";
+        fatal sprintf("can't exec $mencoder%s: $! ($?)", (@ARGV ? " @ARGV" : ''));
+    }
+}
+
+=for comment
+
+    {
+        'profiles' => [
+            {
+                'mencoder' => {
+                    '-quiet'   => undef,
+                    'cache'    => '16384',
+                    'lavcopts' => { '$' => ':level=41' }
+                },
+                'name' => 'Global',
+                'uri'  => '^\\w+://.+$'
+            },
+            {
+                'mencoder' => { 'user-agent' => 'Quicktime/7.6.4' },
+                'name'     => 'Apple Trailers',
+                'uri'      => '^http://(?:(?:movies|www)\\.)?apple\\.com/.+$'
+            },
+            {
+                'mencoder' => { 'lavcopts' => { '4096' => '5086' } },
+                'name'     => 'Apple Trailers HD',
+                'uri'      => '^http://(?:(?:movies|www)\\.)?apple\\.com/.+\\.m4v$'
+            }
+        ],
+        'version' => '0.2'
+    }
+
+=cut
+
+sub process_config($) {
+    my $uri = shift;
+    my $config;
+
+    if (-s 'ps3mencoder.yml') {
+        debug 'loading config: ps3mencoder.yml';
+        $config = eval { LoadFile('ps3mencoder.yml') };
+    } elsif (-s 'ps3mencoder.conf') {
+        debug 'loading config: ps3mencoder.conf';
+        $config = eval { LoadFile('ps3mencoder.conf') };
+    } else {
+        debug "can't find ps3mencoder.conf or ps3mencoder.yml in $CWD";
+    }
+
+    fatal "can't load config: $@" if ($@);
+
+    # FIXME: this blindly assumes the config file is sane at the moment
+    # XXX use Kwalify?
+
+    if ($config) {
+        my $profiles = $config->{profiles};
+
+        if ($profiles) {
+            for my $profile (@$profiles) {
+                my $profile_name = $profile->{name};
+                my $match = $profile->{uri};
+
+                if (defined($match) && ($uri =~ $match)) {
+                    debug "matched profile: $profile_name";
+
+                    while (my ($option_name, $option_value) = each (%{$profile->{mencoder}})) {
+                        $option_name =~ s{^([-+]?)}{-};
+
+                        if (ref $option_value) {
+                            while (my ($search, $replace) = each (%$option_value)) {
+                                subst($option_name, $search, $replace);
+                            }
+                        } else {
+                            my $op;
+                           
+                            if ($1 eq '-') {
+                                $op = \&remove;
+                            } elsif ($1 eq '+') {
+                                $op = \&add;
+                            } else {
+                                $op = \&set;
+                            }
+
+                            $op->($option_name, $option_value);
+                        }
+                    }
+                }
+            }
+        } else {
+            debug 'no profiles defined'; 
+        }
     }
 }
 
 ###################################################################################
 
 $| = 1; # unbuffer output
-
-mencoder() unless (isdef('-prefer-ipv4') && isdef('-ovc'));
-
-my $URI = $ARGV[0];
-my $CONFIG;
-
 $LOGFILE->append($/) if (-s $LOGFILE_PATH);
 
-debug "$0 @ARGV";
-remove('-nocache'); # this should *never* be set
-remove('-quiet'); # XXX: for debugging only
-set('-cache', $CACHE_SIZE); # use a healthy cache for streaming - the default is only 8 Mb
-fps($DEFAULT_FPS);
+debug $0 . (@ARGV ? " @ARGV" : '');
 
-if (-s 'ps3mencoder.yml') {
-    $CONFIG = eval { LoadFile('ps3mencoder.yml') };
-} elsif (-s 'ps3mencoder.conf') {
-    $CONFIG = eval { LoadFile('ps3mencoder.conf') };
-} else {
-    debug "can't find ps3mencoder.conf or ps3mencoder.yml in $CWD";
-}
+# web video streaming: fix mencoder options, handle YouTube videos, and process config file
+if (isdef('-prefer-ipv4') && isdef('-ovc')) {
+    my $URI = $ARGV[0];
 
-fatal "can't load YAML: $@" if ($@);
+    remove('-nocache'); # this should *never* be set
+    set('-ofps', $DEFAULT_FPS);
 
-=for comment
-{
-  'Apple Trailers (HD)' => {
-    'match' => '^http://(?:(?:movies|www)\\.)?apple\\.com/.+\\.m4v$',
-    'options' => {
-      'fps' => '24',
-      'lavcopts' => {
-        '4096' => '5086'
-      },
-      'user-agent' => 'Quicktime/7.6.4'
-    }
-  },
-  'Apple Trailers (SD)' => {
-    'match' => '^http://(?:(?:movies|www)\\.)?apple\\.com/.+\\.mov$',
-    'options' => {
-      'fps' => '24',
-      'user-agent' => 'Quicktime/7.6.4'
-    }
-  }
-}
-=cut
+    # special-case (for now) YouTube
+    if ($URI =~ $YOUTUBE) {
+        # extract the media URI - see http://stackoverflow.com/questions/1883737/getting-an-flv-from-youtube-in-net
+        my $id = $1;
+        my $html = get($URI) || fatal "couldn't retrieve $URI";
+        my ($signature) = $html =~ m{"t":\s*"([^"]+)"};
+        my $found = 0;
 
-if ($CONFIG) {
-    while (my ($match_name, $match_value) = each (%$CONFIG)) {
-        if ($URI =~ $match_value->{match}) {
-            my $re = $match_value->{match};
+        # via http://www.longtailvideo.com/support/forum/General-Chat/16851/Youtube-blocked-http-youtube-com-get-video
+        #
+        # No &fmt = FLV (very low)
+        # &fmt=5  = FLV (very low)
+        # &fmt=6  = FLV (doesn't always work)
+        # &fmt=13 = 3GP (mobile phone)
+        # &fmt=18 = MP4 (normal)
+        # &fmt=22 = MP4 (hd)
+        #
+        # see also:
+        #
+        #     http://tinyurl.com/y8rdcoy
+        #     http://userscripts.org/topics/18274
 
-            debug "matched $match_name: $re";
-
-            while (my ($option_name, $option_value) = each (%{$match_value->{options}})) {
-                $option_name =~ s{^([-+]?)}{-};
-
-                if (ref $option_value) {
-                    while (my ($search, $replace) = each (%$option_value)) {
-                        subst($option_name, $search, $replace);
-                    }
-                } else {
-                    my $op;
-                   
-                    if ($1 eq '-') {
-                        $op = \&remove;
-                    } elsif ($1 eq '+') {
-                        $op = \&add;
-                    } else {
-                        $op = \&set;
-                    }
-
-                    $op->($option_name, $option_value);
-                }
-            }
+        for my $fmt (@YOUTUBE_FORMATS) {
+            my $uri = "http://www.youtube.com/get_video?fmt=$fmt&video_id=$id&t=$signature";
+            next unless (head $uri);
+            $ARGV[0] = $uri;
+            $found = 1;
+            last;
         }
-    }
-}
 
-if ($URI =~ $YOUTUBE) {
-    # extract the media URI - see http://stackoverflow.com/questions/1883737/getting-an-flv-from-youtube-in-net
-    my $id = $1;
-    my $html = get($URI) || fatal "couldn't retrieve $URI";
-    my ($signature) = $html =~ m{"t":\s*"([^"]+)"};
-    my $found = 0;
-
-    # via http://www.longtailvideo.com/support/forum/General-Chat/16851/Youtube-blocked-http-youtube-com-get-video
-    #
-    # No &fmt = FLV (very low)
-    # &fmt=5  = FLV (very low)
-    # &fmt=6  = FLV (works not always)
-    # &fmt=13 = 3GP (mobile phone)
-    # &fmt=18 = MP4 (normal)
-    # &fmt=22 = MP4 (hd)
-
-    for my $fmt (@YOUTUBE_FORMATS) {
-        my $uri = "http://www.youtube.com/get_video?fmt=$fmt&video_id=$id&t=$signature";
-        next unless (head $uri);
-        $ARGV[0] = $uri;
-        $found = 1;
-        last;
+        fatal "can't retrieve YouTube video from $URI" unless ($found);
     }
 
-    fatal "can't retrieve media for $URI" unless ($found);
+    process_config($URI);
 }
 
 mencoder();
