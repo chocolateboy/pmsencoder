@@ -4,7 +4,7 @@ use strict;
 use warnings;
 
 use Cwd qw(abs_path getcwd);
-use FindBin qw($Bin);
+use IPC::Cmd qw[can_run run];
 use POSIX qw(strftime);
 
 use File::Which qw(which);
@@ -159,31 +159,23 @@ sub replace($@) {
     }
 }
 
-sub mencoder() {
-    my $mencoder;
-
-    if ($WINDOWS) {
-        my $mencoder_dir = abs_path($Bin);
-        chdir $mencoder_dir or fatal "can't chdir to $Bin";
-        $mencoder = 'mencoder.exe';
-        fatal "can't find $mencoder in $mencoder_dir" unless (-s $mencoder);
-    } else {
-        $mencoder = which('mencoder') || fatal("can't find mencoder");
-    }
-
-    my $rc;
+sub mencoder(;$) {
+    my $config = shift || {};
+    my $mencoder = $config->{mencoder_path} || can_run('mencoder') || fatal("can't find mencoder");
 
     debug "exec: $mencoder" . (@ARGV ? " @ARGV" : '');
 
-    {
-        local $SIG{CHLD} = 'IGNORE'; # XXX try to ensure mencoder is reaped
-        $rc = system($mencoder, @ARGV);
-    }
+    # local $SIG{CHLD} = 'IGNORE'; # XXX try to ensure mencoder is reaped
+    my ($ok, $error) = run(
+	command => [ $mencoder, @ARGV ],
+	verbose => 1
+    );
 
-    if (($rc == 0) || (($rc == -1) && defined($!) && ($! eq 'No child processes'))) {
-        exit 0;
+    if ($ok) {
+	debug('ok');
+	exit 0;
     } else {
-        fatal sprintf("can't exec $mencoder%s: $! ($?)", (@ARGV ? " @ARGV" : ''));
+       	fatal("can't exec mencoder: $error");
     }
 }
 
@@ -272,7 +264,44 @@ sub process_config($) {
         } else {
             debug 'no profiles defined'; 
         }
+    } else {
+        debug 'no config defined'; 
     }
+
+    return $config; # may be undef
+}
+
+sub handle_youtube($$) {
+    my ($uri, $config) = @_;
+    # extract the media URI - see http://stackoverflow.com/questions/1883737/getting-an-flv-from-youtube-in-net
+    my $id = $1;
+    my $html = get($uri) || fatal "couldn't retrieve $uri";
+    my ($signature) = $html =~ m{"t":\s*"([^"]+)"};
+    my $found = 0;
+
+    # via http://www.longtailvideo.com/support/forum/General-Chat/16851/Youtube-blocked-http-youtube-com-get-video
+    #
+    # No &fmt = FLV (very low)
+    # &fmt=5  = FLV (very low)
+    # &fmt=6  = FLV (doesn't always work)
+    # &fmt=13 = 3GP (mobile phone)
+    # &fmt=18 = MP4 (normal)
+    # &fmt=22 = MP4 (hd)
+    #
+    # see also:
+    #
+    #     http://tinyurl.com/y8rdcoy
+    #     http://userscripts.org/topics/18274
+
+    for my $fmt (@YOUTUBE_FORMATS) {
+        my $media_uri = "http://www.youtube.com/get_video?fmt=$fmt&video_id=$id&t=$signature";
+        next unless (head $media_uri);
+        $ARGV[0] = $media_uri;
+        $found = 1;
+        last;
+    }
+
+    fatal "can't retrieve YouTube video from $uri" unless ($found);
 }
 
 ###################################################################################
@@ -284,45 +313,23 @@ debug $0 . (@ARGV ? " @ARGV" : '');
 
 # web video streaming: fix mencoder options, handle YouTube videos, and process config file
 if (isdef('-prefer-ipv4') && isdef('-ovc')) {
-    my $URI = $ARGV[0];
+    my $uri = $ARGV[0];
 
     remove('-nocache'); # this should *never* be set
     set('-ofps', $DEFAULT_FPS);
 
-    # special-case (for now) YouTube
-    if ($URI =~ $YOUTUBE) {
-        # extract the media URI - see http://stackoverflow.com/questions/1883737/getting-an-flv-from-youtube-in-net
-        my $id = $1;
-        my $html = get($URI) || fatal "couldn't retrieve $URI";
-        my ($signature) = $html =~ m{"t":\s*"([^"]+)"};
-        my $found = 0;
+    my $config = process_config($uri); # load the config and process matching profiles
 
-        # via http://www.longtailvideo.com/support/forum/General-Chat/16851/Youtube-blocked-http-youtube-com-get-video
-        #
-        # No &fmt = FLV (very low)
-        # &fmt=5  = FLV (very low)
-        # &fmt=6  = FLV (doesn't always work)
-        # &fmt=13 = 3GP (mobile phone)
-        # &fmt=18 = MP4 (normal)
-        # &fmt=22 = MP4 (hd)
-        #
-        # see also:
-        #
-        #     http://tinyurl.com/y8rdcoy
-        #     http://userscripts.org/topics/18274
+    # special-case YouTube
+    # XXX add config support for this kind of handling (i.e. redirection)
+    # if there are more examples like this
 
-        for my $fmt (@YOUTUBE_FORMATS) {
-            my $uri = "http://www.youtube.com/get_video?fmt=$fmt&video_id=$id&t=$signature";
-            next unless (head $uri);
-            $ARGV[0] = $uri;
-            $found = 1;
-            last;
-        }
-
-        fatal "can't retrieve YouTube video from $URI" unless ($found);
+    if ($uri =~ $YOUTUBE) {
+        handle_youtube($uri, $config);
     }
 
-    process_config($URI);
+    mencoder($config);
+} else {
+    mencoder(); # don't use the config (yet :-) unless this is a web video encode
 }
 
-mencoder();
