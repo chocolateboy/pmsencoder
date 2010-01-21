@@ -17,7 +17,7 @@ You'll need a version of perl >= 5.10.0 installed. This should be easy to find o
 
 ## Windows
 
-On Strawberry Perl, LWP::Simple and YAML are already installed. To install the other dependencies, open a [DOS prompt](http://www.computerhope.com/issues/chdos.htm) and type:
+On Strawberry Perl, LWP::Simple and YAML are already installed. To install the other dependencies, [open a DOS prompt](http://www.computerhope.com/issues/chdos.htm) and type:
 
 `cpan -i IO::All List::MoreUtils`
 
