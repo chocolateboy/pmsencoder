@@ -2,40 +2,53 @@
 
 This is a helper script for [PS3 Media Server](http://code.google.com/p/ps3mediaserver/) that restores support for Web video streaming via mencoder.
 
-# Installation
+# Prerequisites
 
 These instructions assume you have the latest version of [PS3 Media Server](http://ps3mediaserver.org/forum/viewtopic.php?f=2&t=3217) (PMS) and the latest version of [Java](http://www.java.com/en/download/index.jsp).
 
-## Windows ###
+You'll need a version of perl >= 5.10.0 installed. This should be easy to find on MacOS X and Linux if it isn't installed already. The latest version of [Strawberry Perl](http://strawberryperl.com/) (currently 5.10.1.0) is recommended for Windows. In addition, the following Perl modules are required:
 
-* Navigate to the PMS directory - usually C:\Program Files\PS3 Media Server
-* Save [bin/ps3mencoder.exe](http://github.com/chocolateboy/ps3mencoder/raw/master/bin/ps3mencoder.exe)
-  to the win32 subdirectory (e.g. alongside mencoder.exe)
-* Save [conf/ps3mencoder.conf](http://github.com/chocolateboy/ps3mencoder/raw/master/conf/ps3mencoder.conf)
-  to the current directory (e.g. alongside PMS.conf if it exists)
-* Move "MEncoder Web" to the top of the list of "Video Web Streaming Engines" on the PMS "Transcoding Settings" tab
-* Save your settings and quit PMS
-* Add the following line to PMS.conf (create the file/line if it doesn't exist):
-  * `mencoder_path = C:\\Program Files\\PS3 Media Server\\win32\\ps3mencoder.exe`
-* Restart PMS
-
-## Linux, Mac OS X &c.
-
-You'll need a version of perl installed, preferably a recent one. The following modules are required:
-
-* File::Which
 * IO::All
 * List::MoreUtils
 * LWP::Simple
 * YAML
 
-On Debian/Ubuntu these can be installed with:
+Note: ps3mencoder doesn't work on Windows 98.
 
-`sudo aptitude install libfile-which-perl libio-all-perl liblist-moreutils-perl libwww-perl libyaml-perl`
+## Windows
+
+On Strawberry Perl, LWP::Simple is already installed. To install the other dependencies, open a DOS prompt and type:
+
+`cpan -i IO::All List::MoreUtils`
+
+## Linux
+
+On Ubuntu/Debian, these can be installed with apt-get or aptitude e.g:
+
+`sudo aptitude install libio-all-perl liblist-moreutils-perl libwww-perl libyaml-perl`
+
+Similar packages should be available for other distros.
+
+# Installation
+
+## Windows
+
+* Navigate to the PMS directory - usually C:\Program Files\PS3 Media Server\
+* Save [bin/ps3mencoder.bat](http://github.com/chocolateboy/ps3mencoder/raw/master/bin/ps3mencoder.bat)
+  to the win32 subdirectory (e.g. alongside mencoder.exe)
+* Save [conf/ps3mencoder.conf](http://github.com/chocolateboy/ps3mencoder/raw/master/conf/ps3mencoder.conf)
+  to C:\Program Files\PS3 Media Server\ (e.g. alongside PMS.conf if it exists)
+* Move "MEncoder Web" to the top of the list of "Video Web Streaming Engines" on the PMS "Transcoding Settings" tab
+* Save your settings and quit PMS
+* Add the following line to PMS.conf (create the file/line if it doesn't exist):
+  * `mencoder_path = C:\\Program Files\\PS3 Media Server\\win32\\ps3mencoder.bat`
+* Restart PMS
+
+## Linux, MacOS X &c.
 
 * Save [bin/ps3mencoder](http://github.com/chocolateboy/ps3mencoder/raw/master/bin/ps3mencoder)
-  e.g. to /home/user/bin/ps3mencoder
-* Make it executable: `chmod a+x /home/user/bin/ps3mencoder`
+  to somewehere sensible, e.g. /home/\<username\>/bin/ps3mencoder
+* Make it executable: `chmod a+x /home/\<username\>/bin/ps3mencoder`
 * Save [conf/ps3mencoder.conf](http://github.com/chocolateboy/ps3mencoder/raw/master/conf/ps3mencoder.conf)
   to the PMS directory ($PMS_HOME)
 * Move "MEncoder Web" to the top of the list of "Video Web Streaming Engines" on the PMS "Transcoding Settings" tab
@@ -56,6 +69,6 @@ For more details, discussion and troubleshooting tips, see [this thread](http://
 
 # License
 
-Copyright 2009 [chocolateboy](mailto:chocolate@cpan.org)
+Copyright 2009-2010 [chocolateboy](mailto:chocolate@cpan.org)
 
 ps3mencoder is free software; you can redistribute it and/or modify it under the terms of the [Artistic License 2.0](http://www.opensource.org/licenses/artistic-license-2.0.php).
