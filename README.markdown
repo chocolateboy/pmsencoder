@@ -8,7 +8,7 @@ ps3mencoder should work on all platforms supported by PS3 Media Server apart fro
 
 These instructions assume you have the latest version of [PS3 Media Server](http://ps3mediaserver.org/forum/viewtopic.php?f=2&t=3217) (PMS) and the latest version of [Java](http://www.java.com/en/download/index.jsp).
 
-You'll need a version of perl >= 5.10.0 installed. This should be easy to find on MacOS X and Linux if it isn't installed already. The latest version of [Strawberry Perl](http://strawberryperl.com/) (currently 5.10.1.0) is recommended for Windows. In addition, the following Perl modules are required:
+You'll need a version of perl >= 5.10.0 installed. This should be easy to find on Mac OS X and Linux if it isn't installed already. The latest version of [Strawberry Perl](http://strawberryperl.com/) (currently 5.10.1.0) is recommended for Windows. In addition, the following Perl modules are required:
 
 * IO::All
 * List::MoreUtils
@@ -44,7 +44,7 @@ Similar packages should be available for other distros.
   * `mencoder_path = C:\\Program Files\\PS3 Media Server\\win32\\ps3mencoder.bat`
 * Restart PMS
 
-## Linux, MacOS X &c.
+## Linux, Mac OS X &c.
 
 * Save [bin/ps3mencoder](http://github.com/chocolateboy/ps3mencoder/raw/master/bin/ps3mencoder)
   to somewehere sensible, e.g. /home/\<username\>/bin/ps3mencoder
