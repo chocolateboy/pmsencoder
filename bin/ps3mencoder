@@ -164,8 +164,6 @@ sub mencoder(;$) {
 
     debug "exec: $mencoder" . (@ARGV ? " @ARGV" : '');
 
-    # local $SIG{CHLD} = 'IGNORE'; # XXX try to ensure mencoder is reaped
-    undef $!;
     my $ok = run(
         command => [ $mencoder, @ARGV ],
         verbose => 1
