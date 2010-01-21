@@ -3,11 +3,10 @@
 use strict;
 use warnings;
 
-use Cwd qw(abs_path getcwd);
-use IPC::Cmd qw[can_run run];
+use Cwd qw(getcwd);
+use IPC::Cmd qw(can_run run); # core since 5.10.0
 use POSIX qw(strftime);
 
-use File::Which qw(which);
 use IO::All;
 use List::MoreUtils qw(first_index);
 use LWP::Simple qw(get head);
@@ -20,7 +19,7 @@ my $LOGFILE           = io($LOGFILE_PATH); # debug log
 my $VERSION           = '0.20';            # logged to aid diagnostics
 my $WINDOWS           = $^O eq 'MSWin32';  # is this running on Windows?
 my $YOUTUBE           = qr{http://(?:\w+\.)?youtube\.com/watch\?v=([^&]+)}; # YouTube page (HTML)
-my @YOUTUBE_FORMATS   = qw(22 18 6 5);        # YouTube formats (see below)
+my @YOUTUBE_FORMATS   = qw(22 18 6 5);     # YouTube formats id descending order of preference (see below)
 
 =for comment
 
@@ -166,16 +165,17 @@ sub mencoder(;$) {
     debug "exec: $mencoder" . (@ARGV ? " @ARGV" : '');
 
     # local $SIG{CHLD} = 'IGNORE'; # XXX try to ensure mencoder is reaped
-    my ($ok, $error) = run(
-	command => [ $mencoder, @ARGV ],
-	verbose => 1
+    undef $!;
+    my $ok = run(
+        command => [ $mencoder, @ARGV ],
+        verbose => 1
     );
 
     if ($ok) {
-	debug('ok');
-	exit 0;
+        debug('ok');
+        exit 0;
     } else {
-       	fatal("can't exec mencoder: $error");
+        fatal "can't exec mencoder: $?";
     }
 }
 
@@ -227,45 +227,49 @@ sub process_config($) {
     # FIXME: this blindly assumes the config file is sane at the moment
     # XXX use Kwalify?
 
-    if ($config) {
-        my $profiles = $config->{profiles};
+    if (defined $uri) {
+        if ($config) {
+            my $profiles = $config->{profiles};
 
-        if ($profiles) {
-            for my $profile (@$profiles) {
-                my $profile_name = $profile->{name};
-                my $match = $profile->{uri};
+            if ($profiles) {
+                for my $profile (@$profiles) {
+                    my $profile_name = $profile->{name};
+                    my $match = $profile->{uri};
 
-                if (defined($match) && ($uri =~ $match)) {
-                    debug "matched profile: $profile_name";
+                    if (defined($match) && ($uri =~ $match)) {
+                        debug "matched profile: $profile_name";
 
-                    while (my ($option_name, $option_value) = each (%{$profile->{mencoder}})) {
-                        $option_name =~ s{^([-+]?)}{-};
+                        while (my ($option_name, $option_value) = each (%{$profile->{mencoder}})) {
+                            $option_name =~ s{^([-+]?)}{-};
 
-                        if (ref $option_value) {
-                            while (my ($search, $replace) = each (%$option_value)) {
-                                subst($option_name, $search, $replace);
-                            }
-                        } else {
-                            my $op;
-                           
-                            if ($1 eq '-') {
-                                $op = \&remove;
-                            } elsif ($1 eq '+') {
-                                $op = \&add;
+                            if (ref $option_value) {
+                                while (my ($search, $replace) = each (%$option_value)) {
+                                    subst($option_name, $search, $replace);
+                                }
                             } else {
-                                $op = \&set;
-                            }
+                                my $op;
+                               
+                                if ($1 eq '-') {
+                                    $op = \&remove;
+                                } elsif ($1 eq '+') {
+                                    $op = \&add;
+                                } else {
+                                    $op = \&set;
+                                }
 
-                            $op->($option_name, $option_value);
+                                $op->($option_name, $option_value);
+                            }
                         }
                     }
                 }
+            } else {
+                debug 'no profiles defined'; 
             }
         } else {
-            debug 'no profiles defined'; 
+            debug 'no config defined'; 
         }
     } else {
-        debug 'no config defined'; 
+        debug 'no URI defined'; 
     }
 
     return $config; # may be undef
@@ -311,14 +315,13 @@ $LOGFILE->append($/) if (-s $LOGFILE_PATH);
 
 debug $0 . (@ARGV ? " @ARGV" : '');
 
+my $uri = $ARGV[0];
+my $config = process_config($uri); # load the config and process matching profiles
+
 # web video streaming: fix mencoder options, handle YouTube videos, and process config file
 if (isdef('-prefer-ipv4') && isdef('-ovc')) {
-    my $uri = $ARGV[0];
-
     remove('-nocache'); # this should *never* be set
     set('-ofps', $DEFAULT_FPS);
-
-    my $config = process_config($uri); # load the config and process matching profiles
 
     # special-case YouTube
     # XXX add config support for this kind of handling (i.e. redirection)
@@ -327,9 +330,6 @@ if (isdef('-prefer-ipv4') && isdef('-ovc')) {
     if ($uri =~ $YOUTUBE) {
         handle_youtube($uri, $config);
     }
-
-    mencoder($config);
-} else {
-    mencoder(); # don't use the config (yet :-) unless this is a web video encode
 }
 
+mencoder($config);
