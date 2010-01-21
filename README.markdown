@@ -48,7 +48,7 @@ Similar packages should be available for other distros.
 
 * Save [bin/ps3mencoder](http://github.com/chocolateboy/ps3mencoder/raw/master/bin/ps3mencoder)
   to somewehere sensible, e.g. /home/\<username\>/bin/ps3mencoder
-* Make it executable: `chmod a+x /home/\<username\>/bin/ps3mencoder`
+* Make it executable: `chmod a+x /home/<username>/bin/ps3mencoder`
 * Save [conf/ps3mencoder.conf](http://github.com/chocolateboy/ps3mencoder/raw/master/conf/ps3mencoder.conf)
   to the PMS directory ($PMS_HOME)
 * Move "MEncoder Web" to the top of the list of "Video Web Streaming Engines" on the PMS "Transcoding Settings" tab
