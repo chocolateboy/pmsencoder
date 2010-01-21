@@ -4,7 +4,7 @@ This is a helper script for [PS3 Media Server](http://code.google.com/p/ps3media
 
 # Prerequisites
 
-ps3mencoder should work on all platforms supported by PS3 Media Server apart from Windows 98, which isn't supported.
+ps3mencoder should work on all platforms supported by PS3 Media Server apart from Windows 98 and earlier, which aren't supported.
 
 These instructions assume you have the latest version of [PS3 Media Server](http://ps3mediaserver.org/forum/viewtopic.php?f=2&t=3217) (PMS) and the latest version of [Java](http://www.java.com/en/download/index.jsp).
 
@@ -17,7 +17,7 @@ You'll need a version of perl >= 5.10.0 installed. This should be easy to find o
 
 ## Windows
 
-On Strawberry Perl, LWP::Simple and YAML are already installed. To install the other dependencies, open a DOS prompt and type:
+On Strawberry Perl, LWP::Simple and YAML are already installed. To install the other dependencies, open a [DOS prompt](http://www.computerhope.com/issues/chdos.htm) and type:
 
 `cpan -i IO::All List::MoreUtils`
 
