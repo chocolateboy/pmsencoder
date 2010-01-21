@@ -4,7 +4,7 @@ This is a helper script for [PS3 Media Server](http://code.google.com/p/ps3media
 
 # Prerequisites
 
-ps3mnencoder should work on all platforms supported by PS3 Media Server apart from Windows 98, which isn't supported.
+ps3mencoder should work on all platforms supported by PS3 Media Server apart from Windows 98, which isn't supported.
 
 These instructions assume you have the latest version of [PS3 Media Server](http://ps3mediaserver.org/forum/viewtopic.php?f=2&t=3217) (PMS) and the latest version of [Java](http://www.java.com/en/download/index.jsp).
 
