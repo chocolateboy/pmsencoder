@@ -198,10 +198,11 @@ sub mencoder(;$) {
 
     if ($ok) {
         debug('ok');
-        exit 0;
-    } else {
+    } elsif ($?) {
         fatal "can't exec mencoder: $?";
     }
+
+    exit 0;
 }
 
 =for comment
