@@ -35,9 +35,9 @@ Similar packages should be available for other distros.
 ## Windows
 
 * Navigate to the PMS directory ($PMS_HOME) - usually C:\Program Files\PS3 Media Server
-* Save [bin/ps3mencoder](http://github.com/chocolateboy/ps3mencoder/raw/master/bin/ps3mencoder) to $PMS_HOME\win32 (e.g. alongside mencoder.exe) as ps3mencoder.pl (rename it if it's saved with a .txt extension). Once ps3mencoder.pl is saved, you may also need to [unblock](http://www.petri.co.il/unblock-files-windows-vista.htm) it
+* Save [bin/ps3mencoder](http://github.com/chocolateboy/ps3mencoder/raw/master/bin/ps3mencoder) to $PMS_HOME\win32 as ps3mencoder.pl (rename it if it's saved with a .txt extension). You may also need to [unblock](http://www.petri.co.il/unblock-files-windows-vista.htm) it
 * Save [conf/ps3mencoder.conf](http://github.com/chocolateboy/ps3mencoder/raw/master/conf/ps3mencoder.conf)
-  to $PMS_HOME (e.g. alongside PMS.conf if it exists)
+  to $PMS_HOME
 * Move "MEncoder Web" to the top of the list of "Video Web Streaming Engines" on the PMS "Transcoding Settings" tab
 * Save your settings and quit PMS
 * Add the following line to $PMS_HOME\PMS.conf (create the file/line if it doesn't exist):
@@ -47,7 +47,7 @@ Similar packages should be available for other distros.
 ## Linux, Mac OS X &c.
 
 * Save [bin/ps3mencoder](http://github.com/chocolateboy/ps3mencoder/raw/master/bin/ps3mencoder)
-  to a directory in $PATH e.g. /home/\<username\>/bin/ps3mencoder
+  to a directory in your $PATH e.g. /home/\<username\>/bin/ps3mencoder
 * Make it executable: `chmod a+x /home/<username>/bin/ps3mencoder`
 * Save [conf/ps3mencoder.conf](http://github.com/chocolateboy/ps3mencoder/raw/master/conf/ps3mencoder.conf)
   to the PMS directory ($PMS_HOME)
@@ -60,7 +60,7 @@ Similar packages should be available for other distros.
 # Tips
 
 * The path to the ps3mencoder.conf file can be defined in an environment variable, $PS3MENCODER_CONF e.g.
-`export PS3MENCODER_CONF=/home/<username>/lib/pms/ps3mencoder.conf`
+`export PS3MENCODER_CONF=/home/<username>/.config/PMS/ps3mencoder.conf`
 * Similarly, if the $PMS_HOME environment variable is set, the config file is looked for in that directory e.g.
 `export PMS_HOME=/home/<username>/lib/pms`
 * The config file is in [YAML](http://en.wikipedia.org/wiki/YAML) format. It can have a .conf, .yml or .yaml extension
@@ -70,7 +70,7 @@ Similar packages should be available for other distros.
 
 Check the ps3mencoder.log logfile in the PMS directory (i.e. the same directory as the the debug log).
 
-Try running ps3mencoder from the command line e.g. change to the $PMS_HOME directory and run:
+Try running ps3mencoder from the command line e.g. change to the $PMS_HOME directory and run (replace ps3mencoder with win32\ps3mencoder.pl on Windows):
 
 `ps3mencoder http://movies.apple.com/movies/wb/inception/inception-tlr2_h640w.mov -prefer-ipv4 -nocache -quiet -oac lavc -of lavf -lavfopts format=dvd -ovc lavc -lavcopts vcodec=mpeg2video:vbitrate=4096:threads=2:acodec=ac3:abitrate=128 -ofps 24000/1001 -o deleteme.mov`
 
