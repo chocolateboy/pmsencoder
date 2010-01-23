@@ -8,7 +8,7 @@ ps3mencoder should work on all platforms supported by PS3 Media Server.
 
 These instructions assume you have the latest version of [PS3 Media Server](http://ps3mediaserver.org/forum/viewtopic.php?f=2&t=3217) (PMS) and the latest version of [Java](http://www.java.com/en/download/index.jsp).
 
-You'll need a version of perl >= 5.10.0. This should be easy to find on Mac OS X, Linux and other *nices if it isn't installed already. The latest version of [ActivePerl](http://www.activestate.com/activeperl/) (currently 5.10.1.1006) is required for Windows. In addition, the following Perl modules are required:
+You'll need a version of perl >= 5.10.0. This should be easy to find on Mac OS X, Linux and other *nices if it isn't installed already. The latest version of [ActivePerl](http://www.activestate.com/activeperl/) (currently 5.10.1.1006) is required for Windows (with the default PATH and file association options checked). In addition, the following Perl modules are required:
 
 * IO::All
 * List::MoreUtils
@@ -35,7 +35,7 @@ Similar packages should be available for other distros.
 ## Windows
 
 * Navigate to the PMS directory ($PMS_HOME) - usually C:\Program Files\PS3 Media Server
-* Save [bin/ps3mencoder](http://github.com/chocolateboy/ps3mencoder/raw/master/bin/ps3mencoder) to the win32 subdirectory (e.g. alongside mencoder.exe) as ps3mencoder.pl (rename it if it's saved with a .txt extension)
+* Save [bin/ps3mencoder](http://github.com/chocolateboy/ps3mencoder/raw/master/bin/ps3mencoder) to the win32 subdirectory (e.g. alongside mencoder.exe) as ps3mencoder.pl (rename it if it's saved with a .txt extension). Once ps3mencoder.pl is saved, you may also need to [unblock](http://www.petri.co.il/unblock-files-windows-vista.htm) it
 * Save [conf/ps3mencoder.conf](http://github.com/chocolateboy/ps3mencoder/raw/master/conf/ps3mencoder.conf)
   to $PMS_HOME (e.g. alongside PMS.conf if it exists)
 * Move "MEncoder Web" to the top of the list of "Video Web Streaming Engines" on the PMS "Transcoding Settings" tab
