@@ -67,7 +67,7 @@ Similar packages should be available for other distros.
 * If ps3mencoder can't find your system's mencoder, the mencoder path can be added to the configuration file
 * Try running ps3mencoder from the command line: change to the $PMS_HOME directory and run (replace ps3mencoder with win32\ps3mencoder.pl on Windows):
 
-    ps3mencoder http://movies.apple.com/movies/wb/inception/inception-tlr2_h640w.mov -prefer-ipv4 -nocache -quiet -oac lavc -of lavf -lavfopts format=dvd -ovc lavc -lavcopts vcodec=mpeg2video:vbitrate=4096:threads=2:acodec=ac3:abitrate=128 -ofps 24000/1001 -o deleteme.mov
+    `ps3mencoder http://movies.apple.com/movies/wb/inception/inception-tlr2_h640w.mov -prefer-ipv4 -nocache -quiet -oac lavc -of lavf -lavfopts format=dvd -ovc lavc -lavcopts vcodec=mpeg2video:vbitrate=4096:threads=2:acodec=ac3:abitrate=128 -ofps 24000/1001 -o deleteme.mov`
 
 # Support #
 
