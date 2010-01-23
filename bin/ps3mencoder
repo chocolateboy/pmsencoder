@@ -201,7 +201,7 @@ sub mencoder(;$) {
     } elsif ($?) {
         fatal "can't exec mencoder: $?";
     } else {
-        debug 'not ok';
+        debug 'exit status: 0';
     }
 
     exit 0;
