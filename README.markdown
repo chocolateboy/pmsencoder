@@ -63,6 +63,7 @@ Similar packages should be available for other distros.
 `export PS3MENCODER_CONF=/home/<username>/.config/PMS/ps3mencoder.conf`
 * Similarly, if the $PMS_HOME environment variable is set, the config file is looked for in that directory e.g.
 `export PMS_HOME=/home/<username>/lib/pms`
+* The path to mencoder can also be specified by an environment variable: $MENCODER_PATH
 * The config file is in [YAML](http://en.wikipedia.org/wiki/YAML) format. It can have a .conf, .yml or .yaml extension
 * If ps3mencoder can't find your system's mencoder, the mencoder path can be added to the configuration file
 * Try running ps3mencoder from the command line: change to the $PMS_HOME directory and run (replace ps3mencoder with win32\ps3mencoder.pl on Windows):

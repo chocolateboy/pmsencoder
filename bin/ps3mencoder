@@ -163,7 +163,31 @@ sub replace($@) {
 
 sub mencoder(;$) {
     my $config = shift || {};
-    my $mencoder = $config->{mencoder_path} || can_run('mencoder') || fatal("can't find mencoder");
+    my $mencoder_path;
+
+    # we look for mencoder in these places (in desceneding order of priority):
+    #
+    # 1) the config file
+    # 2) on Win32: the same directory as ps3mencoder.pl
+    # 3) the path indicated by the environment variable MENCODER_PATH
+    # 4) the current working directory (prepended to the search path by IPC::Cmd::can_run)
+    # 5) $PATH (via IPC::Cmd::can_run)
+
+    # on Win32 look in the win32 directory i.e. the same directory as ps3mencoder.pl
+    if ($WINDOWS) {
+        my $temp = File::Spec->catfile(abs_path($Bin), 'mencoder.exe');
+
+        if (-f $temp) {
+            $mencoder_path = $temp;
+        }
+    }
+
+    # On all platforms
+    if (not(defined $mencoder_path) && exists($ENV{MENCODER_PATH})) {
+        $mencoder_path = $ENV{MENCODER_PATH};
+    }
+   
+    my $mencoder = $config->{mencoder_path} || $mencoder_path || can_run('mencoder') || fatal("can't find mencoder");
 
     debug "exec: $mencoder" . (@ARGV ? " @ARGV" : '');
 
@@ -233,7 +257,7 @@ sub process_config($) {
     # file should be in the parent directory
 
     if ($WINDOWS) {
-        my $parent_dir = abs_path(File::Spec->catdir($Bin, File::Spec->updir));
+        my $parent_dir = File::Spec->catdir(abs_path($Bin), File::Spec->updir);
         push @config, map { File::Spec->catfile($parent_dir, "ps3mencoder.$_") } @CONFIG_FILE_EXT;
     }
 
@@ -243,7 +267,7 @@ sub process_config($) {
     push @config, map { File::Spec->catfile($CWD, "ps3mencoder.$_") } @CONFIG_FILE_EXT;
 
     for my $config_file (@config) {
-        if (-s $config_file) {
+        if (-f $config_file) {
             debug "loading config: $config_file";
             my $yaml = eval { io($config_file)->slurp() };
             fatal "can't open config: $@" if ($@);
