@@ -65,16 +65,14 @@ Similar packages should be available for other distros.
 `export PMS_HOME=/home/<username>/lib/pms`
 * The config file is in [YAML](http://en.wikipedia.org/wiki/YAML) format. It can have a .conf, .yml or .yaml extension
 * If ps3mencoder can't find your system's mencoder, the mencoder path can be added to the configuration file
+* Try running ps3mencoder from the command line: change to the $PMS_HOME directory and run (replace ps3mencoder with win32\ps3mencoder.pl on Windows):
+
+    ps3mencoder http://movies.apple.com/movies/wb/inception/inception-tlr2_h640w.mov -prefer-ipv4 -nocache -quiet -oac lavc -of lavf -lavfopts format=dvd -ovc lavc -lavcopts vcodec=mpeg2video:vbitrate=4096:threads=2:acodec=ac3:abitrate=128 -ofps 24000/1001 -o deleteme.mov
 
 # Support #
 
-Check the ps3mencoder.log logfile in the PMS directory (i.e. the same directory as the the debug log).
-
-Try running ps3mencoder from the command line e.g. change to the $PMS_HOME directory and run (replace ps3mencoder with win32\ps3mencoder.pl on Windows):
-
-`ps3mencoder http://movies.apple.com/movies/wb/inception/inception-tlr2_h640w.mov -prefer-ipv4 -nocache -quiet -oac lavc -of lavf -lavfopts format=dvd -ovc lavc -lavcopts vcodec=mpeg2video:vbitrate=4096:threads=2:acodec=ac3:abitrate=128 -ofps 24000/1001 -o deleteme.mov`
-
-For more details, discussion and troubleshooting tips, see [this thread](http://ps3mediaserver.org/forum/viewtopic.php?f=6&t=5002) ([start here](http://ps3mediaserver.org/forum/viewtopic.php?f=6&t=5002#p22479)).
+* Check the ps3mencoder.log logfile in the current directory e.g. $PMS_HOME (see above)
+* For more details, discussion and troubleshooting tips, see [this thread](http://ps3mediaserver.org/forum/viewtopic.php?f=6&t=5002) ([start here](http://ps3mediaserver.org/forum/viewtopic.php?f=6&t=5002#p22479)).
 
 # Version
 
