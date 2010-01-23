@@ -3,20 +3,23 @@
 use strict;
 use warnings;
 
-use Cwd qw(getcwd);
+use Cwd qw(abs_path getcwd);
+use File::Spec;
+use FindBin qw($Bin);
 use IPC::Cmd qw(can_run run); # core since 5.10.0
 use POSIX qw(strftime);
 
 use IO::All;
 use List::MoreUtils qw(first_index);
 use LWP::Simple qw(get head);
-use YAML qw(LoadFile);
+use YAML::XS qw(Load);
 
-my $CWD               = getcwd();          # current working directory
+my @CONFIG_FILE_EXT   = qw(conf yml yaml); # valid extensions for the ps3mencoder config file
+my $CWD               = abs_path(getcwd);  # current working directory
 my $DEFAULT_FPS       = 25;                # default framerate
 my $LOGFILE_PATH      = 'ps3mencoder.log'; # save alongside debug.log
 my $LOGFILE           = io($LOGFILE_PATH); # debug log
-my $VERSION           = '0.20';            # logged to aid diagnostics
+my $VERSION           = '0.30';            # logged to aid diagnostics
 my $WINDOWS           = $^O eq 'MSWin32';  # is this running on Windows?
 my $YOUTUBE           = qr{http://(?:\w+\.)?youtube\.com/watch\?v=([^&]+)}; # YouTube page (HTML)
 my @YOUTUBE_FORMATS   = qw(22 18 6 5);     # YouTube formats id descending order of preference (see below)
@@ -208,45 +211,73 @@ sub mencoder(;$) {
 
 sub process_config($) {
     my $uri = shift;
-    my $config;
-
-    if (-s 'ps3mencoder.yml') {
-        debug 'loading config: ps3mencoder.yml';
-        $config = eval { LoadFile('ps3mencoder.yml') };
-    } elsif (-s 'ps3mencoder.conf') {
-        debug 'loading config: ps3mencoder.conf';
-        $config = eval { LoadFile('ps3mencoder.conf') };
-    } else {
-        debug "can't find ps3mencoder.conf or ps3mencoder.yml in $CWD";
+    my (@config, $config);
+    
+    # explicitly specify the full path to the config file
+    if (exists $ENV{PS3MENCODER_CONF}) {
+       push @config, $ENV{PS3MENCODER_CONF};
     }
 
-    fatal "can't load config: $@" if ($@);
+    # search for it in the PMS home directory, e.g. alongside PMS.conf, if $PMS_HOME is defined
+    if (exists $ENV{PMS_HOME}) {
+       push @config, map { File::Spec->catfile($ENV{PMS_HOME}, "ps3mencoder.$_") } @CONFIG_FILE_EXT;
+    }
 
-    # FIXME: this blindly assumes the config file is sane at the moment
-    # XXX use Kwalify?
+    # on Win32, the config file should be in $PMS_HOME, typically C:\Program Files\PS3 Media Server
+    # Unfortunately, PMS' registry entries are currently broken, so we can't rely on them (e.g. we
+    # can't use Win32::TieRegistry):
+    #
+    #     http://code.google.com/p/ps3mediaserver/issues/detail?id=555
+    #
+    # Instead we rely on convention i.e. ps3mencoder.pl should be in $PMS_HOME\win32, so the config
+    # file should be in the parent directory
 
-    if (defined $uri) {
-        if ($config) {
+    if ($WINDOWS) {
+        my $parent_dir = abs_path(File::Spec->catdir($Bin, File::Spec->updir));
+        push @config, map { File::Spec->catfile($parent_dir, "ps3mencoder.$_") } @CONFIG_FILE_EXT;
+    }
+
+    # If all else fails, look in the current working directory. This will be $PMS_HOME if ps3mencoder
+    # is called by PMS.
+
+    push @config, map { File::Spec->catfile($CWD, "ps3mencoder.$_") } @CONFIG_FILE_EXT;
+
+    for my $config_file (@config) {
+        if (-s $config_file) {
+            debug "loading config: $config_file";
+            my $yaml = eval { io($config_file)->slurp() };
+            fatal "can't open config: $@" if ($@);
+            $config = eval { Load($yaml) };
+            fatal "can't load config: $@" if ($@);
+            last;
+        }
+    }
+
+    if ($config) {
+        # FIXME: this blindly assumes the config file is sane at the moment
+        # XXX use Kwalify?
+
+        if (defined $uri) {
             my $profiles = $config->{profiles};
 
             if ($profiles) {
                 for my $profile (@$profiles) {
                     my $profile_name = $profile->{name};
-                    my $match = $profile->{uri};
+                    my $match        = $profile->{uri};
 
                     if (defined($match) && ($uri =~ $match)) {
                         debug "matched profile: $profile_name";
 
-                        while (my ($option_name, $option_value) = each (%{$profile->{mencoder}})) {
+                        while (my ($option_name, $option_value) = each(%{ $profile->{mencoder} })) {
                             $option_name =~ s{^([-+]?)}{-};
 
                             if (ref $option_value) {
-                                while (my ($search, $replace) = each (%$option_value)) {
+                                while (my ($search, $replace) = each(%$option_value)) {
                                     subst($option_name, $search, $replace);
                                 }
                             } else {
                                 my $op;
-                               
+
                                 if ($1 eq '-') {
                                     $op = \&remove;
                                 } elsif ($1 eq '+') {
@@ -261,13 +292,16 @@ sub process_config($) {
                     }
                 }
             } else {
-                debug 'no profiles defined'; 
+                debug 'no profiles defined';
             }
         } else {
-            debug 'no config defined'; 
+            debug 'no URI defined';
         }
     } else {
-        debug 'no URI defined'; 
+        require Data::Dumper;
+        $Data::Dumper::Terse = 1;
+        $Data::Dumper::Indent = 0;
+        debug "can't find ps3mencoder config file in: " . Data::Dumper::Dumper(\@config);
     }
 
     return $config; # may be undef
