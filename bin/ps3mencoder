@@ -197,9 +197,11 @@ sub mencoder(;$) {
     );
 
     if ($ok) {
-        debug('ok');
+        debug 'ok';
     } elsif ($?) {
         fatal "can't exec mencoder: $?";
+    } else {
+        debug 'not ok';
     }
 
     exit 0;
