@@ -35,7 +35,7 @@ Similar packages should be available for other distros.
 ## Windows
 
 * Navigate to the PMS directory ($PMS_HOME) - usually C:\Program Files\PS3 Media Server
-* Save [bin/ps3mencoder](http://github.com/chocolateboy/ps3mencoder/raw/master/bin/ps3mencoder) to $PMS_HOME\win32 as ps3mencoder.pl (rename it if it's saved with a .txt extension). You may also need to [unblock](http://www.petri.co.il/unblock-files-windows-vista.htm) it
+* Save [bin/ps3mencoder](http://github.com/chocolateboy/ps3mencoder/raw/master/bin/ps3mencoder) to $PMS_HOME\win32 as **ps3mencoder.pl** (rename it if it's saved with a .txt extension). You may also need to [unblock](http://www.petri.co.il/unblock-files-windows-vista.htm) it
 * Save [conf/ps3mencoder.conf](http://github.com/chocolateboy/ps3mencoder/raw/master/conf/ps3mencoder.conf)
   to $PMS_HOME
 * Move "MEncoder Web" to the top of the list of "Video Web Streaming Engines" on the PMS "Transcoding Settings" tab
