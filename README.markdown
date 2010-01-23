@@ -72,7 +72,7 @@ Similar packages should be available for other distros.
 
 # Support #
 
-* Check the ps3mencoder.log logfile in the current directory e.g. $PMS_HOME (see above)
+* Check the ps3mencoder.log logfile in the current directory e.g. $PMS_HOME/ps3mencoder.log (see above)
 * For more details, discussion and troubleshooting tips, see [this thread](http://ps3mediaserver.org/forum/viewtopic.php?f=6&t=5002) ([start here](http://ps3mediaserver.org/forum/viewtopic.php?f=6&t=5002#p22479)).
 
 # Version
