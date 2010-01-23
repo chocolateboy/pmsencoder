@@ -40,7 +40,7 @@ Similar packages should be available for other distros.
   to $PMS_HOME
 * Move "MEncoder Web" to the top of the list of "Video Web Streaming Engines" on the PMS "Transcoding Settings" tab
 * Save your settings and quit PMS
-* Add the following line to $PMS_HOME\PMS.conf (create the file/line if it doesn't exist):
+* Add the following line to $PMS_HOME\PMS.conf (create the file/line if it doesn't exist and replace C:\Program Files\PS3 Media Server with your $PMS_HOME if it's installed somewhere else):
   * `mencoder_path = C:\\Program Files\\PS3 Media Server\\win32\\ps3mencoder.pl`
 * Restart PMS
 
