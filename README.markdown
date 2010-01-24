@@ -10,7 +10,7 @@ These instructions assume you have the latest version of [PS3 Media Server](http
 
 ## Windows
 
-There are no additional dependencies. If you have previously installed Strawberry Perl, and have no further use for it, it can safely be uninstalled. Likewise, any old versions of the ps3mencoder config file (e.g. ps3mencoder.conf) should be removed.
+There are no additional dependencies. If you have previously installed Strawberry Perl, and have no further use for it, it can safely be uninstalled. Likewise, any old versions of the ps3mencoder config file (e.g. ps3mencoder.conf) should be removed, along with any old versions of ps3mencoder, ps3mencoder.pl or ps3mencoder.bat.
 
 ## Linux, Mac OS X &c.
 
