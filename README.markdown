@@ -8,21 +8,18 @@ ps3mencoder should work on all platforms supported by PS3 Media Server.
 
 These instructions assume you have the latest version of [PS3 Media Server](http://ps3mediaserver.org/forum/viewtopic.php?f=2&t=3217) (PMS) and the latest version of [Java](http://www.java.com/en/download/index.jsp).
 
-You'll need a version of perl >= 5.10.0. This should be easy to find on Mac OS X, Linux and other *nices if it isn't installed already. The latest version of [ActivePerl](http://www.activestate.com/activeperl/) (currently 5.10.1.1006) is required for Windows (with the default PATH and file association options checked). In addition, the following Perl modules are required:
+## Windows
+
+There are no additional dependencies. If you have previously installed Strawberry Perl, and have no further use for it, it can safely be uninstalled. Likewise, any old versions of the ps3mencoder config file (e.g. ps3mencoder.conf) should be removed.
+
+## Linux, Mac OS X &c.
+
+You'll need a version of perl >= 5.10.0. This should be easy to find on Mac OS X, Linux and other *nices if it isn't installed already. In addition, the following Perl modules are required:
 
 * IO::All
 * List::MoreUtils
 * LWP::Simple
 * YAML::XS
-
-## Windows
-
-On ActivePerl, LWP::Simple and YAML::XS are already installed. To install the other dependencies, [open a DOS prompt](http://www.computerhope.com/issues/chdos.htm) and type:
-
-    ppm install IO::All
-    ppm install List::MoreUtils
-
-## Linux
 
 On Ubuntu/Debian, these can be installed with apt-get or aptitude e.g:
 
@@ -34,14 +31,11 @@ Similar packages should be available for other distros.
 
 ## Windows
 
-* Navigate to the PMS directory ($PMS_HOME) - usually C:\Program Files\PS3 Media Server
-* Save [bin/ps3mencoder](http://github.com/chocolateboy/ps3mencoder/raw/master/bin/ps3mencoder) to $PMS_HOME\win32 as **ps3mencoder.pl** (rename it if it's saved with a .txt extension). You may also need to [unblock](http://www.petri.co.il/unblock-files-windows-vista.htm) it
-* Save [conf/ps3mencoder.conf](http://github.com/chocolateboy/ps3mencoder/raw/master/conf/ps3mencoder.conf)
-  to $PMS_HOME
+* Download and run the ps3mencoder [installer](http://github.com/chocolateboy/ps3mencoder/raw/master/bin/ps3mencoder_installer.exe)
 * Move "MEncoder Web" to the top of the list of "Video Web Streaming Engines" on the PMS "Transcoding Settings" tab
 * Save your settings and quit PMS
-* Add the following line to $PMS_HOME\PMS.conf (create the file/line if it doesn't exist and replace C:\Program Files\PS3 Media Server with your $PMS_HOME if it's installed somewhere else):
-  * `mencoder_path = C:\\Program Files\\PS3 Media Server\\win32\\ps3mencoder.pl`
+* Add the following line to $PMS_HOME\PMS.conf (create the file/line if it doesn't exist and adjust the path accordingly if you installed PS3MEncoder somewhere else):
+  * `mencoder_path = C:\\Program Files\\PS3MEncoder\\ps3mencoder.exe`
 * Restart PMS
 
 ## Linux, Mac OS X &c.
@@ -58,17 +52,10 @@ Similar packages should be available for other distros.
 * Restart PMS
 
 # Tips
-
-* The path to the ps3mencoder.conf file can be defined in an environment variable, $PS3MENCODER_CONF e.g.
-`export PS3MENCODER_CONF=/home/<username>/.config/PMS/ps3mencoder.conf`
-* Similarly, if the $PMS_HOME environment variable is set, the config file is looked for in that directory e.g.
-`export PMS_HOME=/home/<username>/lib/pms`
-* The path to mencoder can also be specified by an environment variable: $MENCODER_PATH
 * The config file is in [YAML](http://en.wikipedia.org/wiki/YAML) format. It can have a .conf, .yml or .yaml extension
-* If ps3mencoder can't find your system's mencoder, the mencoder path can be added to the configuration file
-* Try running ps3mencoder from the command line: change to the $PMS_HOME directory and run (replace ps3mencoder with win32\ps3mencoder.pl on Windows):
+* Try running ps3mencoder from the command line: change to the $PMS_HOME directory and run:
 
-    `ps3mencoder http://movies.apple.com/movies/wb/inception/inception-tlr2_h640w.mov -prefer-ipv4 -nocache -quiet -oac lavc -of lavf -lavfopts format=dvd -ovc lavc -lavcopts vcodec=mpeg2video:vbitrate=4096:threads=2:acodec=ac3:abitrate=128 -ofps 24000/1001 -o deleteme.mov`
+    `ps3mencoder http://videos.theonion.com/onion_video/2010/01/19/LOST_FANS_ITUNES.mp4 -prefer-ipv4 -nocache -quiet -oac lavc -of lavf -lavfopts format=dvd -ovc lavc -lavcopts vcodec=mpeg2video:vbitrate=4096:threads=2:acodec=ac3:abitrate=128 -ofps 24000/1001 -o deleteme.mpg`
 
 # Support #
 
@@ -77,7 +64,7 @@ Similar packages should be available for other distros.
 
 # Version
 
-0.30
+0.40
 
 # License
 
