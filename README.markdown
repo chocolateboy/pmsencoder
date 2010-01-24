@@ -31,7 +31,7 @@ Similar packages should be available for other distros.
 
 ## Windows
 
-* Download and run the ps3mencoder [installer](http://github.com/chocolateboy/ps3mencoder/raw/master/bin/ps3mencoder_installer.exe)
+* Download and run the ps3mencoder [installer](http://cloud.github.com/downloads/chocolateboy/ps3mencoder/ps3mencoder_installer.exe)
 * Move "MEncoder Web" to the top of the list of "Video Web Streaming Engines" on the PMS "Transcoding Settings" tab
 * Save your settings and quit PMS
 * Add the following line to $PMS_HOME\PMS.conf (create the file/line if it doesn't exist and adjust the path accordingly if you installed PS3MEncoder somewhere else):
