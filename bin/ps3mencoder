@@ -15,7 +15,6 @@ use YAML::XS qw(Load);
 
 my @CONFIG_FILE_EXT   = qw(conf yml yaml); # valid extensions for the ps3mencoder config file
 my $CWD               = abs_path(getcwd);  # current working directory
-my $DEFAULT_FPS       = 25;                # default framerate
 my $LOGFILE_PATH      = 'ps3mencoder.log'; # save alongside debug.log
 my $LOGFILE           = io($LOGFILE_PATH); # debug log
 my $SELF              = $0;                # full path to this executable
@@ -367,10 +366,6 @@ my $config = process_config($ARGV[0]); # load the config and process matching pr
 
 # web video streaming: fix mencoder options, handle YouTube videos, and process config file
 if (isdef('-prefer-ipv4') && isdef('-ovc')) {
-    remove('-nocache'); # this should *never* be set
-    set('-ofps', $DEFAULT_FPS); # prevent MEncoder being presented with fractional framerates it can't handle
-    add('-vf', 'harddup'); # needed for MPEG video to ensure the (possibly) modified framerate doesn't cause A/V sync issues
-
     # special-case YouTube
     # XXX add config support for this kind of handling (i.e. redirection)
     # if there are more examples like this
