@@ -1,0 +1,123 @@
+# XXX: don't edit this file unless you're familiar with YAML: indentation is important!
+
+version: 0.50
+
+# XXX: only set this if ps3mencoder can't find your system's mencoder i.e.
+# if it dies with a "can't find mencoder" message. Supply the full path,
+# including the extension (if any) e.g.
+#
+#    mencoder_path: /usr/bin/mencoder
+#
+# or (don't escape the backslashes on Windows):
+#
+#    mencoder_path: C:\Program Files\PS3 Media Server\win32\mencoder.exe
+#
+# XXX: if mencoder can't be found on Windows, something is wrong. Please report it on the forum.
+# In the likely event that you don't use it, this setting can safely be left blank or commented out
+
+mencoder_path:
+
+profiles:
+  - name: Global
+    # match everything - even non-Web transcodes
+    # don't do anything (for now)
+    match: '.'
+
+  - name: Web
+    # match all URIs
+    match: '^\w+://.+$'
+    options:
+        # PS3 only, but should be harmless on other renderers as it only sets upper bounds
+        # see http://en.wikipedia.org/wiki/H.264#Levels
+        #
+        # uncomment this option if you have a recent mencoder (i.e. post May 2007)
+        # see: http://lists.mplayerhq.hu/pipermail/mplayer-dev-eng/2007-May/051417.html
+
+        # - replace:
+        #   lavcopts:
+        #       # $ matches the end of the string i.e. append
+        #       $: ':level=41'
+
+        # removing -quiet produces verbose logging from mencoder
+        # XXX: hammering the console with mencoder mesages may reduce performance
+        # on Windows - see win32/mplayer/mplayer.conf
+
+      - remove: quiet
+
+        # streaming cache size in Kb
+        # use a healthy cache for Web streaming - the default is only 8 Mb
+      - set:
+            cache: 16384
+
+        # this should *never* be set
+      - remove: nocache
+
+        # prevent MEncoder being presented with fractional framerates it can't handle
+      - set:
+            ofps: 25
+
+        # needed for MPEG video to ensure the (possibly) modified framerate doesn't cause A/V sync issues
+      - set:
+            vf: harddup
+
+  - name: YouTube
+    # extract the media URI's ID from the URI
+    match: 'http://(?:\w+\.)?youtube\.com/watch\?v=(?<id>[^&]+)'
+    options:
+          # extract the media URI's signature from the HTML
+        - get: '"t":\s*"(?<signature>[^"]+)"'
+
+          # now, with $id and $signature defined, call the YouTube handler with an array of formats
+          # in descending order of preference.
+          # escape the array (by wrapping it inside another array) to ensure its elements aren't processed separately
+        - youtube: [ [ 22, 18, 6, 5 ] ]
+        
+  - name: Apple Trailers
+    match: '^http://(?:(?:movies|www)\.)?apple\.com/.+$'
+    # FIXME: 4096 is a needlessly high video bitrate; they typically weigh in at ~1200 Kbps
+    options:
+        set:
+            ofps: 24
+            user-agent: QuickTime/7.6.2
+
+  - name: Apple Trailers HD
+    match: '^http://(?:(?:movies|www)\.)?apple\.com/.+\.m4v$'
+    options:
+        replace:
+            lavcopts:
+                # increase the bitrate
+                4096: 5086
+
+  - name: TED
+    match: '^http://feedproxy\.google\.com/~r/TEDTalks_video\b'
+    options:
+        set:
+            ofps: 24
+
+  - name: GameTrailers.com (Revert PMS Workaround)
+
+    # convert:
+    #
+    #     http://www.gametrailers.com/download/48298/t_ufc09u_educate_int_gt.flv
+    #
+    # to:
+    #
+    #     http://www.gametrailers.com/player/48298.html
+
+    # extract the page ID
+    match: '^http://(www\.)?gametrailers\.com/download/(?<page_id>\d+)/[^.]+\.flv$'
+
+    options:
+        # and use it to restore the URI of the HTML
+        uri: 'http://www.gametrailers.com/player/$page_id.html'
+
+  - name: GameTrailers.com
+    match: '^http://(www\.)?gametrailers\.com/'
+    # The order is important here! Make sure we get the variables before we set the URI
+    options:
+        # extract some values from the HTML
+        - get:
+            movie_id: '\bmov_game_id\s*=\s*(\d+)'
+            filename: 'http://www.gametrailers.com/download/\d+/(t_[^.]+)\.wmv'
+        # now use them to rewrite the URI
+        - uri: 'http://trailers-ak.gametrailers.com/gt_vault/$movie_id/$filename.flv'
