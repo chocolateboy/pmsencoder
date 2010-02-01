@@ -1,26 +1,22 @@
-use 5.10.0;
 use strict;
 use warnings;
 
-use ExtUtils::MakeMaker;
+use inc::Module::Install;
 
-WriteMakefile(
-    NAME         => 'App::PS3MEncoder',
-    VERSION_FROM => 'lib/App/PS3MEncoder.pm',
-    PREREQ_PM    => {
-        'IO::All'         => 0,
-        'IPC::Cmd'        => '0.54',
-        'List::MoreUtils' => 0,
-        'LWP::Simple'     => 0,
-	'Path::Class'     => 0,
-    },
-    (
-        $] >= 5.005
-        ? (
-            ABSTRACT_FROM => 'lib/App/PS3MEncoder.pm',
-            AUTHOR        => 'chocolateboy <chocolate@cpan.org>'
-          )
-        : ()
-    ),
-    ($ExtUtils::MakeMaker::VERSION >= 6.31 ? (LICENSE => 'artistic_2') : ()),
-);
+name 'App-PS3MEncoder';
+# perl_version '5.008';
+author 'chocolateboy <chocolate@cpan.org>';
+all_from 'lib/App/PS3MEncoder.pm';
+
+requires 'File::ShareDir'  => '1.01';
+requires 'IO::All'         => 0;
+requires 'IPC::Cmd'        => '0.46';
+requires 'List::MoreUtils' => 0;
+requires 'LWP::Simple'     => 0;
+requires 'MooseX::Declare' => '0.32';
+
+test_requires 'Test::More' => 0;
+install_share 'config';
+install_script 'bin/ps3mencoder';
+
+WriteAll;
