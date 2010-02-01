@@ -1,16 +1,26 @@
+use 5.008001;
 use MooseX::Declare;
 
 class App::PS3MEncoder {
+    use constant {
+        DISTRO             => 'App-PS3MEncoder',
+        MENCODER_EXE       => 'mencoder.exe',
+        PS3MENCODER_CONFIG => 'ps3mencoder.yml',
+        PS3MENCODER_EXE    => 'mencoder.exe',
+        PS3MENCODER_LOG    => 'ps3mencoder.log',
+    };
+
     # core modules
-    use Cwd qw(abs_path getcwd);
     use File::Spec;
     use IPC::Cmd 0.46 qw(can_run); # core since 5.10.0, but we need a version that escapes shell arguments correctly
     use POSIX qw(strftime);
 
     # CPAN modules
+    use File::HomeDir;
     use IO::All;
     use IPC::Run; # let's try to be consistent across all platforms
     use List::MoreUtils qw(first_index);
+    use Path::Class qw(file dir);
     use LWP::Simple qw(get head);
     use YAML::XS qw(Load);
 
@@ -20,7 +30,6 @@ class App::PS3MEncoder {
     has config_file_ext => (
         is         => 'ro',
         isa        => 'ArrayRef',
-        required   => 0,
         auto_deref => 1,
         default    => sub { [ qw(conf yml yaml) ] },
     );
@@ -31,11 +40,10 @@ class App::PS3MEncoder {
         isa => 'HashRef'
     );
 
-    # current working directory
-    has cwd => (
-        is      => 'ro',
-        isa     => 'Str',
-        default => sub { abs_path(getcwd) },
+    # the path to the fallback config file
+    has default_config_path => (
+        is  => 'rw',
+        isa => 'Str'
     );
 
     # document cache for exec_get
@@ -45,11 +53,10 @@ class App::PS3MEncoder {
         default => sub { {} },
     );
 
-    # full logfile path; leave as the logfile name if $CWD is writable
+    # full logfile path
     has logfile_path => (
         is      => 'rw',
         isa     => 'Str',
-        default => 'ps3mencoder.log'
     );
 
     # IO::All logfile handle
@@ -67,9 +74,9 @@ class App::PS3MEncoder {
 
     # symbol table containing user-defined variables and named captures
     has stash => (
-        is         => 'ro',
-        isa        => 'HashRef',
-        default    => sub { {} },
+        is      => 'ro',
+        isa     => 'HashRef',
+        default => sub { {} },
     );
 
     # position in @ARGV of the filename/URI
@@ -87,35 +94,33 @@ class App::PS3MEncoder {
     );
 
     method BUILD {
-        my $logfile_path = $self->logfile_path;
-
-        # Windows 7 finally enters the 1970s by restricting write access to the installation dir
-        unless (-w $logfile_path) {
-            $logfile_path = $self->logfile_path(File::Spec->catfile(File::Spec->tmpdir, $logfile_path));
-        }
+        my $logfile_path = $self->logfile_path(file(File::Spec->tmpdir, PS3MENCODER_LOG)->stringify);
 
         $self->logfile(io($logfile_path));
         $self->logfile->append($/) if (-s $logfile_path);
         $self->debug("PS3MEncoder $VERSION");
 
-        # on Win32, the config file should be in $PMS_HOME, typically C:\Program Files\PS3 Media Server
+        # on Win32, it might make sense for the config file to be in $PMS_HOME, typically C:\Program Files\PS3 Media Server
         # Unfortunately, PMS' registry entries are currently broken, so we can't rely on them (e.g. we
         # can't use Win32::TieRegistry):
         #
         #     http://code.google.com/p/ps3mediaserver/issues/detail?id=555
         #
         # Instead we bundle the default config file (and mencoder.exe) in $PS3MENCODER_HOME/res
-        # and ensure they're picked up with a reasonably high priority by setting them as
-        # environment variables
+        # and ensure they're picked up with the appropriate precedence by setting the former via
+	# $self->default_config_path() and the latter via the $MENCODER_PATH environment variable
         
         if ($self->mswin) {
             eval 'use Cava::Pack';
             $self->fatal("can't load Cava::Pack: $@") if ($@);
             Cava::Pack::SetResourcePath('res');
-            $ENV{PS3MENCODER_CONF} ||= Cava::Pack::Resource('ps3mencoder.conf');
-            $ENV{MENCODER_PATH} ||= Cava::Pack::Resource('mencoder.exe');
-            $self->self_path(abs_path(File::Spec->catfile(Cava::Pack::Resource(''), File::Spec->updir, 'ps3mencoder.exe')));
-        }
+	    $self->default_config_path(Cava::Pack::Resource(PS3MENCODER_CONFIG));
+            $ENV{MENCODER_PATH} ||= Cava::Pack::Resource(MENCODER_EXE);
+            $self->self_path(file(Cava::Pack::Resource(''), File::Spec->updir, PS3MENCODER_EXE)->absolute);
+        } else {
+	    require File::ShareDir; # no need to worry about this not being picked up by Cava as it's non-Windows only
+	    $self->default_config_path(File::ShareDir::dist_file(DISTRO, PS3MENCODER_CONFIG)); 
+	}
 
         $self->debug($self->self_path . (@ARGV ? " @ARGV" : ''));
 
@@ -187,14 +192,21 @@ class App::PS3MEncoder {
            push @config, $ENV{PS3MENCODER_CONF};
         }
 
-        # search for it in the PMS home directory, e.g. alongside PMS.conf, if $PMS_HOME is defined
-        if (exists $ENV{PMS_HOME}) {
-           push @config, map { File::Spec->catfile($ENV{PMS_HOME}, "ps3mencoder.$_") } $self->config_file_ext;
+        # search for it in the user's home directory e.g. ~/.ps3mencoder/ps3mencoder.yml
+        my $home_dir = File::HomeDir->my_data;
+        if ($home_dir) {
+           my $subdir = $self->mswin ? 'ps3mencoder' : '.ps3mencoder';
+           push @config, map { file($home_dir, $subdir, "ps3mencoder.$_") } $self->config_file_ext;
         }
 
-        # If all else fails, look in the current working directory. This will be $PMS_HOME if ps3mencoder
-        # is called by PMS
-        push @config, map { File::Spec->catfile($self->cwd, "ps3mencoder.$_") } $self->config_file_ext;
+        # finally, fall back on the config file installed with the distro - this should always be available 
+	my $default = $self->default_config_path();
+
+        if ($default) {
+            push @config, $default;
+        } else {
+            $self->fatal("can't find default configuration file");
+        }
 
         for my $config_file (@config) {
             if (-f $config_file) {
@@ -263,7 +275,7 @@ class App::PS3MEncoder {
                 $self->debug('no URI defined');
             }
         } else {
-            require Data::Dumper;
+	    require Data::Dumper; # no need to worry about this not being picked up by Cava as it's core
             $Data::Dumper::Terse = 1;
             $Data::Dumper::Indent = 0;
             $self->debug("can't find ps3mencoder config file in: " . Data::Dumper::Dumper(\@config));
@@ -278,7 +290,7 @@ class App::PS3MEncoder {
     method exec_youtube (ArrayRef $formats) {
         my $uri = $ARGV[ $self->uri_index ];
         my $stash = $self->stash;
-        my ($id, $signature) = @{$stash}{qw( id signature)};
+        my ($id, $signature) = @{$stash}{qw(id signature)};
         my $found = 0;
 
         # via http://www.longtailvideo.com/support/forum/General-Chat/16851/Youtube-blocked-http-youtube-com-get-video

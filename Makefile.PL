@@ -3,20 +3,25 @@ use warnings;
 
 use inc::Module::Install;
 
-name 'App-PS3MEncoder';
-# perl_version '5.008';
-author 'chocolateboy <chocolate@cpan.org>';
+name     'App-PS3MEncoder';
+author   'chocolateboy <chocolate@cpan.org>';
+license  'artistic_2';
 all_from 'lib/App/PS3MEncoder.pm';
 
-requires 'File::ShareDir'  => '1.01';
+requires 'File::HomeDir'   => 0;
 requires 'IO::All'         => 0;
 requires 'IPC::Cmd'        => '0.46';
 requires 'List::MoreUtils' => 0;
 requires 'LWP::Simple'     => 0;
 requires 'MooseX::Declare' => '0.32';
 
-test_requires 'Test::More' => 0;
-install_share 'config';
+unless ($^O eq 'MSWin32') {
+    requires 'File::ShareDir' => '1.01';
+}
+
 install_script 'bin/ps3mencoder';
+install_share  'conf';
+repository     'http://github.com/chocolateboy/ps3mencoder';
+test_requires  'Test::More';
 
 WriteAll;
