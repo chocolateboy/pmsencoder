@@ -1,4 +1,4 @@
-use 5.008001;
+use 5.008001; # Moose minimum
 use MooseX::Declare;
 
 class App::PS3MEncoder {
@@ -17,12 +17,12 @@ class App::PS3MEncoder {
     use POSIX qw(strftime);
 
     # CPAN modules
-    use File::HomeDir;
+    use File::HomeDir; # technically, this is not always used, but try to keep Cava happy
     use IO::All;
-    use IPC::Run; # let's try to be consistent across all platforms
+    use IPC::Run; # this is optional, but let's try to be consistent across all platforms
     use List::MoreUtils qw(first_index);
     use Path::Class qw(file dir);
-    use LWP::Simple qw(get head);
+    # use LWP::Simple qw(get head); # XXX not always needed - make sure Cava picks this up
     use YAML::XS qw(Load);
 
     our $VERSION = '0.50'; # PS3MEncoder version: logged to aid diagnostics
@@ -179,35 +179,34 @@ class App::PS3MEncoder {
     }
 
     method _build_config_file_path {
-        my @config;
-        
         # first: check the environment variable (should contain the absolute path)
         if (exists $ENV{PS3MENCODER_CONF}) {
-           push @config, $ENV{PS3MENCODER_CONF};
+            my $config_file_path = $ENV{PS3MENCODER_CONF};
+            if (-f $config_file_path) {
+                return $config_file_path;
+            } else {
+                $self->fatal("invalid PS3MENCODER_CONF environment variable ($config_file_path): file not found"); 
+            }
         }
 
         # second: search for it in the user's home directory e.g. ~/.ps3mencoder/ps3mencoder.yml
         my $user_config_dir = $self->user_config_dir();
         if ($user_config_dir) { # not guaranteed to be defined
-           push @config, map { file($user_config_dir, "ps3mencoder.$_") } $self->config_file_ext;
+            for my $ext ($self->config_file_ext) {
+                my $config_file_path = file($user_config_dir, "ps3mencoder.$ext");
+                return $config_file_path if (-f $config_file_path);
+            }
         } else {
-            $self->debug("can't find user config dir");
+            $self->debug("can't find user config dir"); # should usually be defined; worth noting if it's not
         }
 
-        # finally, fall back on the config file installed with the distro - this should always be available 
-        my $default = $self->default_config_path();
-
-        if ($default) {
-            push @config, $default;
-        } else { # FIXME shouldn't happen
-            $self->fatal("can't find default configuration file");
+        # finally, fall back on the config file installed with the distro - this should always be available
+        my $default = $self->default_config_path() || $self->fatal("can't find default configuration file");
+        if (-f $default) {
+            return $default;
+        } else { # XXX shouldn't happen
+            $self->fatal("invalid path for default config file: $default");
         }
-
-        for my $config_file (@config) {
-            return $config_file if (-f $config_file);
-        }
-
-        $self->fatal("can't find config file");
     }
 
     method debug(Str $message) {
@@ -353,8 +352,9 @@ class App::PS3MEncoder {
         #     http://userscripts.org/topics/18274
 
         for my $fmt (@$formats) {
+	    require LWP::Simple;
             my $media_uri = "http://www.youtube.com/get_video?fmt=$fmt&video_id=$id&t=$signature";
-            next unless (head $media_uri);
+            next unless (LWP::Simple::head $media_uri);
             $self->exec_uri($media_uri);
             $found = 1;
             last;
@@ -434,7 +434,8 @@ class App::PS3MEncoder {
         my $uri = $ARGV[ $self->uri_index ];
         my $document = do {
             unless (exists $self->document->{$uri}) {
-                $self->document->{$uri} = get($uri) || $self->fatal("can't retrieve $uri");
+		require LWP::Simple;
+                $self->document->{$uri} = LWP::Simple::get($uri) || $self->fatal("can't retrieve $uri");
             }
             $self->document->{$uri};
         };
