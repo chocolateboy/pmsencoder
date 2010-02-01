@@ -9,9 +9,10 @@ WriteMakefile(
     VERSION_FROM => 'lib/App/PS3MEncoder.pm',
     PREREQ_PM    => {
         'IO::All'         => 0,
+        'IPC::Cmd'        => '0.54',
         'List::MoreUtils' => 0,
         'LWP::Simple'     => 0,
-        'IPC::Cmd'        => '0.54',
+	'Path::Class'     => 0,
     },
     (
         $] >= 5.005

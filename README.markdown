@@ -14,19 +14,10 @@ There are no additional dependencies. If you have previously installed Strawberr
 
 ## Linux, Mac OS X &c.
 
-You'll need a version of perl >= 5.10.0. This should be easy to find on Mac OS X, Linux and other *nices if it isn't installed already. In addition, the following Perl modules are required:
+You'll need a version of perl >= 5.10.0. This should be easy to find on Mac OS X, Linux and other *nices if it isn't installed already.
 
-* IO::All
-* List::MoreUtils
-* LWP::Simple
-* YAML::XS
-
-On Ubuntu/Debian, these can be installed with apt-get or aptitude e.g:
-
-    sudo aptitude install libio-all-perl liblist-moreutils-perl libwww-perl libyaml-libyaml-perl
-
-Similar packages should be available for other distros.
-
+If you wish to install PS3MEncoder and its dependencies without interfering with your system's perl and its libraries, you can either set up a local perl library with [local::lib](http://FIXME), or use the latest version of ActivePerl for your platform. Since version 0.50, there is no need to manually install PS3Mencoder dependencies. They should be installed automatically as part of the installation process.
+ 
 # Installation
 
 ## Windows
@@ -53,18 +44,20 @@ Similar packages should be available for other distros.
 
 # Tips
 * The config file is in [YAML](http://en.wikipedia.org/wiki/YAML) format. It can have a .conf, .yml or .yaml extension
+
+# Troubleshooting
+* Check the ps3mencoder.log logfile in the current directory e.g. $PMS_HOME/ps3mencoder.log (see above)
 * Try running ps3mencoder from the command line: change to the $PMS_HOME directory and run:
 
-    `ps3mencoder http://videos.theonion.com/onion_video/2010/01/19/LOST_FANS_ITUNES.mp4 -prefer-ipv4 -nocache -quiet -oac lavc -of lavf -lavfopts format=dvd -ovc lavc -lavcopts vcodec=mpeg2video:vbitrate=4096:threads=2:acodec=ac3:abitrate=128 -ofps 24000/1001 -o deleteme.mpg`
+    `ps3mencoder "http://videos.theonion.com/onion_video/2010/01/19/LOST_FANS_ITUNES.mp4" -prefer-ipv4 -nocache -quiet -oac lavc -of lavf -lavfopts format=dvd -ovc lavc -lavcopts vcodec=mpeg2video:vbitrate=4096:threads=2:acodec=ac3:abitrate=128 -ofps 24000/1001 -o deleteme.mpg`
 
-# Support #
+# Support
 
-* Check the ps3mencoder.log logfile in the current directory e.g. $PMS_HOME/ps3mencoder.log (see above)
 * For more details, discussion and troubleshooting tips, see [this thread](http://ps3mediaserver.org/forum/viewtopic.php?f=6&t=5002) ([start here](http://ps3mediaserver.org/forum/viewtopic.php?f=6&t=5002#p22479)).
 
 # Version
 
-0.40
+0.50
 
 # License
 

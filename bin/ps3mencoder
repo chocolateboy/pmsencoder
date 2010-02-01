@@ -1,8 +1,11 @@
 #!/usr/bin/env perl
 
-use 5.10.0;
 use strict;
 use warnings;
+
+use App::PS3MEncoder;
+
+$| = 1; # unbuffer output
 
 my $ps3mencoder = App::PS3MEncoder->new();
 
