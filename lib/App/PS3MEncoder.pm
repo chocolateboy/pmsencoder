@@ -2,12 +2,13 @@ use 5.008001;
 use MooseX::Declare;
 
 class App::PS3MEncoder {
+    use constant PS3MENCODER => 'ps3mencoder';
     use constant {
         DISTRO             => 'App-PS3MEncoder',
         MENCODER_EXE       => 'mencoder.exe',
-        PS3MENCODER_CONFIG => 'ps3mencoder.yml',
-        PS3MENCODER_EXE    => 'mencoder.exe',
-        PS3MENCODER_LOG    => 'ps3mencoder.log',
+        PS3MENCODER_CONFIG => PS3MENCODER . '.yml',
+        PS3MENCODER_EXE    => PS3MENCODER . '.exe',
+        PS3MENCODER_LOG    => PS3MENCODER . '.log',
     };
 
     # core modules
@@ -24,7 +25,7 @@ class App::PS3MEncoder {
     use LWP::Simple qw(get head);
     use YAML::XS qw(Load);
 
-    our $VERSION = 0.50; # PS3MEncoder version: logged to aid diagnostics
+    our $VERSION = '0.50'; # PS3MEncoder version: logged to aid diagnostics
 
     # valid extensions for the ps3mencoder config file
     has config_file_ext => (
@@ -34,13 +35,21 @@ class App::PS3MEncoder {
         default    => sub { [ qw(conf yml yaml) ] },
     );
 
+    # full path to the config file - an exception is thrown if one can't be found
+    has config_file_path => (
+        is      => 'ro',
+        isa     => 'Str',
+        lazy    => 1,
+        builder => '_build_config_file_path',
+    );
+
     # the YAML config file as a hash ref
     has config => (
         is  => 'rw',
         isa => 'HashRef'
     );
 
-    # the path to the fallback config file
+    # the path to the default config file - used as a fallback if no custom config file is found
     has default_config_path => (
         is  => 'rw',
         isa => 'Str'
@@ -79,6 +88,21 @@ class App::PS3MEncoder {
         default => sub { {} },
     );
 
+    # is this running on Windows?
+    has mswin => (
+        is      => 'ro',
+        isa     => 'Bool',
+        default => ($^O eq 'MSWin32'),
+    );
+
+    # full path to mencoder binary
+    has mencoder_path => (
+        is      => 'ro',
+        isa     => 'Str',
+        lazy    => 1,
+        builder => '_build_mencoder_path',
+    );
+
     # position in @ARGV of the filename/URI
     has uri_index => (
         is      => 'rw',
@@ -86,11 +110,10 @@ class App::PS3MEncoder {
         default => 0,
     );
 
-    # is this running on Windows?
-    has mswin => (
-        is      => 'ro',
-        isa     => 'Bool',
-        default => ($^O eq 'MSWin32'),
+    # full path to the dir searched for the user's config file
+    has user_config_dir => (
+        is      => 'rw',
+        isa     => 'Str',
     );
 
     method BUILD {
@@ -108,19 +131,23 @@ class App::PS3MEncoder {
         #
         # Instead we bundle the default config file (and mencoder.exe) in $PS3MENCODER_HOME/res
         # and ensure they're picked up with the appropriate precedence by setting the former via
-	# $self->default_config_path() and the latter via the $MENCODER_PATH environment variable
+        # $self->default_config_path() and the latter via the $MENCODER_PATH environment variable
         
+        my $data_dir = File::HomeDir->my_data;
+
         if ($self->mswin) {
             eval 'use Cava::Pack';
             $self->fatal("can't load Cava::Pack: $@") if ($@);
             Cava::Pack::SetResourcePath('res');
-	    $self->default_config_path(Cava::Pack::Resource(PS3MENCODER_CONFIG));
+            $self->default_config_path(Cava::Pack::Resource(PS3MENCODER_CONFIG));
             $ENV{MENCODER_PATH} ||= Cava::Pack::Resource(MENCODER_EXE);
             $self->self_path(file(Cava::Pack::Resource(''), File::Spec->updir, PS3MENCODER_EXE)->absolute);
+            $self->user_config_dir(dir($data_dir, PS3MENCODER)->stringify);
         } else {
-	    require File::ShareDir; # no need to worry about this not being picked up by Cava as it's non-Windows only
-	    $self->default_config_path(File::ShareDir::dist_file(DISTRO, PS3MENCODER_CONFIG)); 
-	}
+            require File::ShareDir; # no need to worry about this not being picked up by Cava as it's non-Windows only
+            $self->default_config_path(File::ShareDir::dist_file(DISTRO, PS3MENCODER_CONFIG)); 
+            $self->user_config_dir(dir($data_dir, '.' . PS3MENCODER)->stringify);
+        }
 
         $self->debug($self->self_path . (@ARGV ? " @ARGV" : ''));
 
@@ -131,6 +158,56 @@ class App::PS3MEncoder {
         $self->config($self->process_config); # load the config and process matching profiles
 
         return $self;
+    }
+
+    # show the temp file path and the home directory path
+    method help {
+        my $user_config_dir = $self->user_config_dir || '<undef>'; # may be undef
+
+        print STDOUT
+             PS3MENCODER, ":           $VERSION", $/,
+            'config file version:   ', eval { $self->config->{version} } || '<undef>', $/,
+            'config file:           ', $self->config_file_path(), $/,
+            'default config file:   ', $self->default_config_path(), $/,
+            'logfile:               ', $self->logfile_path(), $/,
+            'mencoder path:         ', $self->mencoder_path(), $/,
+            'user config directory: ', $user_config_dir, $/,
+    }
+
+    method _build_mencoder_path {
+        $self->config->{mencoder_path} || $ENV{MENCODER_PATH} || can_run('mencoder') || $self->fatal("can't find mencoder");
+    }
+
+    method _build_config_file_path {
+        my @config;
+        
+        # first: check the environment variable (should contain the absolute path)
+        if (exists $ENV{PS3MENCODER_CONF}) {
+           push @config, $ENV{PS3MENCODER_CONF};
+        }
+
+        # second: search for it in the user's home directory e.g. ~/.ps3mencoder/ps3mencoder.yml
+        my $user_config_dir = $self->user_config_dir();
+        if ($user_config_dir) { # not guaranteed to be defined
+           push @config, map { file($user_config_dir, "ps3mencoder.$_") } $self->config_file_ext;
+        } else {
+            $self->debug("can't find user config dir");
+        }
+
+        # finally, fall back on the config file installed with the distro - this should always be available 
+        my $default = $self->default_config_path();
+
+        if ($default) {
+            push @config, $default;
+        } else { # FIXME shouldn't happen
+            $self->fatal("can't find default configuration file");
+        }
+
+        for my $config_file (@config) {
+            return $config_file if (-f $config_file);
+        }
+
+        $self->fatal("can't find config file");
     }
 
     method debug(Str $message) {
@@ -160,10 +237,7 @@ class App::PS3MEncoder {
         # 3) the current working directory (prepended to the search path by IPC::Cmd::can_run)
         # 4) $PATH (via IPC::Cmd::can_run)
 
-        my $mencoder = $self->config->{mencoder_path} ||
-                       $ENV{MENCODER_PATH} ||
-                       can_run('mencoder') ||
-                       $self->fatal("can't find mencoder");
+        my $mencoder = $self->mencoder_path();
 
         $self->debug("exec: $mencoder" . (@ARGV ? " @ARGV" : ''));
 
@@ -185,39 +259,13 @@ class App::PS3MEncoder {
 
     method process_config {
         my $uri = $ARGV[ $self->uri_index ];
-        my (@config, $config);
-        
-        # explicitly specify the full path to the config file
-        if (exists $ENV{PS3MENCODER_CONF}) {
-           push @config, $ENV{PS3MENCODER_CONF};
-        }
+        my $config_file = $self->config_file_path();
 
-        # search for it in the user's home directory e.g. ~/.ps3mencoder/ps3mencoder.yml
-        my $home_dir = File::HomeDir->my_data;
-        if ($home_dir) {
-           my $subdir = $self->mswin ? 'ps3mencoder' : '.ps3mencoder';
-           push @config, map { file($home_dir, $subdir, "ps3mencoder.$_") } $self->config_file_ext;
-        }
-
-        # finally, fall back on the config file installed with the distro - this should always be available 
-	my $default = $self->default_config_path();
-
-        if ($default) {
-            push @config, $default;
-        } else {
-            $self->fatal("can't find default configuration file");
-        }
-
-        for my $config_file (@config) {
-            if (-f $config_file) {
-                $self->debug("loading config: $config_file");
-                my $yaml = eval { io($config_file)->slurp() };
-                $self->fatal("can't open config: $@") if ($@);
-                $config = eval { Load($yaml) };
-                $self->fatal("can't load config: $@") if ($@);
-                last;
-            }
-        }
+        $self->debug("loading config: $config_file");
+        my $yaml = eval { io($config_file)->slurp() };
+        $self->fatal("can't open config: $@") if ($@);
+        my $config = eval { Load($yaml) };
+        $self->fatal("can't load config: $@") if ($@);
 
         if ($config) {
             # FIXME: this blindly assumes the config file is sane at the moment
@@ -275,13 +323,10 @@ class App::PS3MEncoder {
                 $self->debug('no URI defined');
             }
         } else {
-	    require Data::Dumper; # no need to worry about this not being picked up by Cava as it's core
-            $Data::Dumper::Terse = 1;
-            $Data::Dumper::Indent = 0;
-            $self->debug("can't find ps3mencoder config file in: " . Data::Dumper::Dumper(\@config));
+            $self->fatal("can't load config from $config_file");
         }
 
-        return $config || {};
+        return $config;
     }
 
     ################################# MEncoder Options ################################
@@ -389,7 +434,7 @@ class App::PS3MEncoder {
         my $uri = $ARGV[ $self->uri_index ];
         my $document = do {
             unless (exists $self->document->{$uri}) {
-                $self->document->{$uri} = $self->get($uri) || $self->fatal("can't retrieve $uri");
+                $self->document->{$uri} = get($uri) || $self->fatal("can't retrieve $uri");
             }
             $self->document->{$uri};
         };
