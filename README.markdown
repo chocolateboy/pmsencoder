@@ -14,9 +14,9 @@ There are no additional dependencies. If you have previously installed Strawberr
 
 ## Linux, Mac OS X &c.
 
-You'll need a version of perl >= 5.10.0. This should be easy to find on Mac OS X, Linux and other *nices if it isn't installed already.
+You'll need a version of perl >= 5.10.0. This should be easy to find on Mac OS X, Linux and other *nixes if it isn't installed already.
 
-If you wish to install PS3MEncoder and its dependencies without interfering with your system's perl and its libraries, you can either set up a local perl library with [local::lib](http://FIXME), or use the latest version of ActivePerl for your platform. Since version 0.50, there is no need to manually install PS3Mencoder dependencies. They should be installed automatically as part of the installation process.
+If you wish to install PS3MEncoder and its dependencies without interfering with your system's Perl libraries (**recommended**), follow [these instructions](http://perl.jonallen.info/writing/articles/install-perl-modules-without-root). Since version 0.50, there is no need to manually install PS3Mencoder dependencies. They should be installed automatically as part of the installation process.
  
 # Installation
 
@@ -25,17 +25,13 @@ If you wish to install PS3MEncoder and its dependencies without interfering with
 * Download and run the ps3mencoder [installer](http://cloud.github.com/downloads/chocolateboy/ps3mencoder/ps3mencoder_installer.exe)
 * Move "MEncoder Web" to the top of the list of "Video Web Streaming Engines" on the PMS "Transcoding Settings" tab
 * Save your settings and quit PMS
-* Add the following line to $PMS_HOME\PMS.conf (create the file/line if it doesn't exist and adjust the path accordingly if you installed PS3MEncoder somewhere else):
-  * `mencoder_path = C:\\Program Files\\PS3MEncoder\\ps3mencoder.exe`
+* Locate your PMS.conf and add the following line: `mencoder_path = C:\\Program Files\\PS3MEncoder\\ps3mencoder.exe`
 * Restart PMS
 
 ## Linux, Mac OS X &c.
 
-* Save [bin/ps3mencoder](http://github.com/chocolateboy/ps3mencoder/raw/master/bin/ps3mencoder)
-  to a directory in your $PATH e.g. /home/\<username\>/bin/ps3mencoder
-* Make it executable: `chmod a+x /home/<username>/bin/ps3mencoder`
-* Save [conf/ps3mencoder.conf](http://github.com/chocolateboy/ps3mencoder/raw/master/conf/ps3mencoder.conf)
-  to the PMS directory ($PMS_HOME)
+* Install pip: `cpan -i pip`
+* Install PS3MEncoder: `pip -i http://cloud.github.com/downloads/chocolateboy/ps3mencoder/latest.tar.gz`
 * Move "MEncoder Web" to the top of the list of "Video Web Streaming Engines" on the PMS "Transcoding Settings" tab
 * Save your settings and quit PMS
 * Add your ps3mencoder path to $PMS_HOME/PMS.conf (create the file/line if it doesn't exist):
@@ -43,13 +39,17 @@ If you wish to install PS3MEncoder and its dependencies without interfering with
 * Restart PMS
 
 # Tips
+* On non-Windows platforms: to avoid mixing CPAN modules with system perl modules, either use [ActivePerl]() or [local::lib]()
+* Use ps3 --help to see configuration details e.g. to find out the location of the logfile
+* The config file is looked for in the path specified in the PS3MENCODER_CONFIG environment variable (which should specify the file's full path), followed by the user config directory (shown in the output of `ps3mencoder --help`). If no custom config file is specified for either of these, the default config file is used (default config file in the `ps3mencoder --help` output)
+* mencoder is looked for in the mencoder_path specified in the config file, the path specified in the MENCODER_PATH environment variable, the current directory, or the $PATH environment variable (%PATH% on Windows)
 * The config file is in [YAML](http://en.wikipedia.org/wiki/YAML) format. It can have a .conf, .yml or .yaml extension
+* Don't modify the default config file. Copy it to the directory listed as "user config dir" in the output of `ps3mencoder --help` and modify the copy. Delete the copy if you wish to revert to the default coinfiguration.
 
 # Troubleshooting
-* Check the ps3mencoder.log logfile in the current directory e.g. $PMS_HOME/ps3mencoder.log (see above)
-* Try running ps3mencoder from the command line: change to the $PMS_HOME directory and run:
-
-    `ps3mencoder "http://videos.theonion.com/onion_video/2010/01/19/LOST_FANS_ITUNES.mp4" -prefer-ipv4 -nocache -quiet -oac lavc -of lavf -lavfopts format=dvd -ovc lavc -lavcopts vcodec=mpeg2video:vbitrate=4096:threads=2:acodec=ac3:abitrate=128 -ofps 24000/1001 -o deleteme.mpg`
+* Check the PMS debug.log
+* Check the ps3mencoder.log logfile (see the output of `ps3mencoder --help` for the path)
+* run `ps3mencoder --test` (no additional arguments) to test ps3mencoder from the command line
 
 # Support
 
