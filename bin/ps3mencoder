@@ -4,40 +4,43 @@ use strict;
 use warnings;
 
 use App::PS3MEncoder;
-use Getopt::Long;
+use Getopt::Long qw(:config posix_default no_ignore_case);
 
 $| = 1; # unbuffer output
 
-my ($help, $test);
-my $result = GetOptions(
+my ($help, $test, $ps3mencoder, @args);
+
+GetOptions(
     "help" => \$help,
     "test" => \$test,
-);
+) || die "can't process options";
 
 if ($test) {
-    @ARGV = qw(
-	http://www.youtube.com/watch?v=S3XzUYd6nrU
-	-prefer-ipv4
-	-nocache
-	-quiet
-	-oac
-	lavc
-	-of
-	lavf
-	-lavfopts
-	format=dvd
-	-ovc
-	lavc
-	-lavcopts
-	vcodec=mpeg2video:vbitrate=4096:threads=2:acodec=ac3:abitrate=128
-	-ofps
-	24000/1001
-	-o
-	deleteme.mpg
+    @args = qw(
+        http://www.youtube.com/watch?v=S3XzUYd6nrU
+        -prefer-ipv4
+        -nocache
+        -quiet
+        -oac
+        lavc
+        -of
+        lavf
+        -lavfopts
+        format=dvd
+        -ovc
+        lavc
+        -lavcopts
+        vcodec=mpeg2video:vbitrate=4096:threads=2:acodec=ac3:abitrate=128
+        -ofps
+        24000/1001
+        -o
+        deleteme.mpg
     );
+} else {
+    @args = @ARGV;
 }
 
-my $ps3mencoder = App::PS3MEncoder->new();
+$ps3mencoder = App::PS3MEncoder->new({ args => \@args });
 
 if ($help) {
     $ps3mencoder->help();

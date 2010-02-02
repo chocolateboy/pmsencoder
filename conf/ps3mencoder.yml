@@ -61,14 +61,14 @@ profiles:
             vf: harddup
 
   - name: YouTube
-    # extract the media URI's ID from the webpage URI
-    match: 'http://(?:\w+\.)?youtube\.com/watch\?v=(?<id>[^&]+)'
+    # extract the media URI's video_id from the webpage URI
+    match: 'http://(?:\w+\.)?youtube\.com/watch\?v=(?<video_id>[^&]+)'
     options:
-          # extract the media URI's signature from the HTML
-        - get: '"t":\s*"(?<signature>[^"]+)"'
+          # extract the media URI's sekrit identifier ($t) from the HTML
+        - get: '"t":\s*"(?<t>[^"]+)"'
 
-          # now, with $id and $signature defined, call the YouTube handler with an array of formats
-          # in descending order of preference.
+          # now, with $video_id and $t defined, call the YouTube handler with an array of formats
+          # in descending order of preference
         - youtube: [ 22, 18, 6, 5 ]
         
   - name: Apple Trailers
