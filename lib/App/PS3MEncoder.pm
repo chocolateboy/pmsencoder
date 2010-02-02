@@ -238,7 +238,7 @@ method _build_config_file_path {
     my $user_config_dir = $self->user_config_dir();
     if (defined $user_config_dir) { # not guaranteed to be defined
         for my $ext ($self->config_file_ext) {
-            my $config_file_path = file($user_config_dir, "ps3mencoder.$ext");
+            my $config_file_path = file($user_config_dir, "ps3mencoder.$ext")->stringify;
             return $config_file_path if (-f $config_file_path);
         }
     } else {
