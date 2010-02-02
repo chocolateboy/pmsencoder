@@ -1,0 +1,19 @@
+#!/bin/sh
+
+# XXX change this
+PMS_HOME=/path/to/your/PMS/dir
+
+# set up the local::lib environment variables
+# XXX adjust if your local Perl lib is installed elsewhere
+eval $(perl -I$HOME/perl5/lib/perl5 -Mlocal::lib=$HOME/perl5)
+
+# change to the PMS working directory
+cd $PMS_HOME
+
+# clear the old logfiles
+cat /dev/null > pms.log
+cat /dev/null > debug.log
+cat /dev/null > /tmp/pmsencoder.log
+
+# run PMS
+./PMS.sh > pms.log
