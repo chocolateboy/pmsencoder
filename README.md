@@ -10,7 +10,7 @@ These instructions assume you have the latest version of [PS3 Media Server](http
 
 ## Windows
 
-There are no additional dependencies. If you have previously installed Strawberry Perl, and have no further use for it, it can safely be uninstalled.
+There are no additional dependencies.
 
 ## Linux, Mac OS X &c.
 
