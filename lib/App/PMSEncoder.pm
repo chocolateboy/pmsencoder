@@ -1,17 +1,18 @@
-package App::PS3MEncoder;
+package App::PMSEncoder;
 
 use 5.008001;
 
-use constant PS3MENCODER => 'ps3mencoder';
+use constant PMSENCODER => 'pmsencoder';
 use constant {
-    DISTRO             => 'App-PS3MEncoder',
-    MENCODER_EXE       => 'mencoder.exe',
-    PS3MENCODER_CONFIG => PS3MENCODER . '.yml',
-    PS3MENCODER_EXE    => PS3MENCODER . '.exe',
-    PS3MENCODER_LOG    => PS3MENCODER . '.log',
+    DISTRO            => 'App-PMSEncoder',
+    MENCODER_EXE      => 'mencoder.exe',
+    PMSENCODER_CONFIG => PMSENCODER . '.yml',
+    PMSENCODER_EXE    => PMSENCODER . '.exe',
+    PMSENCODER_LOG    => PMSENCODER . '.log',
 };
 
 # core modules
+use Config;
 use File::Spec;
 use IPC::Cmd 0.46 qw(can_run); # core since 5.10.0, but we need a version that escapes shell arguments correctly
 use POSIX qw(strftime);
@@ -21,16 +22,16 @@ use File::HomeDir; # technically, this is not always used, but try to keep Cava 
 use IO::All;
 use List::MoreUtils qw(first_index any);
 use Method::Signatures::Simple;
-use Mouse; # includes strict and warnings
+use Mouse 0.49; # includes strict and warnings - this version or above needed for the RT #54203 fix
 use Path::Class qw(file dir);
 use YAML::XS qw(Load);
 
 # use LWP::Simple qw(get head); # XXX not always needed - make sure Cava picks this up
 # use File::ShareDir;           # XXX not always needed - make sure Cava picks this up
 
-our $VERSION = '0.50'; # PS3MEncoder version: logged to aid diagnostics
+our $VERSION = '0.60'; # PMSEncoder version: logged to aid diagnostics
 
-# arguments passed in @ARGV after any ps3mencoder-specific processing
+# arguments passed in @ARGV after any pmsencoder-specific processing
 has args => (
     is         => 'rw',
     isa        => 'ArrayRef',
@@ -38,7 +39,7 @@ has args => (
     required   => 1,
 );
 
-# valid extensions for the ps3mencoder config file
+# valid extensions for the pmsencoder config file
 has config_file_ext => (
     is         => 'ro',
     isa        => 'ArrayRef',
@@ -152,17 +153,11 @@ has user_config_dir => (
 }
 
 method BUILD {
-    # my $logfile_path = $self->logfile_path(file(File::Spec->tmpdir, PS3MENCODER_LOG)->stringify());
-    # work around strange interaction with Path::Class::File::stringify:
-    # https://rt.cpan.org/Ticket/Display.html?id=54203
-
-    $self->logfile_path(file(File::Spec->tmpdir, PS3MENCODER_LOG)->stringify);
-
-    my $logfile_path = $self->logfile_path();
+    my $logfile_path = $self->logfile_path(file(File::Spec->tmpdir, PMSENCODER_LOG)->stringify());
 
     $self->logfile(io($logfile_path));
     $self->logfile->append($/) if (-s $logfile_path);
-    $self->debug("PS3MEncoder $VERSION ($^O)");
+    $self->debug(PMSENCODER . " $VERSION ($^O)");
 
     # on Win32, it might make sense for the config file to be in $PMS_HOME, typically C:\Program Files\PS3 Media Server
     # Unfortunately, PMS' registry entries are currently broken, so we can't rely on them (e.g. we
@@ -170,7 +165,7 @@ method BUILD {
     #
     #     http://code.google.com/p/ps3mediaserver/issues/detail?id=555
     #
-    # Instead we bundle the default config file (and mencoder.exe) in $PS3MENCODER_HOME/res
+    # Instead we bundle the default config file (and mencoder.exe) in $PMSENCODER_HOME/res
     # and ensure they're picked up with the appropriate precedence by setting the former via
     # $self->default_config_path() and the latter via the $MENCODER_PATH environment variable
     
@@ -180,14 +175,14 @@ method BUILD {
         eval 'use Cava::Pack';
         $self->fatal("can't load Cava::Pack: $@") if ($@);
         Cava::Pack::SetResourcePath('res');
-        $self->default_config_path(Cava::Pack::Resource(PS3MENCODER_CONFIG));
+        $self->default_config_path(Cava::Pack::Resource(PMSENCODER_CONFIG));
         $ENV{MENCODER_PATH} ||= Cava::Pack::Resource(MENCODER_EXE);
-        $self->self_path(file(Cava::Pack::Resource(''), File::Spec->updir, PS3MENCODER_EXE)->absolute->stringify);
-        $self->user_config_dir(dir($data_dir, PS3MENCODER)->stringify);
+        $self->self_path(file(Cava::Pack::Resource(''), File::Spec->updir, PMSENCODER_EXE)->absolute->stringify);
+        $self->user_config_dir(dir($data_dir, PMSENCODER)->stringify);
     } else {
         require File::ShareDir; # no need to worry about this not being picked up by Cava as it's non-Windows only
-        $self->default_config_path(File::ShareDir::dist_file(DISTRO, PS3MENCODER_CONFIG)); 
-        $self->user_config_dir(dir($data_dir, '.' . PS3MENCODER)->stringify);
+        $self->default_config_path(File::ShareDir::dist_file(DISTRO, PMSENCODER_CONFIG)); 
+        $self->user_config_dir(dir($data_dir, '.' . PMSENCODER)->stringify);
     }
 
     my @args = $self->args();
@@ -205,11 +200,11 @@ method BUILD {
 }
 
 # dump various config settings - useful for troubleshooting
-method help {
+method status {
     my $user_config_dir = $self->user_config_dir || '<undef>'; # may be undef according to the File::HomeDir docs
 
     print STDOUT
-         PS3MENCODER, ":           $VERSION ($^O)", $/,
+         PMSENCODER,  ":            $VERSION ($^O $Config{osvers})", $/,
         'config file version:   ', $self->config->{version}, $/, # sanity-checked by process_config
         'config file:           ', $self->config_file_path(), $/,
         'default config file:   ', $self->default_config_path(), $/,
@@ -224,21 +219,21 @@ method _build_mencoder_path {
 
 method _build_config_file_path {
     # first: check the environment variable (should contain the absolute path)
-    if (exists $ENV{PS3MENCODER_CONFIG}) {
-        my $config_file_path = $ENV{PS3MENCODER_CONFIG};
+    if (exists $ENV{PMSENCODER_CONFIG}) {
+        my $config_file_path = $ENV{PMSENCODER_CONFIG};
 
         if (-f $config_file_path) {
             return $config_file_path;
         } else {
-            $self->fatal("invalid PS3MENCODER_CONFIG environment variable ($config_file_path): file not found"); 
+            $self->fatal("invalid PMSENCODER_CONFIG environment variable ($config_file_path): file not found"); 
         }
     }
 
-    # second: search for it in the user's home directory e.g. ~/.ps3mencoder/ps3mencoder.yml
+    # second: search for it in the user's home directory e.g. ~/.pmsencoder/pmsencoder.yml
     my $user_config_dir = $self->user_config_dir();
     if (defined $user_config_dir) { # not guaranteed to be defined
         for my $ext ($self->config_file_ext) {
-            my $config_file_path = file($user_config_dir, "ps3mencoder.$ext")->stringify;
+            my $config_file_path = file($user_config_dir, PMSENCODER . ".$ext")->stringify;
             return $config_file_path if (-f $config_file_path);
         }
     } else {
@@ -526,19 +521,19 @@ __END__
 
 =head1 NAME
 
-App::PS3MEncoder - MEncoder wrapper for PS3 Media Server
+App::PMSEncoder - MEncoder wrapper for PS3 Media Server
 
 =head1 SYNOPSIS
 
-my $ps3mencoder = App::PS3MEncoder->new({ args => \@ARGV });
+    my $pmsencoder = App::PMSEncoder->new({ args => \@ARGV });
 
-$ps3mencoder->run();
+    $pmsencoder->run();
 
 =head1 DESCRIPTION
 
 This is a helper script for PS3 Media Server that restores support for Web video streaming via mencoder.
 
-See here for more details: http://github.com/chocolateboy/ps3mencoder
+See here for more details: http://github.com/chocolateboy/pmsencoder
 
 =head1 AUTHOR
 
@@ -554,6 +549,6 @@ chocolateboy <chocolate@cpan.org>
 
 =head1 VERSION
 
-0.50
+0.60
 
 =cut

@@ -4,18 +4,18 @@ use warnings;
 
 use inc::Module::Install;
 
-name     'App-PS3MEncoder';
+name     'App-PMSEncoder';
 author   'chocolateboy <chocolate@cpan.org>';
 license  'artistic_2';
-all_from 'lib/App/PS3MEncoder.pm';
+all_from 'lib/App/PMSEncoder.pm';
 
 requires 'File::HomeDir';
 requires 'IO::All';
-requires 'IPC::Cmd'                   => '0.46';
-requires 'List::MoreUtils'            => '0.12'; # first_index wasn't exported prior to this
+requires 'IPC::Cmd'                    => '0.54'; # this is key, so let's have the latest version
+requires 'List::MoreUtils'             => '0.12'; # first_index wasn't exported till 0.12
 requires 'LWP::Simple';
-requires 'Method::Signatures::Simple' => '0.05';
-requires 'Mouse'                      => '0.48';
+requires 'Method::Signatures::Simple';
+requires 'Mouse'                       => '0.49'; # 0.49 includes an update that fixes buggy interaction with Path::Class
 requires 'Path::Class';
 requires 'YAML::XS';
 
@@ -23,9 +23,9 @@ unless ($^O eq 'MSWin32') { # used for default config file - not used on Windows
     requires 'File::ShareDir' => '1.01';
 }
 
-install_script 'bin/ps3mencoder';
+install_script 'bin/pmsencoder';
 install_share  'conf';
-repository     'http://github.com/chocolateboy/ps3mencoder';
+repository     'http://github.com/chocolateboy/pmsencoder';
 test_requires  'Test::More';
 
 WriteAll;

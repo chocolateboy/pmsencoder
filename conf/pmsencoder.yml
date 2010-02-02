@@ -1,8 +1,10 @@
 # XXX: don't edit this file unless you're familiar with YAML: indentation is important!
 
+# this is the version of PMSEncoder this config file *syntax* was introduced in i.e.
+# the oldest version of PMSEncoder that will work with this file
 version: 0.50
 
-# XXX: only set this if ps3mencoder can't find your system's mencoder i.e.
+# XXX: only set this if pmsencoder can't find your system's mencoder i.e.
 # if it dies with a "can't find mencoder" message. Supply the full path,
 # including the extension (if any) e.g.
 #

@@ -1,0 +1,4 @@
+0.60: Tue Feb  2 20:53:28 GMT 2010
+
+    - renamed: PS3MEncoder => PMSEncoder
+    - added CHANGES + TODO

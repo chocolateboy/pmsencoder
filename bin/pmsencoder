@@ -3,15 +3,15 @@
 use strict;
 use warnings;
 
-use App::PS3MEncoder;
+use App::PMSEncoder;
 use Getopt::Long qw(:config posix_default no_ignore_case);
 
 $| = 1; # unbuffer output
 
-my ($help, $test, $ps3mencoder, @args);
+my ($status, $test, $pmsencoder, @args);
 
 GetOptions(
-    "help" => \$help,
+    "status" => \$status,
     "test" => \$test,
 ) || die "can't process options";
 
@@ -40,10 +40,10 @@ if ($test) {
     @args = @ARGV;
 }
 
-$ps3mencoder = App::PS3MEncoder->new({ args => \@args });
+$pmsencoder = App::PMSEncoder->new({ args => \@args });
 
-if ($help) {
-    $ps3mencoder->help();
+if ($status) {
+    $pmsencoder->status();
 } else {
-    $ps3mencoder->run();
+    $pmsencoder->run();
 }

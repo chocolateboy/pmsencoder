@@ -1,23 +1,37 @@
---- #YAML:1.0
-name:               App-PS3MEncoder
-version:            0.5
-abstract:           MEncoder wrapper for PS3 Media Server
+---
+abstract: 'MEncoder wrapper for PS3 Media Server'
 author:
-    - chocolateboy <chocolate@cpan.org>
-license:            artistic_2
-distribution_type:  module
+  - 'chocolateboy <chocolate@cpan.org>'
+build_requires:
+  ExtUtils::MakeMaker: 6.42
+  Test::More: 0
 configure_requires:
-    ExtUtils::MakeMaker:  0
-requires:
-    IO::All:          0
-    IPC::Cmd:         0.54
-    List::MoreUtils:  0
-    LWP::Simple:      0
-no_index:
-    directory:
-        - t
-        - inc
-generated_by:       ExtUtils::MakeMaker version 6.48
+  ExtUtils::MakeMaker: 6.42
+distribution_type: module
+generated_by: 'Module::Install version 0.92'
+license: artistic_2
 meta-spec:
-    url:      http://module-build.sourceforge.net/META-spec-v1.4.html
-    version:  1.4
+  url: http://module-build.sourceforge.net/META-spec-v1.4.html
+  version: 1.4
+name: App-PMSEncoder
+no_index:
+  directory:
+    - conf
+    - inc
+    - t
+requires:
+  File::HomeDir: 0
+  File::ShareDir: 1.01
+  IO::All: 0
+  IPC::Cmd: 0.54
+  LWP::Simple: 0
+  List::MoreUtils: 0.12
+  Method::Signatures::Simple: 0
+  Mouse: 0.49
+  Path::Class: 0
+  YAML::XS: 0
+  perl: 5.8.1
+resources:
+  license: http://opensource.org/licenses/artistic-license-2.0.php
+  repository: http://github.com/chocolateboy/pmsencoder
+version: 0.60
