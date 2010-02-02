@@ -162,7 +162,7 @@ method BUILD {
 
     $self->logfile(io($logfile_path));
     $self->logfile->append($/) if (-s $logfile_path);
-    $self->debug("PS3MEncoder $VERSION");
+    $self->debug("PS3MEncoder $VERSION ($^O)");
 
     # on Win32, it might make sense for the config file to be in $PMS_HOME, typically C:\Program Files\PS3 Media Server
     # Unfortunately, PMS' registry entries are currently broken, so we can't rely on them (e.g. we
