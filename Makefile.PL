@@ -1,4 +1,4 @@
-use 5.008001;
+use 5.10.0;
 use strict;
 use warnings;
 
@@ -19,12 +19,13 @@ requires 'Mouse'                       => '0.49'; # 0.49 includes an update that
 requires 'Path::Class';
 requires 'YAML::XS';
 
-unless ($^O eq 'MSWin32') { # used for default config file - not used on Windows
+# not used on Windows
+unless ($^O eq 'MSWin32') {
     requires 'File::ShareDir' => '1.01';
+    install_share 'conf';
 }
 
 install_script 'bin/pmsencoder';
-install_share  'conf';
 repository     'http://github.com/chocolateboy/pmsencoder';
 test_requires  'Test::More';
 

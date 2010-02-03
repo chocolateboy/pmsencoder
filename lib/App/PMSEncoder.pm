@@ -1,14 +1,16 @@
 package App::PMSEncoder;
 
-use 5.008001;
+use 5.10.0;
 
 use constant PMSENCODER => 'pmsencoder';
 use constant {
-    DISTRO            => 'App-PMSEncoder',
-    MENCODER_EXE      => 'mencoder.exe',
-    PMSENCODER_CONFIG => PMSENCODER . '.yml',
-    PMSENCODER_EXE    => PMSENCODER . '.exe',
-    PMSENCODER_LOG    => PMSENCODER . '.log',
+    CHECK_RESOURCE_EXISTS   => 1,
+    DISTRO                  => 'App-PMSEncoder',
+    MENCODER_EXE            => 'mencoder.exe',
+    PMSENCODER_CONFIG       => PMSENCODER . '.yml',
+    PMSENCODER_EXE          => PMSENCODER . '.exe',
+    PMSENCODER_LOG          => PMSENCODER . '.log',
+    REQUIRE_RESOURCE_EXISTS => 2,
 };
 
 # core modules
@@ -18,7 +20,7 @@ use IPC::Cmd 0.46 qw(can_run); # core since 5.10.0, but we need a version that e
 use POSIX qw(strftime);
 
 # CPAN modules
-use File::HomeDir; # technically, this is not always used, but try to keep Cava happy
+use File::HomeDir; # technically, this is not always needed, but using it unconditionally simplifies teh code slightly
 use IO::All;
 use List::MoreUtils qw(first_index any);
 use Method::Signatures::Simple;
@@ -27,7 +29,8 @@ use Path::Class qw(file dir);
 use YAML::XS qw(Load);
 
 # use LWP::Simple qw(get head); # XXX not always needed - make sure Cava picks this up
-# use File::ShareDir;           # XXX not always needed - make sure Cava picks this up
+# use File::ShareDir;           # not used on Windows
+# use Cava::Pack;               # Windows only
 
 our $VERSION = '0.60'; # PMSEncoder version: logged to aid diagnostics
 
@@ -89,7 +92,7 @@ has logfile => (
 
 # full path to this executable
 has self_path => (
-    is      => 'ro',
+    is      => 'rw',
     isa     => 'Str',
     default => $0
 );
@@ -137,13 +140,27 @@ has user_config_dir => (
 # so it's one less dependency to worry about
 
 {
-    my %ATTRIBUTES;
+    my (%ATTRIBUTES, %ATTRIBUTES_OK);
 
-    # this has to be a sub i.e. compile-time (Method::Signatures::Simple's methods are declared at runtime)
+    # this needs to be initialised before MODIFY_CODE_ATTRIBUTES is called i.e. at compile-time
+    BEGIN { %ATTRIBUTES_OK = map { $_ => 1 } qw(Raw) }
+
+    # this has to be a sub as it's called at compile-time (Method::Signatures::Simple's methods are declared at runtime)
     sub MODIFY_CODE_ATTRIBUTES {
-        my ($pkg, $code, @attrs) = @_;
-        $ATTRIBUTES{$code} = [ @attrs ];
-        return (); # return any attributes we don't handle - none in this case
+        my ($class, $code, @attrs) = @_;
+        my (@keep, @discard);
+
+        # partition attributes into those we handle (i.e. those listed in @ATTRIBUTES) and those we don't
+        for my $attr (@attrs) {
+            if ($ATTRIBUTES_OK{$attr}) {
+                push @keep, $attr;
+            } else {
+                push @discard, $attr;
+            }
+        }
+
+        $ATTRIBUTES{$code} = [ @keep ];
+        return @discard; # return any attributes we don't handle
     }
 
     # by using %ATTRIBUTES directly we can bypass attributes::get and FETCH_CODE_ATTRIBUTES
@@ -169,34 +186,59 @@ method BUILD {
     # and ensure they're picked up with the appropriate precedence by setting the former via
     # $self->default_config_path() and the latter via the $MENCODER_PATH environment variable
     
-    my $data_dir = File::HomeDir->my_data;
+    # initialize resource handling and store the correct version of $0 on Windows.
+    # also tailor the name of the pmsencoder subdirectory of the user's home directory to the platform
+    my $subdir;
 
     if ($self->mswin) {
-        eval 'use Cava::Pack';
-        $self->fatal("can't load Cava::Pack: $@") if ($@);
+        require Cava::Pack;
         Cava::Pack::SetResourcePath('res');
-        $self->default_config_path(Cava::Pack::Resource(PMSENCODER_CONFIG));
-        $ENV{MENCODER_PATH} ||= Cava::Pack::Resource(MENCODER_EXE);
-        $self->self_path(file(Cava::Pack::Resource(''), File::Spec->updir, PMSENCODER_EXE)->absolute->stringify);
-        $self->user_config_dir(dir($data_dir, PMSENCODER)->stringify);
+        $self->self_path(file($self->get_resource_path(''), File::Spec->updir, PMSENCODER_EXE)->absolute->stringify);
+        $subdir = PMSENCODER;
+
+        # declare a private method (at runtime!)
+        method _get_resource_path($name) { Cava::Pack::Resource($name) }
     } else {
         require File::ShareDir; # no need to worry about this not being picked up by Cava as it's non-Windows only
-        $self->default_config_path(File::ShareDir::dist_file(DISTRO, PMSENCODER_CONFIG)); 
-        $self->user_config_dir(dir($data_dir, '.' . PMSENCODER)->stringify);
+        $subdir = '.' . PMSENCODER;
+
+        # declare a private method (at runtime!)
+        method _get_resource_path($name) { File::ShareDir::dist_file(DISTRO, $name) }
     }
+
+    my $data_dir = File::HomeDir->my_data;
+
+    $self->user_config_dir(dir($data_dir, $subdir)->stringify);
+    $self->default_config_path($self->get_resource_path(PMSENCODER_CONFIG, REQUIRE_RESOURCE_EXISTS));
 
     my @args = $self->args();
     $self->debug($self->self_path . (@args ? " @args" : ''));
 
-    unless ($self->isdef('-prefer-ipv4')) { # uri_index defaults to 0
+    unless ($self->isdef('prefer-ipv4')) { # uri_index defaults to 0
         $self->uri_index(4); # hardwired in net.pms.encoders.MEncoderVideo.launchTranscode
     }
 
-    # XXX at the moment, all options (--help, --test, and the implicit run option) need the config,
+    # XXX at the moment, all options (--status, --test, and the implicit --run option) need the config,
     # so it may as well be initialised here
     $self->config($self->process_config); # load the config and process matching profiles
 
     return $self;
+}
+
+method get_resource_path($name, $exists) {
+    my $path = $self->get_resource_path($name);
+
+    if ($exists) {
+        if ($exists == CHECK_RESOURCE_EXISTS) {
+            return (-f $path) ? $path : undef;
+        } elsif ($exists == REQUIRE_RESOURCE_EXISTS) {
+            return (-f $path) ? $path : $self->fatal("can't find resource: $name");
+        } else { # internal error - shouldn't get here
+            $self->fatal("invalid flag for get_resource_path($name): $exists");
+        }
+    } else {
+        return $path;
+    }
 }
 
 # dump various config settings - useful for troubleshooting
@@ -204,7 +246,7 @@ method status {
     my $user_config_dir = $self->user_config_dir || '<undef>'; # may be undef according to the File::HomeDir docs
 
     print STDOUT
-         PMSENCODER,  ":            $VERSION ($^O $Config{osvers})", $/,
+         PMSENCODER, ":            $VERSION ($^O $Config{osvers})", $/,
         'config file version:   ', $self->config->{version}, $/, # sanity-checked by process_config
         'config file:           ', $self->config_file_path(), $/,
         'default config file:   ', $self->default_config_path(), $/,
@@ -214,7 +256,13 @@ method status {
 }
 
 method _build_mencoder_path {
-    $self->config->{mencoder_path} || $ENV{MENCODER_PATH} || can_run('mencoder') || $self->fatal("can't find mencoder");
+    my $ext = $Config{_exe};
+
+    $self->config->{mencoder_path}
+        || $ENV{MENCODER_PATH}
+        || can_run('mencoder')
+        || $self->get_resource_path("mencoder$ext", CHECK_RESOURCE_EXISTS)
+        || $self->fatal("can't find mencoder");
 }
 
 method _build_config_file_path {
@@ -241,7 +289,7 @@ method _build_config_file_path {
     }
 
     # finally, fall back on the config file installed with the distro - this should always be available
-    my $default = $self->default_config_path() || $self->fatal("can't find default configuration file");
+    my $default = $self->default_config_path() || $self->fatal("can't find default config file");
     if (-f $default) {
         return $default;
     } else { # XXX shouldn't happen
@@ -260,7 +308,7 @@ method fatal ($message) {
 }
 
 method isdef ($name) {
-    my $index = first_index { $_ eq $name } $self->args;
+    my $index = first_index { $_ eq "-$name" } $self->args;
     return ($index != -1);
 }
 
@@ -315,6 +363,8 @@ method process_config {
 
         my $version = $config->{version};
 
+        # TODO figure out a way to make sure the config is sane for this version
+        # of the module
         $self->fatal("no version found in the config file") unless (defined $version);
         $self->debug("config file version: $version");
 
@@ -339,7 +389,7 @@ method process_config {
 
                         for my $hash (@$options) {
                             while (my ($key, $value) = each(%$hash)) {
-                                my $operator = __PACKAGE__->can("exec_$key");
+                                my $operator = $self->can("exec_$key");
                                 $self->fatal("invalid operator: $key") unless ($operator);
 
                                 if (ref($value) && not($self->has_attribute($operator, 'Raw'))) {
