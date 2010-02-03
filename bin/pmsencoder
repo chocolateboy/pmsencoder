@@ -11,8 +11,8 @@ $| = 1; # unbuffer output
 my ($status, $test, $pmsencoder, @args);
 
 GetOptions(
-    "status" => \$status,
-    "test" => \$test,
+    'status' => \$status,
+    'test'   => \$test,
 ) || die "can't process options";
 
 if ($test) {

@@ -51,25 +51,7 @@ The [pip](http://search.cpan.org/perldoc?pip) installer is required. This may be
 * Check the PMS debug.log
 * Check the pmsencoder.log logfile (see the output of `pmsencoder --status` for the path)
 * Run `pmsencoder --test` to test pmsencoder from the command line
-* On non-Windows platforms, if you install your Perl modules locally (see above), make sure PMS inherits the appropriate environment variables e.g. if you use a shell script to launch PMS, make sure it uses the same shell as the one you configured above; in some cases, you may need to copy the line that sets up local::lib to your launcher script. See [eg/pms.sh](http://github.com/chocolateboy/ps3mencoder/tree/master/eg/pms) for an example.
-
-<pre>
-    #!/bin/sh
-    
-    # set up the local::lib environment variables
-    eval $(perl -I$HOME/perl5/lib/perl5 -Mlocal::lib=$HOME/perl5)
-    
-    # change to the PMS working directory
-    cd $PMS_HOME
-
-    # clear the old logfiles
-    cat /dev/null > pms.log
-    cat /dev/null > debug.log
-    cat /dev/null > /tmp/pmsencoder.log
-
-    # run PMS
-    ./PMS.sh > pms.log
-</pre>
+* On non-Windows platforms, if you install your Perl modules locally (see above), make sure PMS inherits the appropriate environment variables e.g. if you use a shell script to launch PMS, make sure it uses the same shell as the one you configured above; in some cases, you may need to copy the line that sets up local::lib to your launcher script. See [eg/pms](http://github.com/chocolateboy/pmsencoder/tree/master/eg/pms) for an example.
 
 # Support
 
