@@ -19,7 +19,9 @@ requires 'Mouse'                       => '0.49'; # 0.49 includes an update that
 requires 'Path::Class';
 requires 'YAML::XS';
 
-# platform-specific access to resources e.g. default config file, bundled mencoder, mencoder args for --test
+# platform-specific access to resources e.g. default config file, bundled mencoder,
+# the text file containing the mencoder args for --test
+# XXX this should probably be something more like if ($ENV{PMSENCODER_AUTHOR}) ...
 if ($^O eq 'MSWin32') {
     requires 'Cava::Pack';
 } else {

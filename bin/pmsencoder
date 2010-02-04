@@ -1,5 +1,6 @@
 #!/usr/bin/env perl
 
+use 5.10.0; # serves you right if you're using an old perl and it doesn't like this version syntax: RTFM!
 use strict;
 use warnings;
 
@@ -8,11 +9,12 @@ use FindBin qw($Bin);
 
 # we need to avoid users having to set a bunch of environment variables to run this
 # (local::lib makes this bearable for command-line use, but it's fraught with
-# agita when run by PMS itself, which may be run as a service e.g. without the
+# agita when pmsencoder is run by PMS, which may be run as a service e.g. without the
 # niceties exported by local::lib).
-# on non-Win, it must be installed in a local lib (i.e. via local::lib), so we can
-# figure out the @INC paths to our dependencies from the PERL5LIB output of the moral
-# (i.e. programmatic) equivalent of perl -I~/perl5 -Mlocal::lib
+#
+# on non-Win, pmsencoder must be installed in a local lib (i.e. via local::lib); that
+# means we can figure out the @INC paths to our dependencies from the PERL5LIB output
+# of the moral (i.e. programmatic) equivalent of perl -I~/perl5 -Mlocal::lib
 #
 # Note: we only need @INC (via its PERL5LIB) from local::lib; we're not installing anything,
 # so we don't need the MB/EUMM stuff (though the installer *does* use those)
@@ -25,7 +27,7 @@ use FindBin qw($Bin);
 # XXX Does PMS run under Cygwin?
 
 BEGIN {
-    unless ($^O eq 'MSWin') {
+    unless ($^O eq 'MSWin32') {
         # 1) find local::lib e.g. "use lib qw(/home/<username>/perl5)"
         my $root = abs_path(File::Spec->catdir($Bin, File::Spec->updir));
         require lib;
