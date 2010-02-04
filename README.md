@@ -14,11 +14,7 @@ There are no additional dependencies.
 
 ## Linux, Mac OS X &c.
 
-You'll need a version of perl >= 5.10.0. This should be easy to find on Mac OS X, Linux and other *nixes if it isn't installed already.
-
-If you wish to install PMSEncoder and its dependencies without interfering with your system's Perl libraries (**recommended**), follow [these instructions](http://perl.jonallen.info/writing/articles/install-perl-modules-without-root) (but **don't install Catalyst**, and you can skip Acme::Time::Baby). Since version 0.50, there is no need to manually install PMSEncoder dependencies. They should be installed automatically as part of the installation process.
-
-The [pip](http://search.cpan.org/perldoc?pip) installer is required. This may be available in packaged form on some platforms, but the latest version from CPAN is recommended, particularly as there are at least two other applications called pip. In addition, installing pip from CPAN verifies that your CPAN setup works. To install pip, open a console and enter: `cpan -i pip`
+You'll need a version of perl >= 5.10.0. This should be easy to find on Mac OS X, Linux and other *nixes if it isn't installed already (run `perl -v` to check).
 
 # Installation
 
@@ -33,7 +29,7 @@ The [pip](http://search.cpan.org/perldoc?pip) installer is required. This may be
 
 ## Linux, Mac OS X &c.
 
-* Install PMSEncoder: `pip -i http://cloud.github.com/downloads/chocolateboy/pmsencoder/PMSEncoder-0.60.tar.gz`
+* Download and run the PMSEncoder [installer](http://cloud.github.com/downloads/chocolateboy/pmsencoder/PMSEncoder-0.60.pl) e.g. `perl ./PMSEncoder-0.60.pl`
 * Move "MEncoder Web" to the top of the list of "Video Web Streaming Engines" on the PMS "Transcoding Settings" tab
 * Save your settings and quit PMS
 * Add your pmsencoder path to your PMS.conf e.g.:
