@@ -41,15 +41,15 @@ The [pip](http://search.cpan.org/perldoc?pip) installer is required. This may be
 * Restart PMS
 
 # Tips
-* Use `pmsencoder --status` to see configuration details e.g. to find out the location of the logfile
-* The config file is looked for in the path specified in the PMSENCODER_CONFIG environment variable (which should specify the file's full path), followed by the user config directory (shown in the output of `pmsencoder --status`). If no custom config file is specified for either of these, the default config file is used ("default config file" in the `pmsencoder --status` output)
+* Use `pmsencoder --version` to see configuration details e.g. to find out the location of the logfile
+* The config file is looked for in the path specified in the PMSENCODER_CONFIG environment variable (which should specify the file's full path), followed by the user config directory (shown in the output of `pmsencoder --version`). If no custom config file is specified for either of these, the default config file is used ("default config file" in the `pmsencoder --version` output)
 * mencoder is looked for in the mencoder_path specified in the config file, the path specified in the MENCODER_PATH environment variable, the current directory, or the PATH environment variable
 * The config file is in [YAML](http://en.wikipedia.org/wiki/YAML) format. It can have a .conf, .yml or .yaml extension
-* Don't modify the default config file. Copy (don't link) it to the directory listed as "user config dir" in the output of `pmsencoder --status` and modify the copy. Delete the copy if you wish to revert to the default coinfiguration.
+* Don't modify the default config file. Copy (don't link) it to the directory listed as "user config dir" in the output of `pmsencoder --version` and modify the copy. Delete the copy if you wish to revert to the default coinfiguration.
 
 # Troubleshooting
 * Check the PMS debug.log
-* Check the pmsencoder.log logfile (see the output of `pmsencoder --status` for the path)
+* Check the pmsencoder.log logfile (see the output of `pmsencoder --version` for the path)
 * Run `pmsencoder --test` to test pmsencoder from the command line
 * On non-Windows platforms, if you install your Perl modules locally (see above), make sure PMS inherits the appropriate environment variables e.g. if you use a shell script to launch PMS, make sure it uses the same shell as the one you configured above; in some cases, you may need to copy the line that sets up local::lib to your launcher script. See [eg/pms](http://github.com/chocolateboy/pmsencoder/tree/master/eg/pms) for an example.
 

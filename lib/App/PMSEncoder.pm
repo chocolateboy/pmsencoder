@@ -245,7 +245,7 @@ method get_resource($name) {
 }
 
 # dump various config settings - useful for troubleshooting
-method status {
+method version {
     my $user_config_dir = $self->user_config_dir || '<undef>'; # may be undef according to the File::HomeDir docs
 
     print STDOUT
