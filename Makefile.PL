@@ -19,8 +19,10 @@ requires 'Mouse'                       => '0.49'; # 0.49 includes an update that
 requires 'Path::Class';
 requires 'YAML::XS';
 
-# not used on Windows
-unless ($^O eq 'MSWin32') {
+# platform-specific access to resources e.g. default config file, bundled mencoder, mencoder args for --test
+if ($^O eq 'MSWin32') {
+    requires 'Cava::Pack';
+} else {
     requires 'File::ShareDir' => '1.01';
     install_share 'conf';
 }

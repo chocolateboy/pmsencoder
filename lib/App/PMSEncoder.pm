@@ -34,12 +34,11 @@ use YAML::XS qw(Load);
 
 our $VERSION = '0.60'; # PMSEncoder version: logged to aid diagnostics
 
-# arguments passed in @ARGV after any pmsencoder-specific processing
-has args => (
+# mencoder arguments
+has argv => (
     is         => 'rw',
     isa        => 'ArrayRef',
     auto_deref => 1,
-    required   => 1,
 );
 
 # valid extensions for the pmsencoder config file
@@ -60,8 +59,10 @@ has config_file_path => (
 
 # the YAML config file as a hash ref
 has config => (
-    is  => 'rw',
-    isa => 'HashRef'
+    is      => 'rw',
+    isa     => 'HashRef',
+    lazy    => 1,
+    builder => '_load_config',
 );
 
 # the path to the default config file - used as a fallback if no custom config file is found
@@ -119,11 +120,16 @@ has mencoder_path => (
     builder => '_build_mencoder_path',
 );
 
-# position in args of the filename/URI
+# position in argv of the filename/URI.
+# this *must* be constructed lazily i.e. when process_config requests it (via run)
+# XXX for a while (squashed bug), it was still being initialised in BUILD,
+# a holdover from an earlier version in which the config file was both loaded and
+# processed in BUILD
 has uri_index => (
     is      => 'rw',
     isa     => 'Int',
-    default => 0,
+    lazy    => 1,
+    builder => '_build_uri_index',
 );
 
 # full path to the dir searched for the user's config file
@@ -211,22 +217,14 @@ method BUILD {
     $self->user_config_dir(dir($data_dir, $subdir)->stringify);
     $self->default_config_path($self->get_resource_path(PMSENCODER_CONFIG, REQUIRE_RESOURCE_EXISTS));
 
-    my @args = $self->args();
-    $self->debug($self->self_path . (@args ? " @args" : ''));
-
-    unless ($self->isdef('prefer-ipv4')) { # uri_index defaults to 0
-        $self->uri_index(4); # hardwired in net.pms.encoders.MEncoderVideo.launchTranscode
-    }
-
-    # XXX at the moment, all options (--status, --test, and the implicit --run option) need the config,
-    # so it may as well be initialised here
-    $self->config($self->process_config); # load the config and process matching profiles
+    my @argv = $self->argv();
+    $self->debug('path: ' . $self->self_path . (@argv ? " @argv" : ''));
 
     return $self;
 }
 
 method get_resource_path($name, $exists) {
-    my $path = $self->get_resource_path($name);
+    my $path = $self->_get_resource_path($name);
 
     if ($exists) {
         if ($exists == CHECK_RESOURCE_EXISTS) {
@@ -241,13 +239,19 @@ method get_resource_path($name, $exists) {
     }
 }
 
+method get_resource($name) {
+    my $path = $self->get_resource_path($name, REQUIRE_RESOURCE_EXISTS);
+    return io($path)->chomp->slurp();
+}
+
 # dump various config settings - useful for troubleshooting
 method status {
     my $user_config_dir = $self->user_config_dir || '<undef>'; # may be undef according to the File::HomeDir docs
 
     print STDOUT
          PMSENCODER, ":            $VERSION ($^O $Config{osvers})", $/,
-        'config file version:   ', $self->config->{version}, $/, # sanity-checked by process_config
+        'perl:                  ', sprintf('%vd', $^V), $/,
+        'config file version:   ', $self->config->{version}, $/, # sanity-checked by _process_config
         'config file:           ', $self->config_file_path(), $/,
         'default config file:   ', $self->default_config_path(), $/,
         'logfile:               ', $self->logfile_path(), $/,
@@ -255,8 +259,24 @@ method status {
         'user config directory: ', $user_config_dir, $/,
 }
 
+# squashed bug: this has to be created lazily i.e. more fallout from allowing argv to be set after initialisation.
+# the first place to call uri_index is process_config via run; it's then called by various exec_* methods
+method _build_uri_index {
+    # 4 is hardwired in net.pms.encoders.MEncoderVideo.launchTranscode
+    # FIXME: document where the uise of the 0th index for the URI is found
+    $self->isdef('prefer-ipv4') ? 0 : 4;
+}
+
 method _build_mencoder_path {
     my $ext = $Config{_exe};
+
+    # we look for mencoder in these places (in desceneding order of priority):
+    #
+    # 1) mencoder_path in the config file
+    # 2) the path indicated by the environment variable $MENCODER_PATH
+    # 3) the current working directory (prepended to the search path by IPC::Cmd::can_run)
+    # 4) $PATH (via IPC::Cmd::can_run)
+    # 5) the default (bundled) mencoder - currently only available on Windows
 
     $self->config->{mencoder_path}
         || $ENV{MENCODER_PATH}
@@ -308,7 +328,8 @@ method fatal ($message) {
 }
 
 method isdef ($name) {
-    my $index = first_index { $_ eq "-$name" } $self->args;
+    my $argv = $self->argv;
+    my $index = first_index { $_ eq "-$name" } $self->argv;
     return ($index != -1);
 }
 
@@ -317,23 +338,21 @@ method isopt($arg) {
 }
 
 method run {
-    # we look for mencoder in these places (in desceneding order of priority):
-    #
-    # 1) mencoder_path in the config file
-    # 2) the path indicated by the environment variable $MENCODER_PATH
-    # 3) the current working directory (prepended to the search path by IPC::Cmd::can_run)
-    # 4) $PATH (via IPC::Cmd::can_run)
-
     my $mencoder = $self->mencoder_path();
-    my @args = $self->args();
 
-    $self->debug("exec: $mencoder" . (@args ? " @args" : ''));
+    # modify $self->argv according to the recipes in the config file
+    $self->process_config();
+
+    # XXX obviously, this must be retrieved *after* process_config has performed any modifications
+    my @argv = $self->argv();
+
+    $self->debug("exec: $mencoder" . (@argv ? " @argv" : ''));
 
     # IPC::Cmd's use of IPC::Run is broken: https://rt.cpan.org/Ticket/Display.html?id=54184
     $IPC::Cmd::USE_IPC_RUN = 0;
 
     my ($ok, $err) = IPC::Cmd::run(
-        command => [ $mencoder, @args ],
+        command => [ $mencoder, @argv ],
         verbose => 1
     );
 
@@ -346,8 +365,8 @@ method run {
     exit 0;
 }
 
-method process_config {
-    my $uri = $self->args->[ $self->uri_index ];
+# XXX this is the only builder whose name doesn't begin with _build 
+method _load_config {
     my $config_file = $self->config_file_path();
 
     # XXX Try::Tiny?
@@ -356,79 +375,81 @@ method process_config {
     $self->fatal("can't open config: $@") if ($@);
     my $config = eval { Load($yaml) };
     $self->fatal("can't load config: $@") if ($@);
+    return $config || $self->fatal("config is undefined");
+}
 
-    if ($config) {
-        # FIXME: this blindly assumes the config file is sane for the most part
-        # XXX use Kwalify?
+method process_config {
+    $self->debug('processing config');
 
-        my $version = $config->{version};
+    my $uri = $self->argv->[ $self->uri_index ];
+    my $config = $self->config();
 
-        # TODO figure out a way to make sure the config is sane for this version
-        # of the module
-        $self->fatal("no version found in the config file") unless (defined $version);
-        $self->debug("config file version: $version");
+    # FIXME: this blindly assumes the config file is sane for the most part
+    # XXX use Kwalify?
 
-        if (defined $uri) {
-            my $profiles = $config->{profiles};
+    my $version = $config->{version};
 
-            if ($profiles) {
-                for my $profile (@$profiles) {
-                    my $profile_name = $profile->{name};
-                    my $match        = $profile->{match};
+    # TODO figure out a way to make sure the config is sane for this version
+    # of the module
+    $self->fatal("no version found in the config file") unless (defined $version);
+    $self->debug("config file version: $version");
 
-                    if (defined($match) && ($uri =~ $match)) {
-                        $self->debug("matched profile: $profile_name");
+    if (defined $uri) {
+	my $profiles = $config->{profiles};
 
-                        # merge and log any named captures
-                        while (my ($named_capture_key, $named_capture_value) = each (%+)) {
-                            $self->exec_let($named_capture_key, $named_capture_value);
-                        }
+	if ($profiles) {
+	    for my $profile (@$profiles) {
+		my $profile_name = $profile->{name};
+		my $match        = $profile->{match};
 
-                        my $options = $profile->{options};
-                        $options = [ $options ] unless (ref($options) eq 'ARRAY');
+		if (defined($match) && ($uri =~ $match)) {
+		    $self->debug("matched profile: $profile_name");
 
-                        for my $hash (@$options) {
-                            while (my ($key, $value) = each(%$hash)) {
-                                my $operator = $self->can("exec_$key");
-                                $self->fatal("invalid operator: $key") unless ($operator);
+		    # merge and log any named captures
+		    while (my ($named_capture_key, $named_capture_value) = each (%+)) {
+			$self->exec_let($named_capture_key, $named_capture_value);
+		    }
 
-                                if (ref($value) && not($self->has_attribute($operator, 'Raw'))) {
-                                    if ((ref $value) eq 'HASH') {
-                                        while (my($k, $v) = each (%$value)) {
-                                            $operator->($self, $k, $v);
-                                        }
-                                    } else {
-                                        for my $v (@$value) {
-                                            $operator->($self, $v);
-                                        }
-                                    }
-                                } elsif (defined $value) {
-                                    $operator->($self, $value);
-                                } else {
-                                    $operator->($self);
-                                }
-                            }
-                        }
-                    }
-                }
-            } else {
-                $self->debug('no profiles defined');
-            }
-        } else {
-            $self->debug('no URI defined');
-        }
+		    my $options = $profile->{options};
+		    $options = [ $options ] unless (ref($options) eq 'ARRAY');
+
+		    for my $hash (@$options) {
+			while (my ($key, $value) = each(%$hash)) {
+			    my $operator = $self->can("exec_$key");
+			    $self->fatal("invalid operator: $key") unless ($operator);
+
+			    if (ref($value) && not($self->has_attribute($operator, 'Raw'))) {
+				if ((ref $value) eq 'HASH') {
+				    while (my($k, $v) = each (%$value)) {
+					$operator->($self, $k, $v);
+				    }
+				} else {
+				    for my $v (@$value) {
+					$operator->($self, $v);
+				    }
+				}
+			    } elsif (defined $value) {
+				$operator->($self, $value);
+			    } else {
+				$operator->($self);
+			    }
+			}
+		    }
+		}
+	    }
+	} else {
+	    $self->debug('no profiles defined');
+	}
     } else {
-        $self->fatal("can't load config from $config_file");
+	$self->debug('no URI defined');
     }
-
-    return $config;
 }
 
 ################################# MEncoder Options ################################
 
 # extract the media URI - see http://stackoverflow.com/questions/1883737/getting-an-flv-from-youtube-in-net
 method exec_youtube ($formats) :Raw {
-    my $uri = $self->args->[ $self->uri_index ];
+    my $uri = $self->argv->[ $self->uri_index ];
     my $stash = $self->stash;
     my ($video_id, $t) = @{$stash}{qw(video_id t)};
     my $found = 0;
@@ -462,48 +483,48 @@ method exec_youtube ($formats) :Raw {
 method exec_set ($name, $value) {
     $name = "-$name";
 
-    my $args = $self->args;
-    my $index = first_index { $_ eq $name } @$args;
+    my $argv = $self->argv;
+    my $index = first_index { $_ eq $name } @$argv;
 
     if ($index == -1) {
         if (defined $value) {
             $self->debug("adding $name $value");
-            push @$args, $name, $value; # FIXME: encapsulate
+            push @$argv, $name, $value; # FIXME: encapsulate
         } else {
             $self->debug("adding $name");
-            push @$args, $name; # FIXME: encapsulate
+            push @$argv, $name; # FIXME: encapsulate
         }
     } elsif (defined $value) {
         $self->debug("setting $name to $value");
-        $args->[ $index + 1 ] = $value; # FIXME: encapsulate
+        $argv->[ $index + 1 ] = $value; # FIXME: encapsulate
     }
 }
 
 method exec_replace ($name, $search, $replace) {
     $name = "-$name";
 
-    my $args = $self->args();
-    my $index = first_index { $_ eq $name } @$args;
+    my $argv = $self->argv();
+    my $index = first_index { $_ eq $name } @$argv;
 
     if ($index != -1) {
         $self->debug("replacing $search with $replace in $name");
-        $args->[ $index + 1 ] =~ s{$search}{$replace}; # FIXME: encapsulate
+        $argv->[ $index + 1 ] =~ s{$search}{$replace}; # FIXME: encapsulate
     }
 }
 
 method exec_remove ($name) {
     $name = "-$name";
 
-    my @args = $self->args;
-    my $nargs = @args;
+    my @argv = $self->argv;
+    my $nargs = @argv;
     my @keep;
 
-    while (@args) {
-        my $arg = shift @args;
+    while (@argv) {
+        my $arg = shift @argv;
 
         if ($self->isopt($arg)) { # -foo ...
-            if (@args && not($self->isopt($args[0]))) { # -foo bar
-                my $value = shift @args;
+            if (@argv && not($self->isopt($argv[0]))) { # -foo bar
+                my $value = shift @argv;
 
                 if ($arg ne $name) {
                     push @keep, $arg, $value;
@@ -518,7 +539,7 @@ method exec_remove ($name) {
 
     if (@keep < $nargs) {
         $self->debug("removing $name");
-        $self->args(\@keep);
+        $self->argv(\@keep);
     }
 }
 
@@ -530,7 +551,7 @@ method exec_let ($name, $value) {
 
 # define a variable in the stash by extracting a value from the document pointed to by the current URI
 method exec_get ($key, $value) {
-    my $uri = $self->args->[ $self->uri_index ]; # XXX need a uri attribute that does the right thing(s)
+    my $uri = $self->argv->[ $self->uri_index ]; # XXX need a uri attribute that does the right thing(s)
     my $document = do { # cache for subsequent matches
         unless (exists $self->document->{$uri}) {
             require LWP::Simple;
@@ -562,7 +583,7 @@ method exec_uri ($uri) {
         }
     }
 
-    $self->args->[ $self->uri_index ] = $uri;
+    $self->argv->[ $self->uri_index ] = $uri;
 }
 
 1;
@@ -575,7 +596,7 @@ App::PMSEncoder - MEncoder wrapper for PS3 Media Server
 
 =head1 SYNOPSIS
 
-    my $pmsencoder = App::PMSEncoder->new({ args => \@ARGV });
+    my $pmsencoder = App::PMSEncoder->new({ argv => \@ARGV });
 
     $pmsencoder->run();
 
