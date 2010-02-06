@@ -1,6 +1,6 @@
 #!/usr/bin/env perl
 
-use 5.10.0; # if you're using an old perl and it doesn't like this version syntax: RTFM!
+use 5.010000;
 
 use strict;
 use warnings;
