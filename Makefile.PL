@@ -1,4 +1,5 @@
 use 5.10.0;
+
 use strict;
 use warnings;
 
@@ -8,6 +9,7 @@ name     'App-PMSEncoder';
 author   'chocolateboy <chocolate@cpan.org>';
 license  'artistic_2';
 all_from 'lib/App/PMSEncoder.pm';
+include  'Module::AutoInstall';
 
 requires 'File::HomeDir';
 requires 'IO::All';
@@ -32,5 +34,7 @@ if ($^O eq 'MSWin32') {
 install_script 'bin/pmsencoder';
 repository     'http://github.com/chocolateboy/pmsencoder';
 test_requires  'Test::More';
+
+auto_install;
 
 WriteAll;
