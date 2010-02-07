@@ -1,4 +1,5 @@
 # XXX: don't edit this file unless you're familiar with YAML: indentation is important!
+# XXX: don't use JSON syntax! the YAML parser used to process this (YAML::Tiny) doesn't grok it
 
 # this is the version of PMSEncoder this config file *syntax* was introduced in i.e.
 # the oldest version of PMSEncoder that will work with this file
@@ -70,8 +71,12 @@ profiles:
         - get: '"t":\s*"(?<t>[^"]+)"'
 
           # now, with $video_id and $t defined, call the YouTube handler with an array of formats
-          # in descending order of preference
-        - youtube: [ 22, 18, 6, 5 ]
+          # in descending order of preference.
+        - youtube:
+              - 22
+              - 18
+              - 6
+              - 5
         
   - name: Apple Trailers
     match: '^http://(?:(?:movies|www)\.)?apple\.com/.+$'

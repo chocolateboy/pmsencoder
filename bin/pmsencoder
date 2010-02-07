@@ -5,57 +5,19 @@ use 5.010000;
 use strict;
 use warnings;
 
-use Cwd qw(abs_path);
-use FindBin qw($Bin);
+use App::PMSEncoder;
 
 # FIXME: this still accepts -test &c. Plough through the
 # hundreds of alternatives to Getopt::Long to find something that DWIM
+use Getopt::Long qw(:config posix_default no_ignore_case);
 
-use Getopt::Long qw(:config posix_default no_ignore_case); 
-
-# we need to avoid users having to set a bunch of environment variables to run this
-# (local::lib makes this bearable for command-line use, but it's fraught with
-# agita when pmsencoder is run by PMS, which may be run as a service e.g. without the
-# niceties exported by local::lib).
-#
-# on non-Win, pmsencoder must be installed in a local lib (i.e. via local::lib); that
-# means we can figure out the @INC paths to our dependencies from the PERL5LIB output
-# of the moral (i.e. programmatic) equivalent of perl -I~/perl5 -Mlocal::lib
-#
-# Note: we only need @INC (via its PERL5LIB) from local::lib; we're not installing anything,
-# so we don't need the MB/EUMM stuff (though the installer *does* use those)
-
-# FIXME: Windows handling is not very Strawberry/Active Perl friendly.
-# determine behaviour by presence of Cava::Pack instead of $^O?
-# In the worst case, a user may have installed Cava for their own packaging, unrelated
-# to this, and may otherwise wish to use this with Strawberry/Active...
-#
-# XXX Does PMS run under Cygwin?
-
-BEGIN {
-    $| = 1; # unbuffer output
-
-    unless ($^O eq 'MSWin32') {
-        # 1) find local::lib e.g. "use lib qw(/home/<username>/perl5)"
-        my $root = abs_path(File::Spec->catdir($Bin, File::Spec->updir));
-        require lib;
-        lib->import(File::Spec->catdir($root, 'lib', 'perl5'));
-        # 2) prepend local::lib's PERL5LIB paths to @INC
-        require local::lib;
-        local::lib->setup_local_lib_for($root);
-    }
-}
-
-use App::PMSEncoder;
-
-my ($test, $version);
+my $test;
+my $pmsencoder = App::PMSEncoder->new();
 
 GetOptions(
-    'test:s'  => \$test,
-    'version' => \$version,
+    'test:s' => \$test,
+    'version' => sub { $pmsencoder->version(); exit 0 },
 );
-
-my $pmsencoder = App::PMSEncoder->new();
 
 if (defined $test) {
     my @args = $pmsencoder->get_resource('test_args.txt');
@@ -69,8 +31,4 @@ if (defined $test) {
     $pmsencoder->argv(\@ARGV);
 }
 
-if ($version) {
-    $pmsencoder->version();
-} else {
-    $pmsencoder->run();
-}
+$pmsencoder->run();

@@ -2,6 +2,9 @@ package App::PMSEncoder;
 
 use 5.10.0;
 
+use strict; # these are enabled by Mouse, but it's more convenient to use that further down
+use warnings;
+
 use constant PMSENCODER => 'pmsencoder';
 use constant {
     CHECK_RESOURCE_EXISTS   => 1,
@@ -16,23 +19,38 @@ use constant {
 # core modules
 use Config;
 use File::Spec;
-use IPC::Cmd 0.46 qw(can_run); # core since 5.10.0, but we need a version that escapes shell arguments correctly
+use IPC::Cmd 0.56 qw(can_run); # core since 5.10.0, but we need a version that escapes shell arguments correctly
 use POSIX qw(strftime);
+use Module::Load;
 
 # CPAN modules
 use File::HomeDir; # technically, this is not always needed, but using it unconditionally simplifies teh code slightly
 use IO::All;
-use List::MoreUtils qw(first_index any);
-use Method::Signatures::Simple;
-use Mouse 0.49; # includes strict and warnings - this version or above needed for the RT #54203 fix
+use Mouse::Tiny 0.49;
 use Path::Class qw(file dir);
-use YAML::XS qw(Load);
+use YAML::Tiny qw(Load);
 
+# make sure pure perl modules are used for the standalone build
+# XXX make sure Cava and PAR aren't confused by this
+BEGIN {
+    if ($ENV{PMSENCODER_STANDALONE}) {
+        require Mouse::Tiny;
+        Mouse::Tiny->import();
+        Mouse::Tiny->VERSION(0.49);
+        $ENV{LIST_MOREUTILS_PP} = 1; # force pure perl
+    }
+}
+
+# 0.49 or above needed for the RT #54203 fix
+use Mouse 0.49; # already loaded by Mouse::Tiny if $ENV{PMSENCODER_STANDALONE} is set
+use List::MoreUtils qw(first_index any); # pure perl if $ENV{PMSENCODER_STANDALONE} is set
+
+# use HTTP::Lite;
 # use LWP::Simple qw(get head); # XXX not always needed - make sure Cava picks this up
 # use File::ShareDir;           # not used on Windows
 # use Cava::Pack;               # Windows only
 
-our $VERSION = '0.60'; # PMSEncoder version: logged to aid diagnostics
+our $VERSION = '0.60';          # PMSEncoder version: logged to aid diagnostics
 
 # mencoder arguments
 has argv => (
@@ -46,7 +64,7 @@ has config_file_ext => (
     is         => 'ro',
     isa        => 'ArrayRef',
     auto_deref => 1,
-    default    => sub { [ qw(conf yml yaml) ] },
+    default    => sub { [qw(conf yml yaml)] },
 );
 
 # full path to the config file - an exception is thrown if one can't be found
@@ -65,6 +83,14 @@ has config => (
     builder => '_load_config',
 );
 
+# a closure that abstracts the HTTP request implementation
+has http => (
+    is      => 'rw',
+    isa     => 'CodeRef',
+    lazy    => 1,
+    builder => '_build_http',
+);
+
 # the path to the default config file - used as a fallback if no custom config file is found
 has default_config_path => (
     is  => 'rw',
@@ -80,13 +106,14 @@ has document => (
 
 # full logfile path
 has logfile_path => (
-    is      => 'rw',
-    isa     => 'Str',
+    is  => 'rw',
+    isa => 'Str',
 );
 
 # IO::All logfile handle
 has logfile => (
-    is  => 'rw',
+    is => 'rw',
+
     # isa => 'IO::All::File',
     # XXX Mouse no likey
 );
@@ -134,14 +161,14 @@ has uri_index => (
 
 # full path to the dir searched for the user's config file
 has user_config_dir => (
-    is      => 'rw',
-    isa     => 'Str',
+    is  => 'rw',
+    isa => 'Str',
 );
 
-# add support for a :Raw attribute used to indicate that a handler method 
+# add support for a :Raw attribute used to indicate that a handler method
 # bound to "operators" in the config file should have its argument passed unprocessed
 # (normally hash and array elements are passed piecewise). Actually, we can use this to handle
-# any attributes, but only :Raw is currently used. 
+# any attributes, but only :Raw is currently used.
 # this is untidy (Attributes::Storage looks nicer), but attributes.pm is in core (from 5.6),
 # so it's one less dependency to worry about
 
@@ -151,7 +178,6 @@ has user_config_dir => (
     # this needs to be initialised before MODIFY_CODE_ATTRIBUTES is called i.e. at compile-time
     BEGIN { %ATTRIBUTES_OK = map { $_ => 1 } qw(Raw) }
 
-    # this has to be a sub as it's called at compile-time (Method::Signatures::Simple's methods are declared at runtime)
     sub MODIFY_CODE_ATTRIBUTES {
         my ($class, $code, @attrs) = @_;
         my (@keep, @discard);
@@ -165,17 +191,20 @@ has user_config_dir => (
             }
         }
 
-        $ATTRIBUTES{$code} = [ @keep ];
-        return @discard; # return any attributes we don't handle
+        $ATTRIBUTES{$code} = [@keep];
+        return @discard;    # return any attributes we don't handle
     }
 
     # by using %ATTRIBUTES directly we can bypass attributes::get and FETCH_CODE_ATTRIBUTES
-    method has_attribute($code, $attribute) {
+    sub has_attribute {
+        my ($self, $code, $attribute) = @_;
+
         any { $_ eq $attribute } @{ $ATTRIBUTES{$code} || [] };
     }
 }
 
-method BUILD {
+sub BUILD {
+    my $self = shift;
     my $logfile_path = $self->logfile_path(file(File::Spec->tmpdir, PMSENCODER_LOG)->stringify());
 
     $self->logfile(io($logfile_path));
@@ -191,18 +220,26 @@ method BUILD {
     # Instead we bundle the default config file (and mencoder.exe) in $PMSENCODER_HOME/res
     # and ensure they're picked up with the appropriate precedence by setting the former via
     # $self->default_config_path() and the latter via the $MENCODER_PATH environment variable
-    
+
     # initialize resource handling and fixup the stored $0 on Windows
     if ($self->mswin) {
         require Cava::Pack;
         Cava::Pack::SetResourcePath('res');
         $self->self_path(file($self->get_resource_path(''), File::Spec->updir, PMSENCODER_EXE)->absolute->stringify);
-        # declare a private method (at runtime!)
-        method _get_resource_path($name) { Cava::Pack::Resource($name) }
+
+        # declare a private method XXX use $self->meta_add_method ?
+        *_get_resource_path = sub {
+            my ($self, $name) = @_;
+            Cava::Pack::Resource($name)
+        };
     } else {
-        require File::ShareDir; # no need to worry about this not being picked up by Cava as it's non-Windows only
-        # declare a private method (at runtime!)
-        method _get_resource_path($name) { File::ShareDir::dist_file(DISTRO, $name) }
+        require File::ShareDir;    # no need to worry about this not being picked up by Cava as it's non-Windows only
+
+        # declare a private method XXX use $self->meta_add_method ?
+        *_get_resource_path  = sub {
+            my ($self, $name) = @_;
+            File::ShareDir::dist_file(DISTRO, $name)
+        };
     }
 
     my $data_dir = File::HomeDir->my_data;
@@ -216,7 +253,8 @@ method BUILD {
     return $self;
 }
 
-method get_resource_path($name, $exists) {
+sub get_resource_path {
+    my ($self, $name, $exists) = @_;
     my $path = $self->_get_resource_path($name);
 
     if ($exists) {
@@ -224,7 +262,7 @@ method get_resource_path($name, $exists) {
             return (-f $path) ? $path : undef;
         } elsif ($exists == REQUIRE_RESOURCE_EXISTS) {
             return (-f $path) ? $path : $self->fatal("can't find resource: $name");
-        } else { # internal error - shouldn't get here
+        } else {    # internal error - shouldn't get here
             $self->fatal("invalid flag for get_resource_path($name): $exists");
         }
     } else {
@@ -232,35 +270,41 @@ method get_resource_path($name, $exists) {
     }
 }
 
-method get_resource($name) {
+sub get_resource {
+    my ($self, $name) = @_;
     my $path = $self->get_resource_path($name, REQUIRE_RESOURCE_EXISTS);
+
     return io($path)->chomp->slurp();
 }
 
 # dump various config settings - useful for troubleshooting
-method version {
-    my $user_config_dir = $self->user_config_dir || '<undef>'; # may be undef according to the File::HomeDir docs
+sub version {
+    my $self = shift;
+    my $user_config_dir = $self->user_config_dir || '<undef>';    # may be undef according to the File::HomeDir docs
 
     print STDOUT
-         PMSENCODER, ":            $VERSION ($^O $Config{osvers})", $/,
-        'perl:                  ', sprintf('%vd', $^V), $/,
-        'config file version:   ', $self->config->{version}, $/, # sanity-checked by _process_config
-        'config file:           ', $self->config_file_path(), $/,
-        'default config file:   ', $self->default_config_path(), $/,
-        'logfile:               ', $self->logfile_path(), $/,
-        'mencoder path:         ', $self->mencoder_path(), $/,
-        'user config directory: ', $user_config_dir, $/,
+      PMSENCODER, ":            $VERSION ($^O $Config{osvers})", $/,
+      'perl:                  ', sprintf('%vd', $^V), $/,
+      'config file version:   ', $self->config->{version}, $/,    # sanity-checked by _process_config
+      'config file:           ', $self->config_file_path(),    $/,
+      'default config file:   ', $self->default_config_path(), $/,
+      'logfile:               ', $self->logfile_path(),        $/,
+      'mencoder path:         ', $self->mencoder_path(),       $/,
+      'user config directory: ', $user_config_dir, $/,
 }
 
 # squashed bug: this has to be created lazily i.e. more fallout from allowing argv to be set after initialisation.
 # the first place to call uri_index is process_config via run; it's then called by various exec_* methods
-method _build_uri_index {
+sub _build_uri_index {
+    my $self = shift;
+
     # 4 is hardwired in net.pms.encoders.MEncoderVideo.launchTranscode
     # FIXME: document where the uise of the 0th index for the URI is found
     $self->isdef('prefer-ipv4') ? 0 : 4;
 }
 
-method _build_mencoder_path {
+sub _build_mencoder_path {
+    my $self = shift;
     my $ext = $Config{_exe};
 
     # we look for mencoder in these places (in desceneding order of priority):
@@ -272,13 +316,15 @@ method _build_mencoder_path {
     # 5) the default (bundled) mencoder - currently only available on Windows
 
     $self->config->{mencoder_path}
-        || $ENV{MENCODER_PATH}
-        || can_run('mencoder')
-        || $self->get_resource_path("mencoder$ext", CHECK_RESOURCE_EXISTS)
-        || $self->fatal("can't find mencoder");
+      || $ENV{MENCODER_PATH}
+      || can_run('mencoder')
+      || $self->get_resource_path("mencoder$ext", CHECK_RESOURCE_EXISTS)
+      || $self->fatal("can't find mencoder");
 }
 
-method _build_config_file_path {
+sub _build_config_file_path {
+    my $self = shift;
+
     # first: check the environment variable (should contain the absolute path)
     if (exists $ENV{PMSENCODER_CONFIG}) {
         my $config_file_path = $ENV{PMSENCODER_CONFIG};
@@ -286,51 +332,120 @@ method _build_config_file_path {
         if (-f $config_file_path) {
             return $config_file_path;
         } else {
-            $self->fatal("invalid PMSENCODER_CONFIG environment variable ($config_file_path): file not found"); 
+            $self->fatal("invalid PMSENCODER_CONFIG environment variable ($config_file_path): file not found");
         }
     }
 
     # second: search for it in the user's home directory e.g. ~/.pmsencoder/pmsencoder.yml
     my $user_config_dir = $self->user_config_dir();
-    if (defined $user_config_dir) { # not guaranteed to be defined
+    if (defined $user_config_dir) {    # not guaranteed to be defined
         for my $ext ($self->config_file_ext) {
             my $config_file_path = file($user_config_dir, PMSENCODER . ".$ext")->stringify;
             return $config_file_path if (-f $config_file_path);
         }
     } else {
-        $self->debug("can't find user config dir"); # should usually be defined; worth noting if it's not
+        $self->debug("can't find user config dir");    # should usually be defined; worth noting if it's not
     }
 
     # finally, fall back on the config file installed with the distro - this should always be available
     my $default = $self->default_config_path() || $self->fatal("can't find default config file");
     if (-f $default) {
         return $default;
-    } else { # XXX shouldn't happen
+    } else {                                           # XXX shouldn't happen
         $self->fatal("can't find default config file: $default");
     }
 }
 
-method debug($message) {
+sub http_get {
+    my ($self, $uri) = @_;
+    $self->debug("GET: $uri");
+    return $self->http->('GET', $uri);
+}
+
+sub http_head {
+    my ($self, $uri) = @_;
+    $self->debug("HEAD: $uri");
+    return $self->http->('HEAD', $uri);
+}
+
+sub _build_http {
+    my $self = shift;
+
+    if (eval { require LWP::Simple; 1 }) {
+        $self->debug('using LWP::Simple');
+        return sub {
+            my $method = lc shift;
+            my $uri = shift;
+            my $sub = LWP::Simple->can($method) || $self->fatal("can't find '$method' implementation in LWP::Simple");
+
+            return $sub->($uri);
+        };
+    } else {
+        $self->debug('using HTTP::Lite');
+        require HTTP::Lite;
+
+        my $http = HTTP::Lite->new();
+
+        return sub {
+            my ($method, $uri) = @_;
+
+            $http->reset();
+            $http->method($method);
+
+            my $response = $http->request($uri);
+
+            if (defined $response) {
+                $self->debug("HTTP response: $response");
+
+                if (($response >= 200) && ($response < 300)) {
+                    if ($method eq 'HEAD') {
+                        $self->fatal("LWP::Simple-compatible get() in list context is not supported") if (wantarray);
+                        return $http->headers; # we need to return a true value; may as well return the headers array ref
+                    } else {
+                        return $http->body;
+                    }
+                } else {
+                    $self->debug("response headers: " . ($http->headers_string || ''));
+                    return undef;
+                }
+            } else {
+                $self->debug("couldn't perform HTTP request");
+                return undef;
+           }
+        };
+    }
+}
+
+sub debug {
+    my ($self, $message) = @_;
     my $now = strftime("%Y-%m-%d %H:%M:%S", localtime);
+
     $self->logfile->append("$now: $$: $message", $/);
 }
 
-method fatal ($message) {
+sub fatal {
+    my ($self, $message) = @_;
+
     $self->debug("ERROR: $message");
     die $self->self_path . ": $VERSION: $$: ERROR: $message", $/;
 }
 
-method isdef ($name) {
+sub isdef {
+    my ($self, $name) = @_;
     my $argv = $self->argv;
     my $index = first_index { $_ eq "-$name" } $self->argv;
+
     return ($index != -1);
 }
 
-method isopt($arg) {
+sub isopt {
+    my ($self, $arg) = @_;
+
     return (defined($arg) && (substr($arg, 0, 1) eq '-'));
 }
 
-method run {
+sub run {
+    my $self = shift;
     my $mencoder = $self->mencoder_path();
 
     # modify $self->argv according to the recipes in the config file
@@ -358,8 +473,9 @@ method run {
     exit 0;
 }
 
-# XXX this is the only builder whose name doesn't begin with _build 
-method _load_config {
+# XXX this is the only builder whose name doesn't begin with _build
+sub _load_config {
+    my $self = shift;
     my $config_file = $self->config_file_path();
 
     # XXX Try::Tiny?
@@ -371,10 +487,12 @@ method _load_config {
     return $config || $self->fatal("config is undefined");
 }
 
-method process_config {
+sub process_config {
+    my $self = shift;
+
     $self->debug('processing config');
 
-    my $uri = $self->argv->[ $self->uri_index ];
+    my $uri    = $self->argv->[ $self->uri_index ];
     my $config = $self->config();
 
     # FIXME: this blindly assumes the config file is sane for the most part
@@ -388,61 +506,62 @@ method process_config {
     $self->debug("config file version: $version");
 
     if (defined $uri) {
-	my $profiles = $config->{profiles};
+        my $profiles = $config->{profiles};
 
-	if ($profiles) {
-	    for my $profile (@$profiles) {
-		my $profile_name = $profile->{name};
-		my $match        = $profile->{match};
+        if ($profiles) {
+            for my $profile (@$profiles) {
+                my $profile_name = $profile->{name};
+                my $match        = $profile->{match};
 
-		if (defined($match) && ($uri =~ $match)) {
-		    $self->debug("matched profile: $profile_name");
+                if (defined($match) && ($uri =~ $match)) {
+                    $self->debug("matched profile: $profile_name");
 
-		    # merge and log any named captures
-		    while (my ($named_capture_key, $named_capture_value) = each (%+)) {
-			$self->exec_let($named_capture_key, $named_capture_value);
-		    }
+                    # merge and log any named captures
+                    while (my ($named_capture_key, $named_capture_value) = each(%+)) {
+                        $self->exec_let($named_capture_key, $named_capture_value);
+                    }
 
-		    my $options = $profile->{options};
-		    $options = [ $options ] unless (ref($options) eq 'ARRAY');
+                    my $options = $profile->{options};
+                    $options = [$options] unless (ref($options) eq 'ARRAY');
 
-		    for my $hash (@$options) {
-			while (my ($key, $value) = each(%$hash)) {
-			    my $operator = $self->can("exec_$key");
-			    $self->fatal("invalid operator: $key") unless ($operator);
+                    for my $hash (@$options) {
+                        while (my ($key, $value) = each(%$hash)) {
+                            my $operator = $self->can("exec_$key");
+                            $self->fatal("invalid operator: $key") unless ($operator);
 
-			    if (ref($value) && not($self->has_attribute($operator, 'Raw'))) {
-				if ((ref $value) eq 'HASH') {
-				    while (my($k, $v) = each (%$value)) {
-					$operator->($self, $k, $v);
-				    }
-				} else {
-				    for my $v (@$value) {
-					$operator->($self, $v);
-				    }
-				}
-			    } elsif (defined $value) {
-				$operator->($self, $value);
-			    } else {
-				$operator->($self);
-			    }
-			}
-		    }
-		}
-	    }
-	} else {
-	    $self->debug('no profiles defined');
-	}
+                            if (ref($value) && not($self->has_attribute($operator, 'Raw'))) {
+                                if ((ref $value) eq 'HASH') {
+                                    while (my ($k, $v) = each(%$value)) {
+                                        $operator->($self, $k, $v);
+                                    }
+                                } else {
+                                    for my $v (@$value) {
+                                        $operator->($self, $v);
+                                    }
+                                }
+                            } elsif (defined $value) {
+                                $operator->($self, $value);
+                            } else {
+                                $operator->($self);
+                            }
+                        }
+                    }
+                }
+            }
+        } else {
+            $self->debug('no profiles defined');
+        }
     } else {
-	$self->debug('no URI defined');
+        $self->debug('no URI defined');
     }
 }
 
 ################################# MEncoder Options ################################
 
 # extract the media URI - see http://stackoverflow.com/questions/1883737/getting-an-flv-from-youtube-in-net
-method exec_youtube ($formats) :Raw {
-    my $uri = $self->argv->[ $self->uri_index ];
+sub exec_youtube :Raw {
+    my ($self, $formats) = @_;
+    my $uri   = $self->argv->[ $self->uri_index ];
     my $stash = $self->stash;
     my ($video_id, $t) = @{$stash}{qw(video_id t)};
     my $found = 0;
@@ -464,8 +583,8 @@ method exec_youtube ($formats) :Raw {
     for my $fmt (@$formats) {
         require LWP::Simple;
         my $media_uri = "http://www.youtube.com/get_video?fmt=$fmt&video_id=$video_id&t=$t";
-        next unless (LWP::Simple::head $media_uri);
-        $self->exec_uri($media_uri); # set the new URI
+        next unless ($self->http_head($media_uri));
+        $self->exec_uri($media_uri);    # set the new URI
         $found = 1;
         last;
     }
@@ -473,7 +592,9 @@ method exec_youtube ($formats) :Raw {
     $self->fatal("can't retrieve YouTube video from $uri") unless ($found);
 }
 
-method exec_set ($name, $value) {
+sub exec_set {
+    my ($self, $name, $value) = @_;
+
     $name = "-$name";
 
     my $argv = $self->argv;
@@ -482,18 +603,20 @@ method exec_set ($name, $value) {
     if ($index == -1) {
         if (defined $value) {
             $self->debug("adding $name $value");
-            push @$argv, $name, $value; # FIXME: encapsulate
+            push @$argv, $name, $value;    # FIXME: encapsulate
         } else {
             $self->debug("adding $name");
-            push @$argv, $name; # FIXME: encapsulate
+            push @$argv, $name;            # FIXME: encapsulate
         }
     } elsif (defined $value) {
         $self->debug("setting $name to $value");
-        $argv->[ $index + 1 ] = $value; # FIXME: encapsulate
+        $argv->[ $index + 1 ] = $value;    # FIXME: encapsulate
     }
 }
 
-method exec_replace ($name, $search, $replace) {
+sub exec_replace {
+    my ($self, $name, $search, $replace) = @_;
+
     $name = "-$name";
 
     my $argv = $self->argv();
@@ -501,28 +624,30 @@ method exec_replace ($name, $search, $replace) {
 
     if ($index != -1) {
         $self->debug("replacing $search with $replace in $name");
-        $argv->[ $index + 1 ] =~ s{$search}{$replace}; # FIXME: encapsulate
+        $argv->[ $index + 1 ] =~ s{$search}{$replace};    # FIXME: encapsulate
     }
 }
 
-method exec_remove ($name) {
+sub exec_remove {
+    my ($self, $name) = @_;
+
     $name = "-$name";
 
-    my @argv = $self->argv;
+    my @argv  = $self->argv;
     my $nargs = @argv;
     my @keep;
 
     while (@argv) {
         my $arg = shift @argv;
 
-        if ($self->isopt($arg)) { # -foo ...
-            if (@argv && not($self->isopt($argv[0]))) { # -foo bar
+        if ($self->isopt($arg)) {    # -foo ...
+            if (@argv && not($self->isopt($argv[0]))) {    # -foo bar
                 my $value = shift @argv;
 
                 if ($arg ne $name) {
                     push @keep, $arg, $value;
                 }
-            } elsif ($arg ne $name) { # just -foo
+            } elsif ($arg ne $name) {                      # just -foo
                 push @keep, $arg;
             }
         } else {
@@ -537,18 +662,20 @@ method exec_remove ($name) {
 }
 
 # define a variable in the stash
-method exec_let ($name, $value) {
+sub exec_let {
+    my ($self, $name, $value) = @_;
+
     $self->debug("setting \$$name to $value");
     $self->stash->{$name} = $value;
 }
 
 # define a variable in the stash by extracting a value from the document pointed to by the current URI
-method exec_get ($key, $value) {
-    my $uri = $self->argv->[ $self->uri_index ]; # XXX need a uri attribute that does the right thing(s)
-    my $document = do { # cache for subsequent matches
+sub exec_get {
+    my ($self, $key, $value) = @_;
+    my $uri      = $self->argv->[ $self->uri_index ];    # XXX need a uri attribute that does the right thing(s)
+    my $document = do {                                  # cache for subsequent matches
         unless (exists $self->document->{$uri}) {
-            require LWP::Simple;
-            $self->document->{$uri} = LWP::Simple::get($uri) || $self->fatal("can't retrieve $uri");
+            $self->document->{$uri} = $self->http_get($uri) || $self->fatal("can't retrieve $uri");
         }
         $self->document->{$uri};
     };
@@ -567,8 +694,10 @@ method exec_get ($key, $value) {
 }
 
 # set the URI, performing any variable substitutions
-method exec_uri ($uri) {
-    while (my ($key, $value) = each (%{ $self->stash })) {
+sub exec_uri {
+    my ($self, $uri) = @_;
+
+    while (my ($key, $value) = each(%{ $self->stash })) {
         my $search = qr{(?:(?:\$$key\b)|(?:\$\{$key\}))};
         if ($uri =~ $search) {
             $self->debug("replacing \$$key with '$value' in $uri");
