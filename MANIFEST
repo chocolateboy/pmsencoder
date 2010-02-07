@@ -3,7 +3,6 @@ CHANGES
 conf/pmsencoder.yml
 conf/test_args.txt
 conf/WEB.conf
-ignorelist
 inc/Module/AutoInstall.pm
 inc/Module/Install.pm
 inc/Module/Install/AutoInstall.pm
@@ -26,3 +25,5 @@ README.md
 t/01_use.t
 t/pod.t
 TODO
+tools/build_standalone.sh
+tools/ignorelist
