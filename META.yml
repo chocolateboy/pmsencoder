@@ -19,6 +19,8 @@ no_index:
     - conf
     - inc
     - t
+recommends:
+  LWP::Simple: 0
 requires:
   File::HomeDir: 0.89
   File::ShareDir: 1.01

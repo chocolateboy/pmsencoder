@@ -32,6 +32,8 @@ requires 'List::MoreUtils'             => '0.22';
 # requires 'LWP::Simple';
 # requires 'Method::Signatures::Simple';
 
+recommends 'LWP::Simple'; # we can still recommend it, though
+
 # platform-specific access to resources e.g. default config file, bundled mencoder,
 # the text file containing the mencoder args for --test
 if ($ENV{PMSENCODER_WIN32}) {

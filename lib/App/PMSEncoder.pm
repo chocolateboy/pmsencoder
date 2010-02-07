@@ -357,62 +357,33 @@ sub _build_config_file_path {
 sub http_get {
     my ($self, $uri) = @_;
     $self->debug("GET: $uri");
-    return $self->http->('GET', $uri);
+    return $self->http->('get', $uri);
 }
 
 sub http_head {
     my ($self, $uri) = @_;
     $self->debug("HEAD: $uri");
-    return $self->http->('HEAD', $uri);
+    return $self->http->('head', $uri);
 }
 
 sub _build_http {
     my $self = shift;
+    my ($class, $http);
 
-    if (0 and eval { require LWP::Simple; 1 }) {
-        $self->debug('using LWP::Simple');
-
-        return sub {
-            my $method = lc shift;
-            my $uri = shift;
-            my $sub = LWP::Simple->can($method) || $self->fatal("can't find '$method' implementation in LWP::Simple");
-
-            return $sub->($uri);
-        };
+    if (0 and eval { require LWP::Simple; 1 }) { # FIXME: disabled for testing
+        $class = $http = 'LWP::Simple';
     } else {
-        $self->debug('using HTTP::Lite');
-        require HTTP::Lite;
-
-        my $http = HTTP::Lite->new();
-
-        return sub {
-            my ($method, $uri) = @_;
-
-            $http->reset();
-            $http->method($method);
-
-            my $response = $http->request($uri);
-
-            if (defined $response) {
-                $self->debug("HTTP response: $response");
-
-                if (($response >= 200) && ($response < 300)) {
-                    if ($method eq 'HEAD') {
-                        $self->fatal("LWP::Simple-compatible get() in list context is not supported") if (wantarray);
-                        return $http->headers; # we need to return a true value; may as well return the headers array ref
-                    } else {
-                        return $http->body;
-                    }
-                } else {
-                    $self->debug("response headers: " . ($http->headers_string || ''));
-                    return undef;
-                }
-            } else {
-                $self->debug("couldn't perform HTTP request");
-                return undef;
-           }
-        };
+        require App::PMSEncoder::HTTP::Client;
+        $class = 'App::PMSEncoder::HTTP::Client';
+        $http = App::PMSEncoder::HTTP::Client->new();
     }
+
+    $self->debug("using $class");
+
+    return sub {
+        my ($method, $uri) = @_;
+        return $http->$method($uri);
+    };
 }
 
 sub debug {
