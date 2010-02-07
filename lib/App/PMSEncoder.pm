@@ -192,29 +192,22 @@ method BUILD {
     # and ensure they're picked up with the appropriate precedence by setting the former via
     # $self->default_config_path() and the latter via the $MENCODER_PATH environment variable
     
-    # initialize resource handling and store the correct version of $0 on Windows.
-    # also tailor the name of the pmsencoder subdirectory of the user's home directory to the platform
-    my $subdir;
-
+    # initialize resource handling and fixup the stored $0 on Windows
     if ($self->mswin) {
         require Cava::Pack;
         Cava::Pack::SetResourcePath('res');
         $self->self_path(file($self->get_resource_path(''), File::Spec->updir, PMSENCODER_EXE)->absolute->stringify);
-        $subdir = PMSENCODER;
-
         # declare a private method (at runtime!)
         method _get_resource_path($name) { Cava::Pack::Resource($name) }
     } else {
         require File::ShareDir; # no need to worry about this not being picked up by Cava as it's non-Windows only
-        $subdir = '.' . PMSENCODER;
-
         # declare a private method (at runtime!)
         method _get_resource_path($name) { File::ShareDir::dist_file(DISTRO, $name) }
     }
 
     my $data_dir = File::HomeDir->my_data;
 
-    $self->user_config_dir(dir($data_dir, $subdir)->stringify);
+    $self->user_config_dir(dir($data_dir, '.' . PMSENCODER)->stringify);
     $self->default_config_path($self->get_resource_path(PMSENCODER_CONFIG, REQUIRE_RESOURCE_EXISTS));
 
     my @argv = $self->argv();
