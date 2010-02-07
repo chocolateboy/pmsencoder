@@ -21,12 +21,10 @@ use Config;
 use File::Spec;
 use IPC::Cmd 0.56 qw(can_run); # core since 5.10.0, but we need a version that escapes shell arguments correctly
 use POSIX qw(strftime);
-use Module::Load;
 
 # CPAN modules
 use File::HomeDir; # technically, this is not always needed, but using it unconditionally simplifies teh code slightly
 use IO::All;
-use Mouse::Tiny 0.49;
 use Path::Class qw(file dir);
 use YAML::Tiny qw(Load);
 
@@ -45,12 +43,12 @@ BEGIN {
 use Mouse 0.49; # already loaded by Mouse::Tiny if $ENV{PMSENCODER_STANDALONE} is set
 use List::MoreUtils qw(first_index any); # pure perl if $ENV{PMSENCODER_STANDALONE} is set
 
-# use HTTP::Lite;
 # use LWP::Simple qw(get head); # XXX not always needed - make sure Cava picks this up
 # use File::ShareDir;           # not used on Windows
 # use Cava::Pack;               # Windows only
 
 our $VERSION = '0.60';          # PMSEncoder version: logged to aid diagnostics
+our $CONFIG_VERSION = '0.60';   # croak if the config file needs upgrading; XXX try not to change this too often
 
 # mencoder arguments
 has argv => (
@@ -359,61 +357,29 @@ sub _build_config_file_path {
 sub http_get {
     my ($self, $uri) = @_;
     $self->debug("GET: $uri");
-    return $self->http->('GET', $uri);
+    return $self->http->('get', $uri);
 }
 
 sub http_head {
     my ($self, $uri) = @_;
     $self->debug("HEAD: $uri");
-    return $self->http->('HEAD', $uri);
+    return $self->http->('head', $uri);
 }
 
 sub _build_http {
     my $self = shift;
 
-    if (eval { require LWP::Simple; 1 }) {
-        $self->debug('using LWP::Simple');
-        return sub {
-            my $method = lc shift;
-            my $uri = shift;
-            my $sub = LWP::Simple->can($method) || $self->fatal("can't find '$method' implementation in LWP::Simple");
+    require LWP::Simple;
 
-            return $sub->($uri);
-        };
-    } else {
-        $self->debug('using HTTP::Lite');
-        require HTTP::Lite;
+    $self->debug('using LWP::Simple');
 
-        my $http = HTTP::Lite->new();
+    return sub {
+	my $method = lc shift;
+	my $uri = shift;
+	my $sub = LWP::Simple->can($method) || $self->fatal("can't find '$method' implementation in LWP::Simple");
 
-        return sub {
-            my ($method, $uri) = @_;
-
-            $http->reset();
-            $http->method($method);
-
-            my $response = $http->request($uri);
-
-            if (defined $response) {
-                $self->debug("HTTP response: $response");
-
-                if (($response >= 200) && ($response < 300)) {
-                    if ($method eq 'HEAD') {
-                        $self->fatal("LWP::Simple-compatible get() in list context is not supported") if (wantarray);
-                        return $http->headers; # we need to return a true value; may as well return the headers array ref
-                    } else {
-                        return $http->body;
-                    }
-                } else {
-                    $self->debug("response headers: " . ($http->headers_string || ''));
-                    return undef;
-                }
-            } else {
-                $self->debug("couldn't perform HTTP request");
-                return undef;
-           }
-        };
-    }
+	return $sub->($uri);
+    };
 }
 
 sub debug {
@@ -499,6 +465,8 @@ sub process_config {
     # XXX use Kwalify?
 
     my $version = $config->{version};
+
+    $self->fatal("config file is out of date; please upgrade") unless ($version && ($version >= $CONFIG_VERSION));
 
     # TODO figure out a way to make sure the config is sane for this version
     # of the module

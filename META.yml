@@ -20,16 +20,15 @@ no_index:
     - inc
     - t
 requires:
-  File::HomeDir: 0
+  File::HomeDir: 0.89
   File::ShareDir: 1.01
-  IO::All: 0
-  IPC::Cmd: 0.54
-  LWP::Simple: 0
-  List::MoreUtils: 0.12
-  Method::Signatures::Simple: 0
+  HTTP::Lite: 2.2
+  IO::All: 0.39
+  IPC::Cmd: 0.56
+  List::MoreUtils: 0.22
   Mouse: 0.49
-  Path::Class: 0
-  YAML::XS: 0
+  Path::Class: 0.18
+  YAML::Tiny: 1.41
   perl: 5.10.0
 resources:
   license: http://opensource.org/licenses/artistic-license-2.0.php

@@ -2,6 +2,8 @@ bin/pmsencoder
 CHANGES
 conf/pmsencoder.yml
 conf/test_args.txt
+conf/WEB.conf
+ignorelist
 inc/Module/AutoInstall.pm
 inc/Module/Install.pm
 inc/Module/Install/AutoInstall.pm

@@ -11,20 +11,30 @@ license  'artistic_2';
 all_from 'lib/App/PMSEncoder.pm';
 include  'Module::AutoInstall';
 
-requires 'File::HomeDir';
-requires 'IO::All';
-requires 'IPC::Cmd'                    => '0.54'; # this is key, so let's have the latest version
-requires 'List::MoreUtils'             => '0.12'; # first_index wasn't exported till 0.12
-requires 'LWP::Simple';
-requires 'Method::Signatures::Simple';
-requires 'Mouse'                       => '0.49'; # 0.49 includes an update that fixes buggy interaction with Path::Class
-requires 'Path::Class';
-requires 'YAML::XS';
+requires 'File::HomeDir'               => '0.89';
+requires 'HTTP::Lite'                  => '2.2';
+requires 'IO::All'                     => '0.39';
+requires 'IPC::Cmd'                    => '0.56'; # core, but we want the latest version
+requires 'Path::Class'                 => '0.18';
+requires 'YAML::Tiny'                  => '1.41';
+
+if ($ENV{PMSENCODER_STANDALONE}) {
+    requires 'Mouse::Tiny' => '0.49';
+    $ENV{LIST_MOREUTILS_PP} = 1; # force pure perl
+    requires 'Mouse::Tiny' => '0.49';
+} else {
+    requires 'Mouse' => '0.49';
+}
+
+requires 'List::MoreUtils'             => '0.22';
+
+# don't include anything that depends on an XS module (LWP depends on HTML::Parser)
+# requires 'LWP::Simple';
+# requires 'Method::Signatures::Simple';
 
 # platform-specific access to resources e.g. default config file, bundled mencoder,
 # the text file containing the mencoder args for --test
-# XXX this should probably be something more like if ($ENV{PMSENCODER_AUTHOR}) ...
-if ($^O eq 'MSWin32') {
+if ($ENV{PMSENCODER_WIN32}) {
     requires 'Cava::Pack';
 } else {
     requires 'File::ShareDir' => '1.01';
