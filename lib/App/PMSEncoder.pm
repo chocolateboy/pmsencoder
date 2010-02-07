@@ -57,6 +57,14 @@ has argv => (
     auto_deref => 1,
 );
 
+# the YAML config file as a hash ref
+has config => (
+    is      => 'rw',
+    isa     => 'HashRef',
+    lazy    => 1,
+    builder => '_load_config',
+);
+
 # valid extensions for the pmsencoder config file
 has config_file_ext => (
     is         => 'ro',
@@ -73,22 +81,6 @@ has config_file_path => (
     builder => '_build_config_file_path',
 );
 
-# the YAML config file as a hash ref
-has config => (
-    is      => 'rw',
-    isa     => 'HashRef',
-    lazy    => 1,
-    builder => '_load_config',
-);
-
-# a closure that abstracts the HTTP request implementation
-has http => (
-    is      => 'rw',
-    isa     => 'CodeRef',
-    lazy    => 1,
-    builder => '_build_http',
-);
-
 # the path to the default config file - used as a fallback if no custom config file is found
 has default_config_path => (
     is  => 'rw',
@@ -102,10 +94,12 @@ has document => (
     default => sub { {} },
 );
 
-# full logfile path
-has logfile_path => (
-    is  => 'rw',
-    isa => 'Str',
+# a closure that abstracts the HTTP request implementation
+has http => (
+    is      => 'rw',
+    isa     => 'CodeRef',
+    lazy    => 1,
+    builder => '_build_http',
 );
 
 # IO::All logfile handle
@@ -114,6 +108,27 @@ has logfile => (
 
     # isa => 'IO::All::File',
     # XXX Mouse no likey
+);
+
+# full logfile path
+has logfile_path => (
+    is  => 'rw',
+    isa => 'Str',
+);
+
+# full path to mencoder binary
+has mencoder_path => (
+    is      => 'ro',
+    isa     => 'Str',
+    lazy    => 1,
+    builder => '_build_mencoder_path',
+);
+
+# is this running on Windows?
+has mswin => (
+    is      => 'ro',
+    isa     => 'Bool',
+    default => ($^O eq 'MSWin32'),
 );
 
 # full path to this executable
@@ -128,21 +143,6 @@ has stash => (
     is      => 'ro',
     isa     => 'HashRef',
     default => sub { {} },
-);
-
-# is this running on Windows?
-has mswin => (
-    is      => 'ro',
-    isa     => 'Bool',
-    default => ($^O eq 'MSWin32'),
-);
-
-# full path to mencoder binary
-has mencoder_path => (
-    is      => 'ro',
-    isa     => 'Str',
-    lazy    => 1,
-    builder => '_build_mencoder_path',
 );
 
 # position in argv of the filename/URI.
@@ -357,29 +357,62 @@ sub _build_config_file_path {
 sub http_get {
     my ($self, $uri) = @_;
     $self->debug("GET: $uri");
-    return $self->http->('get', $uri);
+    return $self->http->('GET', $uri);
 }
 
 sub http_head {
     my ($self, $uri) = @_;
     $self->debug("HEAD: $uri");
-    return $self->http->('head', $uri);
+    return $self->http->('HEAD', $uri);
 }
 
 sub _build_http {
     my $self = shift;
 
-    require LWP::Simple;
+    if (0 and eval { require LWP::Simple; 1 }) {
+        $self->debug('using LWP::Simple');
 
-    $self->debug('using LWP::Simple');
+        return sub {
+            my $method = lc shift;
+            my $uri = shift;
+            my $sub = LWP::Simple->can($method) || $self->fatal("can't find '$method' implementation in LWP::Simple");
 
-    return sub {
-	my $method = lc shift;
-	my $uri = shift;
-	my $sub = LWP::Simple->can($method) || $self->fatal("can't find '$method' implementation in LWP::Simple");
+            return $sub->($uri);
+        };
+    } else {
+        $self->debug('using HTTP::Lite');
+        require HTTP::Lite;
 
-	return $sub->($uri);
-    };
+        my $http = HTTP::Lite->new();
+
+        return sub {
+            my ($method, $uri) = @_;
+
+            $http->reset();
+            $http->method($method);
+
+            my $response = $http->request($uri);
+
+            if (defined $response) {
+                $self->debug("HTTP response: $response");
+
+                if (($response >= 200) && ($response < 300)) {
+                    if ($method eq 'HEAD') {
+                        $self->fatal("LWP::Simple-compatible get() in list context is not supported") if (wantarray);
+                        return $http->headers; # we need to return a true value; may as well return the headers array ref
+                    } else {
+                        return $http->body;
+                    }
+                } else {
+                    $self->debug("response headers: " . ($http->headers_string || ''));
+                    return undef;
+                }
+            } else {
+                $self->debug("couldn't perform HTTP request");
+                return undef;
+           }
+        };
+    }
 }
 
 sub debug {
