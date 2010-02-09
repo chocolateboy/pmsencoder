@@ -203,7 +203,7 @@ has user_config_dir => (
 
 sub BUILD {
     my $self = shift;
-    my $logfile_path = $self->logfile_path(file(File::Spec->tmpdir, PMSENCODER_LOG)->stringify());
+    my $logfile_path = $self->logfile_path(file(File::Spec->tmpdir, PMSENCODER_LOG)->stringify);
 
     $self->logfile(io($logfile_path));
     $self->logfile->append($/) if (-s $logfile_path);
@@ -215,9 +215,10 @@ sub BUILD {
     #
     #     http://code.google.com/p/ps3mediaserver/issues/detail?id=555
     #
-    # Instead we bundle the default config file (and mencoder.exe) in $PMSENCODER_HOME/res
-    # and ensure they're picked up with the appropriate precedence by setting the former via
-    # $self->default_config_path() and the latter via the $MENCODER_PATH environment variable
+    # Instead we bundle the default (i.e. fallback) config file (and mencoder.exe) in $PMSENCODER_HOME/res.
+    # we use the private _get_resource_path method to abstract away the platform-specifics
+
+    my $_get_resource_path;
 
     # initialize resource handling and fixup the stored $0 on Windows
     if ($self->mswin) {
@@ -225,20 +226,21 @@ sub BUILD {
         Cava::Pack::SetResourcePath('res');
         $self->self_path(file($self->get_resource_path(''), File::Spec->updir, PMSENCODER_EXE)->absolute->stringify);
 
-        # declare a private method XXX use $self->meta_add_method ?
-        *_get_resource_path = sub {
+        $_get_resource_path = sub {
             my ($self, $name) = @_;
             Cava::Pack::Resource($name)
         };
     } else {
-        require File::ShareDir;    # no need to worry about this not being picked up by Cava as it's non-Windows only
+        require File::ShareDir; # no need to worry about this not being picked up by Cava as it's non-Windows only
 
-        # declare a private method XXX use $self->meta_add_method ?
-        *_get_resource_path  = sub {
+        $_get_resource_path = sub {
             my ($self, $name) = @_;
             File::ShareDir::dist_file(DISTRO, $name)
         };
     }
+
+    # declare a private method
+    $self->meta->add_method(_get_resource_path => $_get_resource_path);
 
     my $data_dir = File::HomeDir->my_data;
 
@@ -292,12 +294,12 @@ sub version {
 }
 
 # squashed bug: this has to be created lazily i.e. more fallout from allowing argv to be set after initialisation.
-# the first place to call uri_index is process_config via run; it's then called by various exec_* methods
+# the first method to call uri_index is process_config via run; it's then called by various exec_* methods
 sub _build_uri_index {
     my $self = shift;
 
     # 4 is hardwired in net.pms.encoders.MEncoderVideo.launchTranscode
-    # FIXME: document where the uise of the 0th index for the URI is found
+    # FIXME: document where the hardwiring of the 0th index for the URI is found
     $self->isdef('prefer-ipv4') ? 0 : 4;
 }
 
@@ -305,7 +307,7 @@ sub _build_mencoder_path {
     my $self = shift;
     my $ext = $Config{_exe};
 
-    # we look for mencoder in these places (in desceneding order of priority):
+    # we look for mencoder in these places (in descending order of priority):
     #
     # 1) mencoder_path in the config file
     # 2) the path indicated by the environment variable $MENCODER_PATH
@@ -336,23 +338,38 @@ sub _build_config_file_path {
 
     # second: search for it in the user's home directory e.g. ~/.pmsencoder/pmsencoder.yml
     my $user_config_dir = $self->user_config_dir();
-    if (defined $user_config_dir) {    # not guaranteed to be defined
-        for my $ext ($self->config_file_ext) {
+
+    if (defined $user_config_dir) { # not guaranteed to be defined
+        for my $ext ($self->config_file_ext) { # allow .yml, .yaml, and .conf
             my $config_file_path = file($user_config_dir, PMSENCODER . ".$ext")->stringify;
             return $config_file_path if (-f $config_file_path);
         }
     } else {
-        $self->debug("can't find user config dir");    # should usually be defined; worth noting if it's not
+        $self->debug("can't find user config dir"); # should usually be defined; worth noting if it's not
     }
 
     # finally, fall back on the config file installed with the distro - this should always be available
     my $default = $self->default_config_path() || $self->fatal("can't find default config file");
+
     if (-f $default) {
         return $default;
-    } else {                                           # XXX shouldn't happen
+    } else { # XXX shouldn't happen
         $self->fatal("can't find default config file: $default");
     }
 }
+
+# FIXME: this should be abstracted away into something like:
+
+=for comment
+  with 'MooseX::HTTP::Simple' => {
+      -alias => {
+          get  => 'http_get',
+          head => 'http_head'
+      },
+      -excludes => [ 'get', 'head' ],
+  };
+
+=cut
 
 sub http_get {
     my ($self, $uri) = @_;
@@ -427,7 +444,7 @@ sub run {
     $self->debug("exec: $mencoder" . (@argv ? " @argv" : ''));
 
     # IPC::Cmd's use of IPC::Run is broken: https://rt.cpan.org/Ticket/Display.html?id=54184
-    $IPC::Cmd::USE_IPC_RUN = 0;
+    local $IPC::Cmd::USE_IPC_RUN = 0;
 
     my ($ok, $err) = IPC::Cmd::run(
         command => [ $mencoder, @argv ],
@@ -470,12 +487,9 @@ sub process_config {
 
     my $version = $config->{version};
 
-    $self->fatal("config file is out of date; please upgrade") unless ($version && ($version >= $CONFIG_VERSION));
-
-    # TODO figure out a way to make sure the config is sane for this version
-    # of the module
     $self->fatal("no version found in the config file") unless (defined $version);
     $self->debug("config file version: $version");
+    $self->fatal("config file is out of date; please upgrade") unless ($version && ($version >= $CONFIG_VERSION));
 
     if (defined $uri) {
         my $profiles = $config->{profiles};
@@ -494,11 +508,12 @@ sub process_config {
                     }
 
                     my $options = $profile->{options};
-                    $options = [$options] unless (ref($options) eq 'ARRAY');
+                    $options = [ $options ] unless (ref($options) eq 'ARRAY');
 
                     for my $hash (@$options) {
                         while (my ($key, $value) = each(%$hash)) {
                             my $operator = $self->can("exec_$key");
+
                             $self->fatal("invalid operator: $key") unless ($operator);
 
                             if (ref($value) && not($self->has_attribute($operator, 'Raw'))) {
@@ -553,10 +568,9 @@ sub exec_youtube :Raw {
     #     http://userscripts.org/topics/18274
 
     for my $fmt (@$formats) {
-        require LWP::Simple;
         my $media_uri = "http://www.youtube.com/get_video?fmt=$fmt&video_id=$video_id&t=$t";
         next unless ($self->http_head($media_uri));
-        $self->exec_uri($media_uri);    # set the new URI
+        $self->exec_uri($media_uri); # set the new URI
         $found = 1;
         last;
     }
@@ -612,7 +626,7 @@ sub exec_remove {
     while (@argv) {
         my $arg = shift @argv;
 
-        if ($self->isopt($arg)) {    # -foo ...
+        if ($self->isopt($arg)) { # -foo ...
             if (@argv && not($self->isopt($argv[0]))) {    # -foo bar
                 my $value = shift @argv;
 
@@ -652,7 +666,7 @@ sub exec_get {
         $self->document->{$uri};
     };
 
-    # key: 'value (capture_me)'
+    # key: 'value (?<named_capture>...)'
     if (defined $value) {
         $self->debug("extracting \$$key from $uri");
         my ($extract) = $document =~ /$value/;
@@ -662,6 +676,22 @@ sub exec_get {
         while (my ($named_capture_key, $named_capture_value) = (each %+)) {
             $self->exec_let($named_capture_key, $named_capture_value);
         }
+    }
+}
+
+# XXX unused/untested
+sub exec_delete {
+    my ($self, $key) = @_;
+    my $stash = $self->stash;
+
+    if (defined $key) {
+        if (exists $stash->{$key}) {
+            delete $stash->{$key};
+        } else {
+            $self->debug("can't delete stash entry: no such key: $key");
+        }
+    } else {
+        $self->debug("can't delete stash entry: undefined key");
     }
 }
 
