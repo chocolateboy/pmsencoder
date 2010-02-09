@@ -2,8 +2,8 @@ package App::PMSEncoder;
 
 use 5.10.0;
 
-use strict; # these are enabled by Mouse, but it's more convenient to use that further down
-use warnings;
+# 0.49 or above needed for the RT #54203 fix
+use Mouse 0.49; # include strict and warnings
 
 use constant PMSENCODER => 'pmsencoder';
 use constant {
@@ -19,31 +19,20 @@ use constant {
 # core modules
 use Config;
 use File::Spec;
-use IPC::Cmd 0.56 qw(can_run); # core since 5.10.0, but we need a version that escapes shell arguments correctly
 use POSIX qw(strftime);
+
+# bundled modules
+use HTTP::Simple qw(head get); # FIXME: alias them to http_get, http_head &c. use Sub::Exporter?
 
 # CPAN modules
 use File::HomeDir; # technically, this is not always needed, but using it unconditionally simplifies teh code slightly
 use IO::All;
+use IPC::Cmd 0.56 qw(can_run); # core since 5.10.0, but we need a version that escapes shell arguments correctly
+use List::MoreUtils qw(first_index any);
+use Method::Signatures::Simple;
 use Path::Class qw(file dir);
 use YAML::Tiny qw(Load);
 
-# make sure pure perl modules are used for the standalone build
-# XXX make sure Cava and PAR aren't confused by this
-BEGIN {
-    if ($ENV{PMSENCODER_STANDALONE}) {
-        require Mouse::Tiny;
-        Mouse::Tiny->import();
-        Mouse::Tiny->VERSION(0.49);
-        $ENV{LIST_MOREUTILS_PP} = 1; # force pure perl
-    }
-}
-
-# 0.49 or above needed for the RT #54203 fix
-use Mouse 0.49; # already loaded by Mouse::Tiny if $ENV{PMSENCODER_STANDALONE} is set
-use List::MoreUtils qw(first_index any); # pure perl if $ENV{PMSENCODER_STANDALONE} is set
-
-# use LWP::Simple qw(get head); # XXX not always needed - make sure Cava picks this up
 # use File::ShareDir;           # not used on Windows
 # use Cava::Pack;               # Windows only
 
@@ -92,14 +81,6 @@ has document => (
     is      => 'ro',
     isa     => 'HashRef',
     default => sub { {} },
-);
-
-# a closure that abstracts the HTTP request implementation
-has http => (
-    is      => 'rw',
-    isa     => 'CodeRef',
-    lazy    => 1,
-    builder => '_build_http',
 );
 
 # IO::All logfile handle
@@ -176,6 +157,7 @@ has user_config_dir => (
     # this needs to be initialised before MODIFY_CODE_ATTRIBUTES is called i.e. at compile-time
     BEGIN { %ATTRIBUTES_OK = map { $_ => 1 } qw(Raw) }
 
+    # needs to be a sub as it's called at compile-time
     sub MODIFY_CODE_ATTRIBUTES {
         my ($class, $code, @attrs) = @_;
         my (@keep, @discard);
@@ -194,15 +176,12 @@ has user_config_dir => (
     }
 
     # by using %ATTRIBUTES directly we can bypass attributes::get and FETCH_CODE_ATTRIBUTES
-    sub has_attribute {
-        my ($self, $code, $attribute) = @_;
-
+    method has_attribute($code, $attribute) {
         any { $_ eq $attribute } @{ $ATTRIBUTES{$code} || [] };
     }
 }
 
-sub BUILD {
-    my $self = shift;
+method BUILD {
     my $logfile_path = $self->logfile_path(file(File::Spec->tmpdir, PMSENCODER_LOG)->stringify);
 
     $self->logfile(io($logfile_path));
@@ -218,29 +197,24 @@ sub BUILD {
     # Instead we bundle the default (i.e. fallback) config file (and mencoder.exe) in $PMSENCODER_HOME/res.
     # we use the private _get_resource_path method to abstract away the platform-specifics
 
-    my $_get_resource_path;
-
     # initialize resource handling and fixup the stored $0 on Windows
     if ($self->mswin) {
         require Cava::Pack;
         Cava::Pack::SetResourcePath('res');
         $self->self_path(file($self->get_resource_path(''), File::Spec->updir, PMSENCODER_EXE)->absolute->stringify);
 
-        $_get_resource_path = sub {
-            my ($self, $name) = @_;
+	# declare a private method - at runtime!
+        method _get_resource_path ($name) {
             Cava::Pack::Resource($name)
-        };
+        }
     } else {
         require File::ShareDir; # no need to worry about this not being picked up by Cava as it's non-Windows only
 
-        $_get_resource_path = sub {
-            my ($self, $name) = @_;
+	# declare a private method - at runtime!
+	method _get_resource_path($name) {
             File::ShareDir::dist_file(DISTRO, $name)
-        };
+        }
     }
-
-    # declare a private method
-    $self->meta->add_method(_get_resource_path => $_get_resource_path);
 
     my $data_dir = File::HomeDir->my_data;
 
@@ -253,8 +227,7 @@ sub BUILD {
     return $self;
 }
 
-sub get_resource_path {
-    my ($self, $name, $exists) = @_;
+method get_resource_path ($name, $exists) {
     my $path = $self->_get_resource_path($name);
 
     if ($exists) {
@@ -270,16 +243,14 @@ sub get_resource_path {
     }
 }
 
-sub get_resource {
-    my ($self, $name) = @_;
+method get_resource ($name) {
     my $path = $self->get_resource_path($name, REQUIRE_RESOURCE_EXISTS);
 
     return io($path)->chomp->slurp();
 }
 
 # dump various config settings - useful for troubleshooting
-sub version {
-    my $self = shift;
+method version {
     my $user_config_dir = $self->user_config_dir || '<undef>';    # may be undef according to the File::HomeDir docs
 
     print STDOUT
@@ -295,16 +266,14 @@ sub version {
 
 # squashed bug: this has to be created lazily i.e. more fallout from allowing argv to be set after initialisation.
 # the first method to call uri_index is process_config via run; it's then called by various exec_* methods
-sub _build_uri_index {
-    my $self = shift;
+method _build_uri_index {
 
     # 4 is hardwired in net.pms.encoders.MEncoderVideo.launchTranscode
     # FIXME: document where the hardwiring of the 0th index for the URI is found
     $self->isdef('prefer-ipv4') ? 0 : 4;
 }
 
-sub _build_mencoder_path {
-    my $self = shift;
+method _build_mencoder_path {
     my $ext = $Config{_exe};
 
     # we look for mencoder in these places (in descending order of priority):
@@ -322,9 +291,7 @@ sub _build_mencoder_path {
       || $self->fatal("can't find mencoder");
 }
 
-sub _build_config_file_path {
-    my $self = shift;
-
+method _build_config_file_path {
     # first: check the environment variable (should contain the absolute path)
     if (exists $ENV{PMSENCODER_CONFIG}) {
         my $config_file_path = $ENV{PMSENCODER_CONFIG};
@@ -358,81 +325,29 @@ sub _build_config_file_path {
     }
 }
 
-# FIXME: this should be abstracted away into something like:
-
-=for comment
-  with 'MooseX::HTTP::Simple' => {
-      -alias => {
-          get  => 'http_get',
-          head => 'http_head'
-      },
-      -excludes => [ 'get', 'head' ],
-  };
-
-=cut
-
-sub http_get {
-    my ($self, $uri) = @_;
-    $self->debug("GET: $uri");
-    return $self->http->('get', $uri);
-}
-
-sub http_head {
-    my ($self, $uri) = @_;
-    $self->debug("HEAD: $uri");
-    return $self->http->('head', $uri);
-}
-
-sub _build_http {
-    my $self = shift;
-    my ($class, $http);
-
-    if (0 and eval { require LWP::Simple; 1 }) { # FIXME: disabled for testing
-        $class = $http = 'LWP::Simple';
-    } else {
-        require App::PMSEncoder::HTTP::Client;
-        $class = 'App::PMSEncoder::HTTP::Client';
-        $http = App::PMSEncoder::HTTP::Client->new();
-    }
-
-    $self->debug("using $class");
-
-    return sub {
-        my ($method, $uri) = @_;
-        return $http->$method($uri);
-    };
-}
-
-sub debug {
-    my ($self, $message) = @_;
+method debug ($message) {
     my $now = strftime("%Y-%m-%d %H:%M:%S", localtime);
 
     $self->logfile->append("$now: $$: $message", $/);
 }
 
-sub fatal {
-    my ($self, $message) = @_;
-
+method fatal ($message) {
     $self->debug("ERROR: $message");
     die $self->self_path . ": $VERSION: $$: ERROR: $message", $/;
 }
 
-sub isdef {
-    my ($self, $name) = @_;
+method isdef ($name) {
     my $argv = $self->argv;
     my $index = first_index { $_ eq "-$name" } $self->argv;
 
     return ($index != -1);
 }
 
-sub isopt {
-    my ($self, $arg) = @_;
-
+method isopt ($arg) {
     return (defined($arg) && (substr($arg, 0, 1) eq '-'));
 }
 
-sub run {
-    my $self = shift;
+method run {
     my $mencoder = $self->mencoder_path();
 
     # modify $self->argv according to the recipes in the config file
@@ -461,8 +376,7 @@ sub run {
 }
 
 # XXX this is the only builder whose name doesn't begin with _build
-sub _load_config {
-    my $self = shift;
+method _load_config {
     my $config_file = $self->config_file_path();
 
     # XXX Try::Tiny?
@@ -474,9 +388,7 @@ sub _load_config {
     return $config || $self->fatal("config is undefined");
 }
 
-sub process_config {
-    my $self = shift;
-
+method process_config {
     $self->debug('processing config');
 
     my $uri    = $self->argv->[ $self->uri_index ];
@@ -546,8 +458,7 @@ sub process_config {
 ################################# MEncoder Options ################################
 
 # extract the media URI - see http://stackoverflow.com/questions/1883737/getting-an-flv-from-youtube-in-net
-sub exec_youtube :Raw {
-    my ($self, $formats) = @_;
+method exec_youtube ($formats) :Raw {
     my $uri   = $self->argv->[ $self->uri_index ];
     my $stash = $self->stash;
     my ($video_id, $t) = @{$stash}{qw(video_id t)};
@@ -569,7 +480,7 @@ sub exec_youtube :Raw {
 
     for my $fmt (@$formats) {
         my $media_uri = "http://www.youtube.com/get_video?fmt=$fmt&video_id=$video_id&t=$t";
-        next unless ($self->http_head($media_uri));
+        next unless (head $media_uri);
         $self->exec_uri($media_uri); # set the new URI
         $found = 1;
         last;
@@ -578,9 +489,7 @@ sub exec_youtube :Raw {
     $self->fatal("can't retrieve YouTube video from $uri") unless ($found);
 }
 
-sub exec_set {
-    my ($self, $name, $value) = @_;
-
+method exec_set ($name, $value) {
     $name = "-$name";
 
     my $argv = $self->argv;
@@ -600,9 +509,7 @@ sub exec_set {
     }
 }
 
-sub exec_replace {
-    my ($self, $name, $search, $replace) = @_;
-
+method exec_replace ($name, $search, $replace) {
     $name = "-$name";
 
     my $argv = $self->argv();
@@ -614,9 +521,7 @@ sub exec_replace {
     }
 }
 
-sub exec_remove {
-    my ($self, $name) = @_;
-
+method exec_remove ($name) {
     $name = "-$name";
 
     my @argv  = $self->argv;
@@ -648,20 +553,17 @@ sub exec_remove {
 }
 
 # define a variable in the stash
-sub exec_let {
-    my ($self, $name, $value) = @_;
-
+method exec_let ($name, $value) {
     $self->debug("setting \$$name to $value");
     $self->stash->{$name} = $value;
 }
 
 # define a variable in the stash by extracting a value from the document pointed to by the current URI
-sub exec_get {
-    my ($self, $key, $value) = @_;
+method exec_get ($key, $value) {
     my $uri      = $self->argv->[ $self->uri_index ];    # XXX need a uri attribute that does the right thing(s)
     my $document = do {                                  # cache for subsequent matches
         unless (exists $self->document->{$uri}) {
-            $self->document->{$uri} = $self->http_get($uri) || $self->fatal("can't retrieve $uri");
+            $self->document->{$uri} = get($uri) || $self->fatal("can't retrieve $uri");
         }
         $self->document->{$uri};
     };
@@ -680,8 +582,7 @@ sub exec_get {
 }
 
 # XXX unused/untested
-sub exec_delete {
-    my ($self, $key) = @_;
+method exec_delete ($key) {
     my $stash = $self->stash;
 
     if (defined $key) {
@@ -696,9 +597,7 @@ sub exec_delete {
 }
 
 # set the URI, performing any variable substitutions
-sub exec_uri {
-    my ($self, $uri) = @_;
-
+method exec_uri ($uri) {
     while (my ($key, $value) = each(%{ $self->stash })) {
         my $search = qr{(?:(?:\$$key\b)|(?:\$\{$key\}))};
         if ($uri =~ $search) {

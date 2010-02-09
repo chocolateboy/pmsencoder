@@ -5,6 +5,17 @@ author:
 build_requires:
   ExtUtils::MakeMaker: 6.42
   Test::More: 0
+bundles:
+  File::HomeDir: File-HomeDir-0.89
+  File::ShareDir: File-ShareDir-1.01
+  HTTP::Lite: HTTP-Lite-2.2
+  IO::All: IO-All-0.39
+  IPC::Cmd: IPC-Cmd-0.56
+  List::MoreUtils: List-MoreUtils-0.22
+  Method::Signatures::Simple: Method-Signatures-Simple-0.05
+  Mouse: Mouse-0.50
+  Path::Class: Path-Class-0.18
+  YAML::Tiny: YAML-Tiny-1.41
 configure_requires:
   ExtUtils::MakeMaker: 6.42
 distribution_type: module
@@ -28,6 +39,7 @@ requires:
   IO::All: 0.39
   IPC::Cmd: 0.56
   List::MoreUtils: 0.22
+  Method::Signatures::Simple: 0.05
   Mouse: 0.49
   Path::Class: 0.18
   YAML::Tiny: 1.41

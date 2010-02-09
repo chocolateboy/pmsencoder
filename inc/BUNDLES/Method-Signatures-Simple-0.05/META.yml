@@ -1,0 +1,12 @@
+---
+abstract: Basic method declarations with signatures, without source filters
+author:
+- Rhesa Rozendaal <rhesa@cpan.org>
+generated_by: Dist::Zilla::Plugin::MetaYaml version 1.091260
+license: perl
+name: Method-Signatures-Simple
+requires:
+  Devel::Declare: '0.003001'
+resources:
+  repository: http://github.com/rhesa/method-signatures-simple
+version: '0.05'

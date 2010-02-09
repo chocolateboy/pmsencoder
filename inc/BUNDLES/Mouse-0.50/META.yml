@@ -1,0 +1,33 @@
+---
+abstract: 'Moose minus the antlers'
+author:
+  - 'Shawn M Moore <sartak at gmail.com>'
+build_requires:
+  ExtUtils::MakeMaker: 6.42
+  ExtUtils::ParseXS: 2.21
+  Test::Exception: 0.29
+  Test::More: 0.88
+configure_requires:
+  Devel::PPPort: 3.19
+  ExtUtils::MakeMaker: 6.42
+distribution_type: module
+generated_by: 'Module::Install version 0.93'
+license: perl
+meta-spec:
+  url: http://module-build.sourceforge.net/META-spec-v1.4.html
+  version: 1.4
+name: Mouse
+no_index:
+  directory:
+    - example
+    - inc
+    - t
+    - xt
+requires:
+  Scalar::Util: 1.14
+  XSLoader: 0.1
+  perl: 5.6.2
+resources:
+  license: http://dev.perl.org/licenses/
+  repository: git://git.moose.perl.org/Mouse.git
+version: 0.50

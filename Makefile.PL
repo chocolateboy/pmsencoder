@@ -17,22 +17,11 @@ requires 'IO::All'                     => '0.39';
 requires 'IPC::Cmd'                    => '0.56'; # core, but we want the latest version
 requires 'Path::Class'                 => '0.18';
 requires 'YAML::Tiny'                  => '1.41';
-
-if ($ENV{PMSENCODER_STANDALONE}) {
-    requires 'Mouse::Tiny' => '0.49';
-    $ENV{LIST_MOREUTILS_PP} = 1; # force pure perl
-    requires 'Mouse::Tiny' => '0.49';
-} else {
-    requires 'Mouse' => '0.49';
-}
-
+requires 'Mouse'                       => '0.49';
 requires 'List::MoreUtils'             => '0.22';
+requires 'Method::Signatures::Simple'  => '0.05';
 
-# don't include anything that depends on an XS module (LWP depends on HTML::Parser)
-# requires 'LWP::Simple';
-# requires 'Method::Signatures::Simple';
-
-recommends 'LWP::Simple'; # we can still recommend it, though
+recommends 'LWP::Simple';
 
 # platform-specific access to resources e.g. default config file, bundled mencoder,
 # the text file containing the mencoder args for --test
@@ -46,7 +35,6 @@ if ($ENV{PMSENCODER_WIN32}) {
 install_script 'bin/pmsencoder';
 repository     'http://github.com/chocolateboy/pmsencoder';
 test_requires  'Test::More';
-
-auto_install;
+auto_bundle;
 
 WriteAll;

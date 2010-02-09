@@ -1,0 +1,37 @@
+This is the README file for IPC::Cmd -- a cross platform way of running
+(interactive) commandline programs.
+
+Please type "perldoc IPC::Cmd" after installation to see the module
+usage information.
+
+#####################################################################
+
+* Description
+
+IPC::Cmd
+    Allows for the searching and execution of any binary on your system.
+    It adheres to verbosity settings and is able to run intereactive. It
+    also has an option to capture output/error buffers.
+
+#####################################################################
+
+* Installation
+
+IPC::Cmd uses the standard perl module install process:
+
+perl Makefile.PL
+make
+make test
+make install
+
+######################################################################
+
+AUTHOR
+    This module by Jos Boumans <kane@cpan.org>.
+
+COPYRIGHT
+    This module is copyright (c) 2002 Jos Boumans <kane@cpan.org>. All
+    rights reserved.
+
+    This library is free software; you may redistribute and/or modify it
+    under the same terms as Perl itself.

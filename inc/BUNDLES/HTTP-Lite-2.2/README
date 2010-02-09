@@ -1,0 +1,250 @@
+NAME
+    HTTP::Lite - Lightweight HTTP implementation
+
+SYNOPSIS
+        use HTTP::Lite;
+        $http = new HTTP::Lite;
+        $req = $http->request("http://www.cpan.org/") 
+            or die "Unable to get document: $!";
+        print $http->body();
+
+DESCRIPTION
+        HTTP::Lite is a stand-alone lightweight HTTP/1.1 implementation
+        for perl.  It is not intended as a replacement for the
+        fully-features LWP module.  Instead, it is intended for use in
+        situations where it is desirable to install the minimal number of
+        modules to achieve HTTP support, or where LWP is not a good
+        candidate due to CPU overhead, such as slower processors.
+        HTTP::Lite is also significantly faster than LWP.
+
+        HTTP::Lite is ideal for CGI (or mod_perl) programs or for bundling
+        for redistribution with larger packages where only HTTP GET and
+        POST functionality are necessary.
+
+        HTTP::Lite supports basic POST and GET operations only.  As of
+        0.2.1, HTTP::Lite supports HTTP/1.1 and is compliant with the Host
+        header, necessary for name based virtual hosting.  Additionally,
+        HTTP::Lite now supports Proxies.
+
+        As of 2.0.0 HTTP::Lite now supports a callback to allow processing
+        of request data as it arrives.  This is useful for handling very
+        large files without consuming memory.
+
+        If you require more functionality, such as FTP or HTTPS, please
+        see libwwwperl (LWP).  LWP is a significantly better and more
+        comprehensive package than HTTP::Lite, and should be used instead
+        of HTTP::Lite whenever possible.
+
+CONSTRUCTOR
+    new This is the constructor for HTTP::Lite. It presently takes no
+        arguments. A future version of HTTP::Lite might accept parameters.
+
+METHODS
+    request ( $url, $data_callback, $cbargs )
+        Initiates a request to the specified URL.
+
+        Returns undef if an I/O error is encountered, otherwise the HTTP
+        status code will be returned. 200 series status codes represent
+        success, 300 represent temporary errors, 400 represent permanent
+        errors, and 500 represent server errors.
+
+        See http://www.w3.org/Protocols/HTTP/HTRESP.html for detailled
+        information about HTTP status codes.
+
+        The $data_callback parameter, if used, is a way to filter the data
+        as it is received or to handle large transfers. It must be a
+        function reference, and will be passed: a reference to the instance
+        of the http request making the callback, a reference to the current
+        block of data about to be added to the body, and the $cbargs
+        parameter (which may be anything). It must return either a reference
+        to the data to add to the body of the document, or undef.
+
+        If set_callback is used, $data_callback and $cbargs are not used.
+        $cbargs may be either a scalar or a reference.
+
+        The data_callback is called as: &$data_callback( $self, $dataref,
+        $cbargs )
+
+        An example use to save a document to file is:
+
+          # Write the data to the filehandle $cbargs
+          sub savetofile {
+            my ($self,$phase,$dataref,$cbargs) = @_;
+            print $cbargs $$dataref;
+            return undef;
+          }
+
+          $url = "$testpath/bigbinary.dat";
+          open OUT, ">bigbinary.dat";
+          $res = $http->request($url, \&savetofile, OUT);
+          close OUT;
+
+    set_callback ( $functionref, $dataref )
+        At various stages of the request, callbacks may be used to modify
+        the behaviour or to monitor the status of the request. These work
+        like the $data_callback parameter to request(), but are more
+        verstaile. Using set_callback disables $data_callback in request()
+
+        The callbacks are called as: callback ( $self, $phase, $dataref,
+        $cbargs )
+
+        The current phases are:
+
+          connect - connection has been established and headers are being
+                    transmitted.
+                    
+  content-length - return value is used as the content-length.  If undef,
+                    and prepare_post() was used, the content length is
+                    calculated.
+                           
+  done-headers - all headers have been sent
+          
+  content - return value is used as content and is sent to client.  Return
+                    undef to use the internal content defined by prepare_post().
+                    
+  content-done - content has been successfuly transmitted.
+          
+  data - A block of data has been received.  The data is referenced by
+                    $dataref.  The return value is dereferenced and replaces the
+                    content passed in.  Return undef to avoid using memory for large
+                    documents.
+
+          done - Request is done.
+
+    prepare_post ( $hashref )
+        Takes a reference to a hashed array of post form variables to
+        upload. Create the HTTP body and sets the method to POST.
+
+    http11_mode ( 0 | 1 )
+        Turns on or off HTTP/1.1 support. This is off by default due to
+        broken HTTP/1.1 servers. Use 1 to enable HTTP/1.1 support.
+
+    add_req_header ( $header, $value )
+    get_req_header ( $header )
+    delete_req_header ( $header )
+        Add, Delete, or a HTTP header(s) for the request. These functions
+        allow you to override any header. Presently, Host, User-Agent,
+        Content-Type, Accept, and Connection are pre-defined by the
+        HTTP::Lite module. You may not override Host, Connection, or Accept.
+
+        To provide (proxy) authentication or authorization, you would use:
+
+            use HTTP::Lite;
+            use MIME::Base64;
+            $http = new HTTP::Lite;
+            $encoded = encode_base64('username:password');
+            $http->add_req_header("Authorization", $encoded);
+
+        NOTE: The present implementation limits you to one instance of each
+        header.
+
+    body
+        Returns the body of the document retured by the remote server.
+
+    headers_array
+        Returns an array of the HTTP headers returned by the remote server.
+
+    headers_string
+        Returns a string representation of the HTTP headers returned by the
+        remote server.
+
+    get_header ( $header )
+        Returns an array of values for the requested header.
+
+        NOTE: HTTP requests are not limited to a single instance of each
+        header. As a result, there may be more than one entry for every
+        header.
+
+    protocol
+        Returns the HTTP protocol identifier, as reported by the remote
+        server. This will generally be either HTTP/1.0 or HTTP/1.1.
+
+    proxy ( $proxy_server )
+        The URL or hostname of the proxy to use for the next request.
+
+    status
+        Returns the HTTP status code returned by the server. This is also
+        reported as the return value of *request()*.
+
+    status_message
+        Returns the textual description of the status code as returned by
+        the server. The status string is not required to adhere to any
+        particular format, although most HTTP servers use a standard set of
+        descriptions.
+
+    reset
+        You must call this prior to re-using an HTTP::Lite handle, otherwise
+        the results are undefined.
+
+    local_addr ( $ip )
+        Explicity select the local IP address. 0.0.0.0 (default) lets the
+        system choose.
+
+    local_port ( $port )
+        Explicity select the local port. 0 (default and reccomended) lets
+        the system choose.
+
+    method ( $method )
+        Explicity set the method. Using prepare_post or reset overrides this
+        setting. Usual choices are GET, POST, PUT, HEAD
+
+EXAMPLES
+        # Get and print out the headers and body of the CPAN homepage
+        use HTTP::Lite;
+        $http = new HTTP::Lite;
+        $req = $http->request("http://www.cpan.org/")
+            or die "Unable to get document: $!";
+        die "Request failed ($req): ".$http->status_message()
+          if $req ne "200";
+        @headers = $http->headers_array();
+        $body = $http->body();
+        foreach $header (@headers)
+        {
+          print "$header$CRLF";
+        }
+        print "$CRLF";
+        print "$body$CRLF";
+
+        # POST a query to the dejanews USENET search engine
+        use HTTP::Lite;
+        $http = new HTTP::Lite;
+        %vars = (
+                 "QRY" => "perl",
+                 "ST" => "MS",
+                 "svcclass" => "dncurrent",
+                 "DBS" => "2"
+                );
+        $http->prepare_post(\%vars);
+        $req = $http->request("http://www.deja.com/dnquery.xp")
+          or die "Unable to get document: $!";
+        print "req: $req\n";
+        print $http->body();
+
+UNIMPLEMENTED
+        - FTP 
+        - HTTPS (SSL)
+        - Authenitcation/Authorizaton/Proxy-Authorization
+          are not directly supported, and require MIME::Base64.
+        - Redirects (Location) are not automatically followed
+        - multipart/form-data POSTs are not directly supported (necessary
+          for File uploads).
+
+BUGS
+        Some broken HTTP/1.1 servers send incorrect chunk sizes
+        when transferring files.  HTTP/1.1 mode is now disabled by
+        default.
+
+AUTHOR
+    Roy Hooper <rhooper@thetoybox.org>
+
+SEE ALSO
+    LWP RFC 2068 - HTTP/1.1 -http://www.w3.org/
+
+COPYRIGHT
+    Copyright (c) 2000-2002 Roy Hooper. All rights reserved.
+
+    Some parts copyright 2009 Adam Kennedy.
+
+    This program is free software; you can redistribute it and/or modify it
+    under the same terms as Perl itself.
+

@@ -1,0 +1,27 @@
+---
+abstract: 'Lightweight HTTP implementation'
+author:
+  - 'Roy Hooper <rhooper@thetoybox.org>'
+build_requires:
+  ExtUtils::MakeMaker: 6.42
+configure_requires:
+  ExtUtils::MakeMaker: 6.42
+distribution_type: module
+generated_by: 'Module::Install version 0.91'
+license: perl
+meta-spec:
+  url: http://module-build.sourceforge.net/META-spec-v1.4.html
+  version: 1.4
+module_name: HTTP::Lite
+name: HTTP-Lite
+no_index:
+  directory:
+    - inc
+    - t
+requires:
+  perl: 5.005
+resources:
+  ChangeLog: http://fisheye2.atlassian.com/changelog/cpan/trunk/HTTP-Lite
+  license: http://dev.perl.org/licenses/
+  repository: http://svn.ali.as/cpan/trunk/HTTP-Lite
+version: 2.2
