@@ -203,15 +203,15 @@ method BUILD {
         Cava::Pack::SetResourcePath('res');
         $self->self_path(file($self->get_resource_path(''), File::Spec->updir, PMSENCODER_EXE)->absolute->stringify);
 
-	# declare a private method - at runtime!
+        # declare a private method - at runtime!
         method _get_resource_path ($name) {
             Cava::Pack::Resource($name)
         }
     } else {
         require File::ShareDir; # no need to worry about this not being picked up by Cava as it's non-Windows only
 
-	# declare a private method - at runtime!
-	method _get_resource_path($name) {
+        # declare a private method - at runtime!
+        method _get_resource_path($name) {
             File::ShareDir::dist_file(DISTRO, $name)
         }
     }

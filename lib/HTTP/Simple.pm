@@ -20,15 +20,15 @@ sub import {
     my $exporter;
 
     if (eval { require LWP::Simple; 1 }) {
-	$exporter = 'LWP::Simple';
+        $exporter = 'LWP::Simple';
     } else {
-	require HTTP::Lite;
-	$exporter = $class;
+        require HTTP::Lite;
+        $exporter = $class;
     }
 
     for my $import (@imports) {
-	no strict 'refs';
-	*{"$caller\::$import"} = $exporter->can($import);
+        no strict 'refs';
+        *{"$caller\::$import"} = $exporter->can($import);
     }
 }
 
