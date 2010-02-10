@@ -3,6 +3,7 @@ CHANGES
 conf/pmsencoder.yml
 conf/test_args.txt
 conf/WEB.conf
+dist/PMSEncoder.pl
 inc/BUNDLES.yml
 inc/BUNDLES/File-HomeDir-0.89/Changes
 inc/BUNDLES/File-HomeDir-0.89/inc/Module/Install.pm
@@ -593,4 +594,3 @@ README.md
 t/01_use.t
 t/pod.t
 TODO
-tools/PMSEncoder.pl

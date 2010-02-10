@@ -19,7 +19,7 @@ sub import {
     my $caller = caller;
     my $exporter;
 
-    if (eval { require LWP::Simple; 1 }) {
+    if (not($ENV{HTTP_SIMPLE_DISABLE_LWP}) && eval { require LWP::Simple; 1 }) {
         $exporter = 'LWP::Simple';
     } else {
         require HTTP::Lite;

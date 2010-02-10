@@ -1,15 +1,21 @@
 #!/usr/bin/env perl
 
+use 5.010000;
+
 use strict;
 use warnings;
 
 use SelfLoader;
 
 use Cwd qw(getcwd);
+use ExtUtils::MakeMaker qw(prompt);
 use File::Temp qw(tempdir);
-use HTTP::Lite;
+use Getopt::Long qw(:config posix_defaults no_auto_abbrev no_ignore_case);
+use HTTP::Simple qw(get);
 use IPC::Cmd ();
 use Scope::Guard;
+
+our $VERBOSE = 0;
 
 sub run (@) {
     my @cmd = @_;
@@ -17,7 +23,7 @@ sub run (@) {
     local $IPC::Cmd::USE_IPC_RUN = 0;
 
     my ($ok, $err, $full_buffer, $stdout, $stderr) = IPC::Cmd::run(
-        verbose => 1,
+        verbose => $VERBOSE,
         command => \@cmd
     );
 
@@ -28,25 +34,20 @@ sub run (@) {
     }
 }
 
-sub get ($) {
+sub http_get ($) {
     my $uri  = shift;
-    my $http = HTTP::Lite->new();
+    my $body = get($uri);
 
-    $http->method('get');
-
-    my $response = $http->request($uri);
-
-    if (($response >= 200) && ($response <= 300)) {
-        return $http->body;
+    if (defined $body) {
+	return $body;
     } else {
-        my $status = $http->status_message;
-        die "couldn't download $uri: invalid HTTP response: $response $status";
+        die "couldn't download $uri";
     }
 }
 
 sub mirror($$) {
     my ($uri, $filename) = @_;
-    my $data = get($uri);
+    my $data = http_get($uri);
     write_file($filename, $data);
 }
 
@@ -64,43 +65,60 @@ sub cd($) {
     chdir($dir) || die "can't chdir to $dir: $!";
 }
 
+sub usage() {
+    print "$0 [--verbose] [installation_dir]", $/;
+    exit 0;
+}
+
 #####################################################################################
 
+GetOptions(
+    verbose => \$VERBOSE,
+    help    => \&usage,
+) || usage();
+
 my $install_dir = shift(@ARGV) || File::Spec->catdir($ENV{HOME}, 'pmsencoder');
-my $local_lib_build_dir = tempdir("pmsencoder_installer_$$\_XXXX", CLEANUP => 1);
+my $local_lib_build_dir = tempdir(CLEANUP => 1);
 my $local_lib_version   = 'local-lib-1.004009';
 my $local_lib_filename  = "$local_lib_version.tar.gz";
-my $local_lib_tarball   = get("http://cpan.yimg.com/modules/by-authors/id/A/AP/APEIRON/$local_lib_filename");
+
+my $continue = prompt("this will install PMSEncoder to $install_dir. Continue? y/n ", 'y');
+exit 0 unless ($continue =~ /^Y(es)?$/i);
+print "please wait...", $/ unless ($VERBOSE);
+
 my $oldpwd              = getcwd();
 my $guard               = Scope::Guard->new(sub { chdir($oldpwd) });
 
 cd($local_lib_build_dir);
-write_file($local_lib_filename, $local_lib_tarball);
+mirror("http://cpan.yimg.com/modules/by-authors/id/A/AP/APEIRON/$local_lib_filename", $local_lib_filename);
 run('tar', 'xzvf', $local_lib_filename);
 cd($local_lib_version);
 run($^X, 'Makefile.PL', "--bootstrap=$install_dir");
-run('make install');
+run(qw(make test));
+run(qw(make install));
 
 require lib;
 lib->import(File::Spec->catdir($install_dir, 'lib', 'perl5'));
 
 require local::lib;
-local::lib->import('--self-contained', $install_dir);    # import @INC and %ENV
+local::lib->import('--self-contained', $install_dir); # import @INC and %ENV
 
-my $pmsencoder_build_dir = tempdir("pmsencoder_installer_$$\_XXXX", CLEANUP => 1);
-my $pmsencoder_tarball = 'PMSEncoder-0.60.tar.gz';
+my $pmsencoder_build_dir = tempdir(CLEANUP => 1);
+my $pmsencoder_version = 'App-PMSEncoder-0.60';
+my $pmsencoder_tarball = "$pmsencoder_version.tar.gz";
 
 cd $pmsencoder_build_dir;
-mirror("http://chocolatey.com/downloads/$pmsencoder_tarball", $pmsencoder_tarball);
+mirror("http://github.com/chocolateboy/pmsencoder/raw/master/tools/$pmsencoder_tarball", $pmsencoder_tarball);
 run('tar', 'xzvf', $pmsencoder_tarball);
-cd 'App-PMSEncoder-0.60';
+cd $pmsencoder_version; # XXX this, the local::lib version and the appendix, need to be added as part of the build
 run($^X, 'Makefile.PL');
-run('make install');
+run(qw(make test));
+run(qw(make install));
 
 print $/;
-print "#####################################################################################", $/;
+# print "#####################################################################################", $/;
 print "pmsencoder installed to: ", File::Spec->catfile($install_dir, 'bin', 'pmsencoder'), $/;
-print "#####################################################################################", $/;
+# print "#####################################################################################", $/;
 exit 0;
 
 #####################################################################################
@@ -903,3 +921,153 @@ sub upper
 }
 
 1;
+
+package HTTP::Simple;
+
+use strict;
+use warnings;
+
+use constant MAX_REDIRECTS => 7; # LWP::UserAgent default XXX make this configurable?
+
+our $VERSION = '0.01';
+our @EXPORT_OK = qw(head get);
+
+sub import {
+    my ($class, @imports) = @_;
+    my %export_ok = map { $_ => 1 } @EXPORT_OK;
+
+    for my $import (@imports) {
+        die "invalid import: $import" unless ($export_ok{$import});
+    }
+
+    my $caller = caller;
+    my $exporter;
+
+    if (not($ENV{HTTP_SIMPLE_DISABLE_LWP}) && eval { require LWP::Simple; 1 }) {
+        $exporter = 'LWP::Simple';
+    } else {
+        require HTTP::Lite;
+        $exporter = $class;
+    }
+
+    for my $import (@imports) {
+        no strict 'refs';
+        *{"$caller\::$import"} = $exporter->can($import);
+    }
+}
+
+sub get($) {
+    my $uri = shift;
+    # $self->debug("GET: $uri");
+    return _request('GET', $uri);
+}
+
+sub head($) {
+    my $uri = shift;
+    # $self->debug("HEAD: $uri");
+    return _request('HEAD', $uri);
+}
+
+sub _request($$;$); # pre-declare to allow for recursion when handling redirects
+sub _request($$;$) {
+    my ($method, $uri, $count) = @_;
+    my $max_redirects = MAX_REDIRECTS;
+
+    $count = 0 unless (defined $count);
+
+    if ($count >= $max_redirects) {
+        # $self->debug("redirection limit reached: $max_redirects");
+        return;
+    }
+
+    my $http = HTTP::Lite->new();
+
+    $http->method($method);
+
+    my $response = $http->request($uri);
+
+    if (defined $response) {
+        my $status = $http->status_message;
+
+        # $self->debug("HTTP response: $response $status");
+
+        if (($response >= 200) && ($response < 300)) {
+            if ($method eq 'HEAD') {
+                if (wantarray) {
+                    # return $self->fatal("LWP::Simple-compatible get() in list context is not supported") 
+                    return;
+                } else {
+                    # we need to return a true value; may as well return the headers array ref
+                    return $http->headers_array;
+                }
+            } else {
+                return $http->body;
+            }
+        # XXX LWP::UserAgent handles at least 2 more cases
+        } elsif (($response == 303) || ($response == 307)) { # redirect 
+            # header names aren't unique; there may be more than one location
+            my $locations = $http->get_header('Location');
+
+            # return $self->fatal("can't find Location header in response") unless ($locations);
+            return unless ($locations);
+
+            for my $location (@$locations) {
+                # return $self->fatal("no value defined for Location header") unless ($location);
+                return unless ($location);
+                # $self->debug("redirecting to: $location");
+
+                my $rv = _request($method, $location, $count + 1);
+
+                if (defined $rv) {
+                    return $rv;
+                }
+            }
+
+            return;
+        }
+    } else {
+        # $self->debug("couldn't perform HTTP request for: $uri");
+        return; 
+   }
+}
+
+1;
+
+__END__
+
+=head1 NAME
+
+HTTP::Simple - a lightweight, portable implementation of the LWP::Simple API
+
+=head1 SYNOPSIS
+
+    use HTTP::Lite qw(get head);
+
+    my $body = get($uri);
+    my $head = head($uri);
+
+=head1 DESCRIPTION
+
+This module implements the L<LWP::Simple|LWP::Simple> API in a way that is intended to provide support
+for B<HTTP> requests in all environments i.e. including those without LWP or a compiler. If C<LWP> is
+available, then C<LWP::Simple> is used. Otherwise, this module falls back on HTTP::Lite, for which it
+provides simple wrappers. Currently, C<get> and C<head> are supported and there is preliminary support
+for redirection handling.
+
+=head1 AUTHOR
+
+chocolateboy <chocolate@cpan.org>
+
+=head1 SEE ALSO
+
+=over
+
+=item * L<HTTP::Client|HTTP::Client>
+
+=back
+
+=head1 VERSION
+
+0.60
+
+=cut
