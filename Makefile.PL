@@ -1,4 +1,4 @@
-use 5.10.0;
+use 5.010000;
 
 use strict;
 use warnings;
@@ -35,6 +35,13 @@ if ($ENV{PMSENCODER_WIN32}) {
 install_script 'bin/pmsencoder';
 repository     'http://github.com/chocolateboy/pmsencoder';
 test_requires  'Test::More';
-auto_bundle;
+
+# this doesn;t work, nor do any variations on it:
+# "Module::CoreList has no information on perl 5.010"
+# so for now include any dependencies manually
+# requires(perl => '5.010000');
+
+# auto bundling doesn't work, so let's try auto-installing i.e. via CPAN :-(
+auto_install;
 
 WriteAll;
