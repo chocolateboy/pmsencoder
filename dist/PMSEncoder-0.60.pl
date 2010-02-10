@@ -108,7 +108,7 @@ my $pmsencoder_version = 'App-PMSEncoder-0.60';
 my $pmsencoder_tarball = "$pmsencoder_version.tar.gz";
 
 cd $pmsencoder_build_dir;
-mirror("http://github.com/chocolateboy/pmsencoder/raw/master/tools/$pmsencoder_tarball", $pmsencoder_tarball);
+mirror("http://github.com/chocolateboy/pmsencoder/raw/master/dist/$pmsencoder_tarball", $pmsencoder_tarball);
 run('tar', 'xzvf', $pmsencoder_tarball);
 cd $pmsencoder_version; # XXX this, the local::lib version and the appendix, need to be added as part of the build
 run($^X, 'Makefile.PL');
