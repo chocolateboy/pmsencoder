@@ -21,17 +21,15 @@ use Config;
 use File::Spec;
 use POSIX qw(strftime);
 
-# bundled modules
-use HTTP::Simple qw(head get); # FIXME: alias them to http_get, http_head &c. use Sub::Exporter?
-
 # CPAN modules
-use File::HomeDir; # technically, this is not always needed, but using it unconditionally simplifies teh code slightly
+use File::HomeDir; # technically, this is not always needed, but using it unconditionally simplifies the code slightly
 use IO::All;
 use IPC::Cmd 0.56 qw(can_run); # core since 5.10.0, but we need a version that escapes shell arguments correctly
 use List::MoreUtils qw(first_index any);
+use LWP::Simple qw(head get);
 use Method::Signatures::Simple;
 use Path::Class qw(file dir);
-use YAML::Tiny qw(Load);
+use YAML::Tiny qw(Load); # not the best YAML processor, but good enough, and the easiest to install
 
 # use File::ShareDir;           # not used on Windows
 # use Cava::Pack;               # Windows only

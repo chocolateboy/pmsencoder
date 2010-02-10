@@ -12,16 +12,14 @@ all_from 'lib/App/PMSEncoder.pm';
 include  'Module::AutoInstall';
 
 requires 'File::HomeDir'               => '0.89';
-requires 'HTTP::Lite'                  => '2.2';
 requires 'IO::All'                     => '0.39';
 requires 'IPC::Cmd'                    => '0.56'; # core, but we want the latest version
+requires 'List::MoreUtils'             => '0.22';
+requires 'LWP::Simple';
+requires 'Method::Signatures::Simple'  => '0.05';
+requires 'Mouse'                       => '0.49';
 requires 'Path::Class'                 => '0.18';
 requires 'YAML::Tiny'                  => '1.41';
-requires 'Mouse'                       => '0.49';
-requires 'List::MoreUtils'             => '0.22';
-requires 'Method::Signatures::Simple'  => '0.05';
-
-recommends 'LWP::Simple';
 
 # platform-specific access to resources e.g. default config file, bundled mencoder,
 # the text file containing the mencoder args for --test
@@ -36,12 +34,12 @@ install_script 'bin/pmsencoder';
 repository     'http://github.com/chocolateboy/pmsencoder';
 test_requires  'Test::More';
 
-# this doesn;t work, nor do any variations on it:
+# this doesn't work, nor do any variations on it:
 # "Module::CoreList has no information on perl 5.010"
 # so for now include any dependencies manually
 # requires(perl => '5.010000');
 
-# auto bundling doesn't work, so let's try auto-installing i.e. via CPAN :-(
+# auto bundling doesn't work, so let's try auto-installing
 auto_install;
 
 WriteAll;
