@@ -29,7 +29,7 @@ You'll need a version of perl >= 5.10.0. This should be easy to find on Mac OS X
 
 ## Linux, Mac OS X &c.
 
-* For now, PMSEncoder will need to be installed from source e.g. download the [tarball](http://github.com/chocolateboy/pmsencoder/archives/master), then:
+* For now, PMSEncoder will need to be installed from source e.g. download and unpack the [tarball](http://github.com/chocolateboy/pmsencoder/archives/master), then:
   * `perl Makefile.PL`
   * `make`
   * `make test`
