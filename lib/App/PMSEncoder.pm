@@ -188,9 +188,9 @@ has user_config_dir => (
 method BUILD {
     my $logfile_path = $self->logfile_path(file(File::Spec->tmpdir, PMSENCODER_LOG)->stringify);
 
-    $self->logfile(io($logfile_path));
-    $self->logfile->autoflush(1); # unbuffer output
-    $self->logfile->append($/) if (-s $logfile_path);
+    my $logfile = $self->logfile(io($logfile_path));
+    $logfile->append('')->autoflush(1); # force it, so we can turn on autoflush
+    $logfile->append($/) if (-s $logfile_path);
     $self->debug(PMSENCODER . " $VERSION ($^O)");
 
     # on Win32, it might make sense for the config file to be in $PMS_HOME, typically C:\Program Files\PS3 Media Server
@@ -417,7 +417,8 @@ method initialize_stash() {
     my $stash = $self->stash();
     my $argv  = $self->argv();
     my $uri_index = $self->uri_index;
-    my $context = ((-t STDIN) && (-t STDOUT)) ? 'CLI' : 'PMS'; # FIXME: doesn't detect CLI under Cygwin/rxvt-native
+    # FIXME: doesn't detect CLI under Cygwin/rxvt-native
+    my $context = ((-t STDIN) && (-t STDOUT))? 'CLI' : 'PMS';
 
     $self->exec_let(context => $context); # use exec_let so it's logged
 
