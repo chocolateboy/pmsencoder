@@ -90,7 +90,6 @@ has document => (
 # IO::All logfile handle
 has logfile => (
     is => 'rw',
-
     # isa => 'IO::All::File',
     # XXX Mouse no likey
 );
@@ -189,6 +188,8 @@ has user_config_dir => (
 method BUILD {
     my $logfile_path = $self->logfile_path(file(File::Spec->tmpdir, PMSENCODER_LOG)->stringify);
 
+    # unbuffer output
+    $| = 1;
     $self->logfile(io($logfile_path));
     $self->logfile->append($/) if (-s $logfile_path);
     $self->debug(PMSENCODER . " $VERSION ($^O)");
