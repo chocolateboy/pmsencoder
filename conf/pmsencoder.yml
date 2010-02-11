@@ -19,7 +19,7 @@ version: 0.70
 # XXX: if mencoder can't be found on Windows, something is wrong. Please report it on the forum.
 # In the likely event that you don't use it, this setting can safely be left blank or commented out
 
-# TODO allow this to bet set per-profile
+# TODO allow this to be set per-profile
 mencoder_path:
 
 profiles:
