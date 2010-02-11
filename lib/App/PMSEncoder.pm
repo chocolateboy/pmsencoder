@@ -431,9 +431,7 @@ method initialize_stash() {
 }
 
 method process_config {
-    # initialize the stash i.e. setup entries for uri, context &c. that may be matched in the config file
-    $self->initialize_stash();
-
+    # make sure we can load the config, and that it's sane, before initializing the stash
     my $config = $self->config();
 
     # FIXME: this blindly assumes the config file is sane for the most part
@@ -448,6 +446,10 @@ method process_config {
     my $profiles = $config->{profiles};
 
     if ($profiles) {
+        # initialize the stash i.e. setup entries for uri, context &c. that may be matched in the config file.
+        # do this lazily; no point unless there are profiles
+        $self->initialize_stash();
+
         for my $profile (@$profiles) {
             my $profile_name = $profile->{name};
 
