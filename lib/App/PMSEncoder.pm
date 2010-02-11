@@ -24,15 +24,17 @@ use POSIX qw(strftime);
 # CPAN modules
 use File::HomeDir; # technically, this is not always needed, but using it unconditionally simplifies the code slightly
 use IO::All;
-use IPC::Cmd 0.56 qw(can_run); # core since 5.10.0, but we need a version that escapes shell arguments correctly
+# use IPC::Cmd 0.56 qw(can_run); # core since 5.10.0, but we need a version that escapes shell arguments correctly
+use IPC::Cmd qw(can_run);
+use IPC::System::Simple 1.20 qw(systemx); # 
 use List::MoreUtils qw(first_index any);
-use LWP::Simple qw(head get);
 use Method::Signatures::Simple;
 use Path::Class qw(file dir);
 use YAML::Tiny qw(Load); # not the best YAML processor, but good enough, and the easiest to install
 
 # use File::ShareDir;           # not used on Windows
 # use Cava::Pack;               # Windows only
+# use LWP::Simple qw(head get)  # loaded on demand
 
 our $VERSION = '0.60';          # PMSEncoder version: logged to aid diagnostics
 our $CONFIG_VERSION = '0.60';   # croak if the config file needs upgrading; XXX try not to change this too often
@@ -42,6 +44,9 @@ has argv => (
     is         => 'rw',
     isa        => 'ArrayRef',
     auto_deref => 1,
+    trigger    => method($argv) {
+        $self->debug('argv: ' . (@$argv ? "@$argv" : ''));
+    },
 );
 
 # the YAML config file as a hash ref
@@ -107,7 +112,7 @@ has mencoder_path => (
 has mswin => (
     is      => 'ro',
     isa     => 'Bool',
-    default => ($^O eq 'MSWin32'),
+    default => sub { eval { require Cava::Pack; 1 } }
 );
 
 # full path to this executable
@@ -197,14 +202,15 @@ method BUILD {
 
     # initialize resource handling and fixup the stored $0 on Windows
     if ($self->mswin) {
-        require Cava::Pack;
         Cava::Pack::SetResourcePath('res');
-        $self->self_path(file($self->get_resource_path(''), File::Spec->updir, PMSENCODER_EXE)->absolute->stringify);
 
         # declare a private method - at runtime!
-        method _get_resource_path ($name) {
+        method _get_resource_path($name) {
             Cava::Pack::Resource($name)
         }
+
+        # XXX squashed bug: make sure _get_resource_path is defined before (indirectly) using it to set self_path
+        $self->self_path(file($self->get_resource_path(''), File::Spec->updir, PMSENCODER_EXE)->absolute->stringify);
     } else {
         require File::ShareDir; # no need to worry about this not being picked up by Cava as it's non-Windows only
 
@@ -218,9 +224,7 @@ method BUILD {
 
     $self->user_config_dir(dir($data_dir, '.' . PMSENCODER)->stringify);
     $self->default_config_path($self->get_resource_path(PMSENCODER_CONFIG, REQUIRE_RESOURCE_EXISTS));
-
-    my @argv = $self->argv();
-    $self->debug('path: ' . $self->self_path . (@argv ? " @argv" : ''));
+    $self->debug('path: ' . $self->self_path);
 
     return $self;
 }
@@ -356,19 +360,8 @@ method run {
 
     $self->debug("exec: $mencoder" . (@argv ? " @argv" : ''));
 
-    # IPC::Cmd's use of IPC::Run is broken: https://rt.cpan.org/Ticket/Display.html?id=54184
-    local $IPC::Cmd::USE_IPC_RUN = 0;
-
-    my ($ok, $err) = IPC::Cmd::run(
-        command => [ $mencoder, @argv ],
-        verbose => 1
-    );
-
-    if ($ok) {
-        $self->debug('ok');
-    } else {
-        $self->fatal("can't exec mencoder: $err");
-    }
+    eval { systemx($mencoder, @argv) };
+    $self->fatal("can't exec mencoder: $@") if ($@);
 
     exit 0;
 }
@@ -476,12 +469,18 @@ method exec_youtube ($formats) :Raw {
     #     http://tinyurl.com/y8rdcoy
     #     http://userscripts.org/topics/18274
 
-    for my $fmt (@$formats) {
-        my $media_uri = "http://www.youtube.com/get_video?fmt=$fmt&video_id=$video_id&t=$t";
-        next unless (head $media_uri);
-        $self->exec_uri($media_uri); # set the new URI
-        $found = 1;
-        last;
+    if (@$formats) {
+        require LWP::Simple;
+
+        for my $fmt (@$formats) {
+            my $media_uri = "http://www.youtube.com/get_video?fmt=$fmt&video_id=$video_id&t=$t";
+            next unless (LWP::Simple::head $media_uri);
+            $self->exec_uri($media_uri); # set the new URI
+            $found = 1;
+            last;
+        }
+    } else {
+        $self->fatal("no formats defined for $uri");
     }
 
     $self->fatal("can't retrieve YouTube video from $uri") unless ($found);
@@ -496,26 +495,29 @@ method exec_set ($name, $value) {
     if ($index == -1) {
         if (defined $value) {
             $self->debug("adding $name $value");
-            push @$argv, $name, $value;    # FIXME: encapsulate
+            push @$argv, $name, $value;    # FIXME: encapsulate @argv handling
         } else {
             $self->debug("adding $name");
-            push @$argv, $name;            # FIXME: encapsulate
+            push @$argv, $name;            # FIXME: encapsulate @argv handling
         }
     } elsif (defined $value) {
         $self->debug("setting $name to $value");
-        $argv->[ $index + 1 ] = $value;    # FIXME: encapsulate
+        $argv->[ $index + 1 ] = $value;    # FIXME: encapsulate @argv handling
     }
 }
 
-method exec_replace ($name, $search, $replace) {
+# TODO: handle undef, a single hashref and an array of hashrefs
+method exec_replace ($name, $hash) {
     $name = "-$name";
 
     my $argv = $self->argv();
     my $index = first_index { $_ eq $name } @$argv;
 
     if ($index != -1) {
-        $self->debug("replacing $search with $replace in $name");
-        $argv->[ $index + 1 ] =~ s{$search}{$replace};    # FIXME: encapsulate
+        while (my ($search, $replace) = each(%$hash)) {
+            $self->debug("replacing $search with $replace in $name");
+            $argv->[ $index + 1 ] =~ s{$search}{$replace}; # FIXME: encapsulate @argv handling
+        }
     }
 }
 
@@ -561,7 +563,8 @@ method exec_get ($key, $value) {
     my $uri      = $self->argv->[ $self->uri_index ];    # XXX need a uri attribute that does the right thing(s)
     my $document = do {                                  # cache for subsequent matches
         unless (exists $self->document->{$uri}) {
-            $self->document->{$uri} = get($uri) || $self->fatal("can't retrieve $uri");
+            require LWP::Simple;
+            $self->document->{$uri} = LWP::Simple::get($uri) || $self->fatal("can't retrieve $uri");
         }
         $self->document->{$uri};
     };

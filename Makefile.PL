@@ -15,7 +15,8 @@ include  'Module::AutoInstall';
 
 requires 'File::HomeDir'               => '0.89';
 requires 'IO::All'                     => '0.39';
-requires 'IPC::Cmd'                    => '0.56'; # core, but we want the latest version
+requires 'IPC::Cmd';
+requires 'IPC::System::Simple'         => '1.20';
 requires 'List::MoreUtils'             => '0.22';
 requires 'LWP::Simple';
 requires 'Method::Signatures::Simple'  => '0.05';

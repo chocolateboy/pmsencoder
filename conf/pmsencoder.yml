@@ -25,6 +25,11 @@ profiles:
     # match everything - even non-Web transcodes
     # don't do anything (for now)
     match: '.'
+    options:
+        replace:
+            lavcopts:
+                # see if nixing threads solves the orphan process issue
+                \bthreads=\d+\b: threads=1
 
   - name: Web
     # match all URIs
