@@ -36,7 +36,7 @@ BEGIN {
         # it may have been installed via a package manager.
         # We just need it to set the right %ENV and @INC for *this* library
         require local::lib;
-        local::lib->import('--self-contained', $root);
+        local::lib->import($root);
     }
 }
 
