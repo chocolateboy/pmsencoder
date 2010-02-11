@@ -3,6 +3,7 @@
 
 # this is the version of PMSEncoder in which this config file *syntax* was introduced i.e.
 # the oldest version of PMSEncoder that will work with this file
+# XXX Don't change this!
 version: 0.70
 
 # XXX: only set this if pmsencoder can't find your system's mencoder i.e.
@@ -34,8 +35,9 @@ profiles:
         # it can end up swamping the arguments and making the actual arguments
         # less easy to read in the pmsencoder.log. Squash it down to a single -quiet by
         # removing then restoring it.
-        remove: quiet
-        set:    quiet
+        # XXX: make sure these are ordered!
+        - remove: quiet
+        - set:    quiet
 
   - name: CLI
 
