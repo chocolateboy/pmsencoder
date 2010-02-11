@@ -188,9 +188,8 @@ has user_config_dir => (
 method BUILD {
     my $logfile_path = $self->logfile_path(file(File::Spec->tmpdir, PMSENCODER_LOG)->stringify);
 
-    # unbuffer output
-    $| = 1;
     $self->logfile(io($logfile_path));
+    $self->logfile->autoflush(1); # unbuffer output
     $self->logfile->append($/) if (-s $logfile_path);
     $self->debug(PMSENCODER . " $VERSION ($^O)");
 
@@ -418,7 +417,7 @@ method initialize_stash() {
     my $stash = $self->stash();
     my $argv  = $self->argv();
     my $uri_index = $self->uri_index;
-    my $context = (-t STDIN) ? 'CLI' : 'PMS';
+    my $context = ((-t STDIN) && (-t STDOUT)) ? 'CLI' : 'PMS'; # FIXME: doesn't detect CLI under Cygwin/rxvt-native
 
     $self->exec_let(context => $context); # use exec_let so it's logged
 
