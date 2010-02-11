@@ -403,8 +403,8 @@ method exec_match($hash) {
             }
         } else {
             $self->stash($old_stash);
-	    $match = 0;
-	    last;
+            $match = 0;
+            last;
         }
     }
 
@@ -604,7 +604,7 @@ method exec_remove ($name) {
 
     if (@keep < $nargs) {
         $self->debug("removing $name");
-	@$argv = @keep; # bypass setter logging
+        @$argv = @keep; # bypass setter logging
     }
 }
 
