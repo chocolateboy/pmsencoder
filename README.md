@@ -29,7 +29,11 @@ You'll need a version of perl >= 5.10.0. This should be easy to find on Mac OS X
 
 ## Linux, Mac OS X &c.
 
-* Download and run (e.g. `perl ./PMSEncoder-0.70.pl`) the PMSEncoder [installer](http://cloud.github.com/downloads/chocolateboy/pmsencoder/PMSEncoder-0.70.pl) 
+* For now, PMSEncoder will need to be installed from source e.g. download the [tarball](http://github.com/chocolateboy/pmsencoder/archives/master), then:
+  * `perl Makefile.PL`
+  * `make`
+  * `make test`
+  * `make install`
 * Move "MEncoder Web" to the top of the list of "Video Web Streaming Engines" on the PMS "Transcoding Settings" tab
 * Save your settings and quit PMS
 * Add your pmsencoder path to your PMS.conf e.g.:
