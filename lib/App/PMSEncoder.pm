@@ -417,17 +417,16 @@ method initialize_stash() {
     my $stash = $self->stash();
     my $argv  = $self->argv();
     my $uri_index = $self->uri_index;
-    my $uri;
- 
-    $stash->{context} = (-t STDIN) ? 'CLI' : 'PMS';
+    my $context = (-t STDIN) ? 'CLI' : 'PMS';
+
+    $self->exec_let(context => $context); # use exec_let so it's logged
 
     # don't try to set the URI/file if none was supplied
     if ($uri_index < @$argv) {
-        $uri = splice @$argv, $uri_index, 1; # *remove* the URI - restored in run()
-        my $file_or_uri = ($uri_index == URI_INDEX) ? 'uri' : 'file';
-        $self->debug("$file_or_uri: $uri");
+        my $uri = splice @$argv, $uri_index, 1; # *remove* the URI - restored in run()
+
         # FIXME: should probably use a naming convention to distinguish builtin names from user-defined names
-        $stash->{uri} = $uri;
+        $self->exec_let(uri => $uri); # use exec_let so it's logged
     }
 }
 
@@ -536,7 +535,7 @@ method exec_youtube ($formats) :Raw {
         for my $fmt (@$formats) {
             my $media_uri = "http://www.youtube.com/get_video?fmt=$fmt&video_id=$video_id&t=$t";
             next unless (LWP::Simple::head $media_uri);
-            $stash->{uri} = $media_uri; # set the new URI
+            $self->exec_let(uri => $media_uri); # set the new URI; use exec_let so it's logged
             $found = 1;
             last;
         }
@@ -617,6 +616,8 @@ method exec_remove ($name) {
 # define a variable in the stash, performing any variable substitution
 method exec_let ($name, $value) {
     my $stash = $self->stash();
+    my $original_value = $value;
+
     $self->debug("setting \$$name to $value");
 
     while (my ($key, $replace) = each(%$stash)) {
@@ -629,7 +630,7 @@ method exec_let ($name, $value) {
     }
 
     $stash->{$name} = $value;
-    $self->debug("set \$$name to $value");
+    $self->debug("set \$$name to $value") unless ($value eq $original_value);
 }
 
 # define a variable in the stash by extracting a value from the document pointed to by the current URI
@@ -664,6 +665,7 @@ method exec_delete ($key) {
 
     if (defined $key) {
         if (exists $stash->{$key}) {
+            $self->debug("deleting stash entry: $key");
             delete $stash->{$key};
         } else {
             $self->debug("can't delete stash entry: no such key: $key");

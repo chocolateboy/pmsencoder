@@ -35,7 +35,7 @@ profiles:
         # less easy to read in the pmsencoder.log. Squash it down to a single -quiet by
         # removing then restoring it.
         remove: quiet
-        add:    quiet
+        set:    quiet
 
   - name: CLI
 
