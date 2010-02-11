@@ -361,7 +361,12 @@ method run {
     $self->debug("exec: $mencoder" . (@argv ? " @argv" : ''));
 
     eval { systemx($mencoder, @argv) };
-    $self->fatal("can't exec mencoder: $@") if ($@);
+
+    if ($@) {
+        $self->fatal("can't exec mencoder: $@");
+    } else {
+        $self->debug('ok');
+    }
 
     exit 0;
 }
