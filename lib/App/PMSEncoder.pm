@@ -362,7 +362,9 @@ method run {
 
     # now update the URI from the value in the stash
     my $stash = $self->stash;
-    unshift @$argv, $stash->{uri}; # always set it as the first argument
+
+    # may be undef if no URI was supplied e.g. pmsencoder with no args
+    unshift(@$argv, $stash->{uri}) if (defined $stash->{uri}); # always set it as the first argument
 
     $self->debug("exec: $mencoder" . (@$argv ? " @$argv" : ''));
 
@@ -415,14 +417,18 @@ method initialize_stash() {
     my $stash = $self->stash();
     my $argv  = $self->argv();
     my $uri_index = $self->uri_index;
-    my $uri   = splice @$argv, $uri_index, 1; # *remove* the URI - restored in run()
-    my $file_or_uri = ($uri_index == URI_INDEX) ? 'uri' : 'file';
-
-    $self->debug("$file_or_uri: $uri");
-
-    # FIXME: should probably use a naming convention to distinguish builtin names from user-defined names
-    $stash->{uri} = $uri;
+    my $uri;
+ 
     $stash->{context} = (-t STDIN) ? 'CLI' : 'PMS';
+
+    # don't try to set the URI/file if none was supplied
+    if ($uri_index < @$argv) {
+        $uri = splice @$argv, $uri_index, 1; # *remove* the URI - restored in run()
+        my $file_or_uri = ($uri_index == URI_INDEX) ? 'uri' : 'file';
+        $self->debug("$file_or_uri: $uri");
+        # FIXME: should probably use a naming convention to distinguish builtin names from user-defined names
+        $stash->{uri} = $uri;
+    }
 }
 
 method process_config {
