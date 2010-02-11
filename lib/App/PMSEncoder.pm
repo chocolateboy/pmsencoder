@@ -9,11 +9,13 @@ use constant PMSENCODER => 'pmsencoder';
 use constant {
     CHECK_RESOURCE_EXISTS   => 1,
     DISTRO                  => 'App-PMSEncoder',
+    FILE_INDEX              => 4,
     MENCODER_EXE            => 'mencoder.exe',
     PMSENCODER_CONFIG       => PMSENCODER . '.yml',
     PMSENCODER_EXE          => PMSENCODER . '.exe',
     PMSENCODER_LOG          => PMSENCODER . '.log',
     REQUIRE_RESOURCE_EXISTS => 2,
+    URI_INDEX               => 0,
 };
 
 # core modules
@@ -271,7 +273,7 @@ method version {
 method _build_uri_index {
     # 4 is hardwired in net.pms.encoders.MEncoderVideo.launchTranscode
     # FIXME: document where the hardwiring of the 0th index for the URI is found
-    $self->isdef('prefer-ipv4') ? 0 : 4;
+    $self->isdef('prefer-ipv4') ? URI_INDEX : FILE_INDEX;
 }
 
 method _build_mencoder_path {
@@ -412,7 +414,11 @@ method exec_match($hash) {
 method initialize_stash() {
     my $stash = $self->stash();
     my $argv  = $self->argv();
-    my $uri   = splice @$argv, $self->uri_index, 1; # *remove* the URI - restored in run()
+    my $uri_index = $self->uri_index;
+    my $uri   = splice @$argv, $uri_index, 1; # *remove* the URI - restored in run()
+    my $file_or_uri = ($uri_index == URI_INDEX) ? 'uri' : 'file';
+
+    $self->debug("$file_or_uri: $uri");
 
     # FIXME: should probably use a naming convention to distinguish builtin names from user-defined names
     $stash->{uri} = $uri;
@@ -420,8 +426,6 @@ method initialize_stash() {
 }
 
 method process_config {
-    $self->debug('processing config');
-
     # initialize the stash i.e. setup entries for uri, context &c. that may be matched in the config file
     $self->initialize_stash();
 
@@ -575,7 +579,8 @@ method exec_replace ($name, $hash) {
 method exec_remove ($name) {
     $name = "-$name";
 
-    my @argv  = $self->argv;
+    my $argv = $self->argv; # modify the reference to bypass the setter's logging if we change it
+    my @argv  = @$argv; # but create a working copy we can modify in the meantime
     my $nargs = @argv;
     my @keep;
 
@@ -599,7 +604,7 @@ method exec_remove ($name) {
 
     if (@keep < $nargs) {
         $self->debug("removing $name");
-        $self->argv(\@keep);
+	@$argv = @keep; # bypass setter logging
     }
 }
 
