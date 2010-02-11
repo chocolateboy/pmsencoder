@@ -3,6 +3,8 @@ use 5.010000;
 use strict;
 use warnings;
 
+BEGIN { $ENV{PERL_AUTOINSTALL_PREFER_CPAN} = 1 }
+
 use inc::Module::Install;
 
 name     'App-PMSEncoder';
@@ -23,7 +25,8 @@ requires 'YAML::Tiny'                  => '1.41';
 
 # platform-specific access to resources e.g. default config file, bundled mencoder,
 # the text file containing the mencoder args for --test
-if ($ENV{PMSENCODER_WIN32}) {
+
+if ($ENV{PMSENCODER_WIN32}) { # only set this if, for some reason, you want to build pmsencoder for Windows (using Cava)
     requires 'Cava::Pack';
 } else {
     requires 'File::ShareDir' => '1.01';
@@ -34,12 +37,5 @@ install_script 'bin/pmsencoder';
 repository     'http://github.com/chocolateboy/pmsencoder';
 test_requires  'Test::More';
 
-# this doesn't work, nor do any variations on it:
-# "Module::CoreList has no information on perl 5.010"
-# so for now include any dependencies manually
-# requires(perl => '5.010000');
-
-# auto bundling doesn't work, so let's try auto-installing
-auto_install;
-
-WriteAll;
+auto_install();
+WriteAll();
