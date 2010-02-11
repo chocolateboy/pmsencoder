@@ -34,4 +34,4 @@ requires:
 resources:
   license: http://opensource.org/licenses/artistic-license-2.0.php
   repository: http://github.com/chocolateboy/pmsencoder
-version: 0.60
+version: 0.70

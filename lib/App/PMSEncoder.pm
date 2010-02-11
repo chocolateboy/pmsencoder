@@ -24,7 +24,6 @@ use POSIX qw(strftime);
 # CPAN modules
 use File::HomeDir; # technically, this is not always needed, but using it unconditionally simplifies the code slightly
 use IO::All;
-# use IPC::Cmd 0.56 qw(can_run); # core since 5.10.0, but we need a version that escapes shell arguments correctly
 use IPC::Cmd qw(can_run);
 use IPC::System::Simple 1.20 qw(systemx); # 
 use List::MoreUtils qw(first_index any);
@@ -36,8 +35,8 @@ use YAML::Tiny qw(Load); # not the best YAML processor, but good enough, and the
 # use Cava::Pack;               # Windows only
 # use LWP::Simple qw(head get)  # loaded on demand
 
-our $VERSION = '0.60';          # PMSEncoder version: logged to aid diagnostics
-our $CONFIG_VERSION = '0.60';   # croak if the config file needs upgrading; XXX try not to change this too often
+our $VERSION = '0.70';          # PMSEncoder version: logged to aid diagnostics
+our $CONFIG_VERSION = '0.70';   # croak if the config file needs upgrading; XXX try not to change this too often
 
 # mencoder arguments
 has argv => (
@@ -124,9 +123,10 @@ has self_path => (
 
 # symbol table containing user-defined variables and named captures
 has stash => (
-    is      => 'ro',
-    isa     => 'HashRef',
-    default => sub { {} },
+    is         => 'rw',
+    isa        => 'HashRef',
+    default    => sub { {} },
+    auto_deref => 1,
 );
 
 # position in argv of the filename/URI.
@@ -267,9 +267,8 @@ method version {
 }
 
 # squashed bug: this has to be created lazily i.e. more fallout from allowing argv to be set after initialisation.
-# the first method to call uri_index is process_config via run; it's then called by various exec_* methods
+# we should leave this as late as possible e.g. (shouldn't happen but could) in case the args method is called multiple times
 method _build_uri_index {
-
     # 4 is hardwired in net.pms.encoders.MEncoderVideo.launchTranscode
     # FIXME: document where the hardwiring of the 0th index for the URI is found
     $self->isdef('prefer-ipv4') ? 0 : 4;
@@ -350,17 +349,22 @@ method isopt ($arg) {
 }
 
 method run {
-    my $mencoder = $self->mencoder_path();
-
     # modify $self->argv according to the recipes in the config file
     $self->process_config();
 
+    # FIXME: allow this to be set via the stash i.e. conditionally (and thus remove the global mencoder_path setting)
+    my $mencoder = $self->mencoder_path();
+
     # XXX obviously, this must be retrieved *after* process_config has performed any modifications
-    my @argv = $self->argv();
+    my $argv = $self->argv();
 
-    $self->debug("exec: $mencoder" . (@argv ? " @argv" : ''));
+    # now update the URI from the value in the stash
+    my $stash = $self->stash;
+    unshift @$argv, $stash->{uri}; # always set it as the first argument
 
-    eval { systemx($mencoder, @argv) };
+    $self->debug("exec: $mencoder" . (@$argv ? " @$argv" : ''));
+
+    eval { systemx($mencoder, @$argv) };
 
     if ($@) {
         $self->fatal("can't exec mencoder: $@");
@@ -384,10 +388,43 @@ method _load_config {
     return $config || $self->fatal("config is undefined");
 }
 
+method exec_match($hash) {
+    my $old_stash = { $self->stash() }; # shallow copy - good enough as there are no reference values (currently)
+    my $stash = $self->{stash};
+    my $match = 1;
+
+    while (my ($key, $value) = each (%$hash)) { 
+        if ((defined $key) && (defined $value) && (exists $stash->{$key}) && ($stash->{$key} =~ $value)) {
+            # merge and log any named captures
+            while (my ($named_capture_key, $named_capture_value) = each(%+)) {
+                $self->exec_let($named_capture_key, $named_capture_value); # updates $stash
+            }
+        } else {
+            $self->stash($old_stash);
+	    $match = 0;
+	    last;
+        }
+    }
+
+    return $match;
+}
+
+method initialize_stash() {
+    my $stash = $self->stash();
+    my $argv  = $self->argv();
+    my $uri   = splice @$argv, $self->uri_index, 1; # *remove* the URI - restored in run()
+
+    # FIXME: should probably use a naming convention to distinguish builtin names from user-defined names
+    $stash->{uri} = $uri;
+    $stash->{context} = (-t STDIN) ? 'CLI' : 'PMS';
+}
+
 method process_config {
     $self->debug('processing config');
 
-    my $uri    = $self->argv->[ $self->uri_index ];
+    # initialize the stash i.e. setup entries for uri, context &c. that may be matched in the config file
+    $self->initialize_stash();
+
     my $config = $self->config();
 
     # FIXME: this blindly assumes the config file is sane for the most part
@@ -399,55 +436,64 @@ method process_config {
     $self->debug("config file version: $version");
     $self->fatal("config file is out of date; please upgrade") unless ($version && ($version >= $CONFIG_VERSION));
 
-    if (defined $uri) {
-        my $profiles = $config->{profiles};
+    my $profiles = $config->{profiles};
 
-        if ($profiles) {
-            for my $profile (@$profiles) {
-                my $profile_name = $profile->{name};
-                my $match        = $profile->{match};
+    if ($profiles) {
+        for my $profile (@$profiles) {
+            my $profile_name = $profile->{name};
 
-                if (defined($match) && ($uri =~ $match)) {
-                    $self->debug("matched profile: $profile_name");
+            unless (defined $profile_name) {
+                $self->debug('profile name not defined');
+                next;
+            }
 
-                    # merge and log any named captures
-                    while (my ($named_capture_key, $named_capture_value) = each(%+)) {
-                        $self->exec_let($named_capture_key, $named_capture_value);
-                    }
+            my $match = $profile->{match};
 
-                    my $options = $profile->{options};
-                    $options = [ $options ] unless (ref($options) eq 'ARRAY');
+            unless ($match) {
+                $self->debug("nivalid profile: no match supplied for: $profile_name");
+                next;
+            }
 
-                    for my $hash (@$options) {
-                        while (my ($key, $value) = each(%$hash)) {
-                            my $operator = $self->can("exec_$key");
+            # may update the stash if successful
+            next unless ($self->exec_match($match));
 
-                            $self->fatal("invalid operator: $key") unless ($operator);
+            $self->debug("matched profile: $profile_name");
 
-                            if (ref($value) && not($self->has_attribute($operator, 'Raw'))) {
-                                if ((ref $value) eq 'HASH') {
-                                    while (my ($k, $v) = each(%$value)) {
-                                        $operator->($self, $k, $v);
-                                    }
-                                } else {
-                                    for my $v (@$value) {
-                                        $operator->($self, $v);
-                                    }
-                                }
-                            } elsif (defined $value) {
-                                $operator->($self, $value);
-                            } else {
-                                $operator->($self);
+            my $options = $profile->{options};
+
+            unless ($options) {
+                $self->debug("invalid profile: no options defined for: $profile_name");
+                next;
+            }
+
+            $options = [ $options ] unless (ref($options) eq 'ARRAY');
+
+            for my $hash (@$options) {
+                while (my ($key, $value) = each(%$hash)) {
+                    my $operator = $self->can("exec_$key");
+
+                    $self->fatal("invalid operator: $key") unless ($operator);
+
+                    if (ref($value) && not($self->has_attribute($operator, 'Raw'))) {
+                        if ((ref $value) eq 'HASH') {
+                            while (my ($k, $v) = each(%$value)) {
+                                $operator->($self, $k, $v);
+                            }
+                        } else {
+                            for my $v (@$value) {
+                                $operator->($self, $v);
                             }
                         }
+                    } elsif (defined $value) {
+                        $operator->($self, $value);
+                    } else {
+                        $operator->($self);
                     }
                 }
             }
-        } else {
-            $self->debug('no profiles defined');
         }
     } else {
-        $self->debug('no URI defined');
+        $self->debug('no profiles defined');
     }
 }
 
@@ -455,8 +501,8 @@ method process_config {
 
 # extract the media URI - see http://stackoverflow.com/questions/1883737/getting-an-flv-from-youtube-in-net
 method exec_youtube ($formats) :Raw {
-    my $uri   = $self->argv->[ $self->uri_index ];
     my $stash = $self->stash;
+    my $uri   = $stash->{uri};
     my ($video_id, $t) = @{$stash}{qw(video_id t)};
     my $found = 0;
 
@@ -480,7 +526,7 @@ method exec_youtube ($formats) :Raw {
         for my $fmt (@$formats) {
             my $media_uri = "http://www.youtube.com/get_video?fmt=$fmt&video_id=$video_id&t=$t";
             next unless (LWP::Simple::head $media_uri);
-            $self->exec_uri($media_uri); # set the new URI
+            $stash->{uri} = $media_uri; # set the new URI
             $found = 1;
             last;
         }
@@ -557,19 +603,33 @@ method exec_remove ($name) {
     }
 }
 
-# define a variable in the stash
+# define a variable in the stash, performing any variable substitution
 method exec_let ($name, $value) {
+    my $stash = $self->stash();
     $self->debug("setting \$$name to $value");
-    $self->stash->{$name} = $value;
+
+    while (my ($key, $replace) = each(%$stash)) {
+        my $search = qr{(?:(?:\$$key\b)|(?:\$\{$key\}))};
+
+        if ($value =~ $search) {
+            $self->debug("replacing \$$key with '$replace' in $value");
+            $value =~ s{$search}{$replace}g;
+        }
+    }
+
+    $stash->{$name} = $value;
+    $self->debug("set \$$name to $value");
 }
 
 # define a variable in the stash by extracting a value from the document pointed to by the current URI
 method exec_get ($key, $value) {
-    my $uri      = $self->argv->[ $self->uri_index ];    # XXX need a uri attribute that does the right thing(s)
-    my $document = do {                                  # cache for subsequent matches
+    my $stash = $self->stash;
+    my $uri   = $stash->{uri} || $self->fatal("can't perform get op: no URI defined"); 
+
+    my $document = do { # cache for subsequent matches
         unless (exists $self->document->{$uri}) {
             require LWP::Simple;
-            $self->document->{$uri} = LWP::Simple::get($uri) || $self->fatal("can't retrieve $uri");
+            $self->document->{$uri} = LWP::Simple::get($uri) || $self->fatal("can't retrieve URI: $uri");
         }
         $self->document->{$uri};
     };
@@ -600,19 +660,6 @@ method exec_delete ($key) {
     } else {
         $self->debug("can't delete stash entry: undefined key");
     }
-}
-
-# set the URI, performing any variable substitutions
-method exec_uri ($uri) {
-    while (my ($key, $value) = each(%{ $self->stash })) {
-        my $search = qr{(?:(?:\$$key\b)|(?:\$\{$key\}))};
-        if ($uri =~ $search) {
-            $self->debug("replacing \$$key with '$value' in $uri");
-            $uri =~ s{$search}{$value}g;
-        }
-    }
-
-    $self->argv->[ $self->uri_index ] = $uri;
 }
 
 1;
@@ -649,6 +696,6 @@ chocolateboy <chocolate@cpan.org>
 
 =head1 VERSION
 
-0.60
+0.70
 
 =cut

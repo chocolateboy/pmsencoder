@@ -1,5 +1,7 @@
-0.60: Tue Feb  2 20:53:28 GMT 2010
+0.70: Thu Feb 11 20:17:17 GMT 2010
+    - improved flexibility of matching/rewriting
+    - improved URI handling
 
+0.60: Tue Feb  2 20:53:28 GMT 2010
     - renamed: PS3MEncoder => PMSEncoder
     - added CHANGES + TODO
-    - added installer

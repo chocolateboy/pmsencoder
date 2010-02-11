@@ -20,7 +20,7 @@ You'll need a version of perl >= 5.10.0. This should be easy to find on Mac OS X
 
 ## Windows
 
-* Download and run the PMSEncoder [installer](http://cloud.github.com/downloads/chocolateboy/pmsencoder/PMSEncoder-0.60.exe)
+* Download and run the PMSEncoder [installer](http://cloud.github.com/downloads/chocolateboy/pmsencoder/PMSEncoder-0.70.exe)
 * Move "MEncoder Web" to the top of the list of "Video Web Streaming Engines" on the PMS "Transcoding Settings" tab
 * Save your settings and quit PMS
 * [Locate your PMS.conf](http://ps3mediaserver.org/forum/viewtopic.php?f=2&t=5301) and add your pmsencoder path e.g.:
@@ -29,7 +29,7 @@ You'll need a version of perl >= 5.10.0. This should be easy to find on Mac OS X
 
 ## Linux, Mac OS X &c.
 
-* Download and run (e.g. `perl ./PMSEncoder-0.60.pl`) the PMSEncoder [installer](http://cloud.github.com/downloads/chocolateboy/pmsencoder/PMSEncoder-0.60.pl) 
+* Download and run (e.g. `perl ./PMSEncoder-0.70.pl`) the PMSEncoder [installer](http://cloud.github.com/downloads/chocolateboy/pmsencoder/PMSEncoder-0.70.pl) 
 * Move "MEncoder Web" to the top of the list of "Video Web Streaming Engines" on the PMS "Transcoding Settings" tab
 * Save your settings and quit PMS
 * Add your pmsencoder path to your PMS.conf e.g.:
@@ -54,7 +54,7 @@ You'll need a version of perl >= 5.10.0. This should be easy to find on Mac OS X
 
 # Version
 
-0.60
+0.70
 
 # License
 

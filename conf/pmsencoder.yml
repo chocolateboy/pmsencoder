@@ -1,9 +1,9 @@
 # XXX: don't edit this file unless you're familiar with YAML: indentation is important!
-# XXX: don't use JSON syntax! the YAML parser used to process this (YAML::Tiny) doesn't grok it
+# XXX: don't use JSON syntax! the YAML parser currently used to process this (YAML::Tiny) doesn't grok it
 
-# this is the version of PMSEncoder this config file *syntax* was introduced in i.e.
+# this is the version of PMSEncoder in which this config file *syntax* was introduced i.e.
 # the oldest version of PMSEncoder that will work with this file
-version: 0.60
+version: 0.70
 
 # XXX: only set this if pmsencoder can't find your system's mencoder i.e.
 # if it dies with a "can't find mencoder" message. Supply the full path,
@@ -18,22 +18,47 @@ version: 0.60
 # XXX: if mencoder can't be found on Windows, something is wrong. Please report it on the forum.
 # In the likely event that you don't use it, this setting can safely be left blank or commented out
 
+# TODO allow this to bet set per-profile
 mencoder_path:
 
 profiles:
-  - name: Global
-    # match everything - even non-Web transcodes
-    # don't do anything (for now)
-    match: '.'
+
+  - name: PMS
+
+    # match everything when pmsencoder is invoked by PMS
+    match:
+        context: PMS
+
     options:
-        replace:
-            lavcopts:
-                # see if nixing threads solves the orphan process issue
-                \bthreads=\d+\b: threads=1
+        # PMS uses this option as the equivalent of a "no op" placeholder for local file transcodes.
+        # it can end up swamping the arguments and making the actual arguments
+        # less easy to read in the pmsencoder.log. Squash it down to a single -quiet by
+        # removing then restoring it.
+        remove: quiet
+        add:    quiet
+
+  - name: CLI
+
+    # match everything when pmsencoder is invoked from the CLI
+    match:
+        context: CLI
+
+    options:
+        # turn -quiet off so we can see mencoder's progress
+        remove: quiet
+
+    #
+    # replace:
+    #     lavcopts:
+    #         # see if nixing threads solves the orphan process issue
+    #         \bthreads=\d+\b: threads=1
 
   - name: Web
+
     # match all URIs
-    match: '^\w+://.+$'
+    match:
+        uri: '^\w+://.+$'
+
     options:
         # PS3 only, but should be harmless on other renderers as it only sets upper bounds
         # see http://en.wikipedia.org/wiki/H.264#Levels
@@ -46,18 +71,12 @@ profiles:
         #       # $ matches the end of the string i.e. append
         #       $: ':level=41'
 
-        # removing -quiet produces verbose logging from mencoder
-        # XXX: hammering the console with mencoder mesages may reduce performance
-        # on Windows - see win32/mplayer/mplayer.conf
-
-      - remove: quiet
-
-        # streaming cache size in Kb
-        # use a healthy cache for Web streaming - the default is only 8 Mb
       - set:
+            # streaming cache size in Kb
+            # use a healthy cache for Web streaming - the default is only 8 Mb
             cache: 16384
 
-        # this should *never* be set
+        # this should *never* be set for web requests
       - remove: nocache
 
         # prevent MEncoder being presented with fractional framerates it can't handle
@@ -69,14 +88,17 @@ profiles:
             vf: harddup
 
   - name: YouTube
-    # extract the media URI's video_id from the webpage URI
-    match: 'http://(?:\w+\.)?youtube\.com/watch\?v=(?<video_id>[^&]+)'
+    
+    # extract the resource's video_id from the URI of the standard YouTube page
+    match:
+        uri: 'http://(?:\w+\.)?youtube\.com/watch\?v=(?<video_id>[^&]+)'
+
     options:
-          # extract the media URI's sekrit identifier ($t) from the HTML
+          # extract the resource's sekrit identifier ($t) from the HTML
         - get: '"t":\s*"(?<t>[^"]+)"'
 
-          # now, with $video_id and $t defined, call the YouTube handler with an array of formats
-          # in descending order of preference.
+          # now, with $video_id and $t defined, call the custom YouTube
+          # handler with an array of formats in descending order of preference
         - youtube:
               - 22
               - 18
@@ -84,7 +106,9 @@ profiles:
               - 5
         
   - name: Apple Trailers
-    match: '^http://(?:(?:movies|www)\.)?apple\.com/.+$'
+    match:
+        uri: '^http://(?:(?:movies|www)\.)?apple\.com/.+$'
+
     # FIXME: 4096 is a needlessly high video bitrate; they typically weigh in at ~1200 Kbps
     options:
         set:
@@ -92,7 +116,9 @@ profiles:
             user-agent: QuickTime/7.6.2
 
   - name: Apple Trailers HD
-    match: '^http://(?:(?:movies|www)\.)?apple\.com/.+\.m4v$'
+    match:
+        uri: '^http://(?:(?:movies|www)\.)?apple\.com/.+\.m4v$'
+
     options:
         replace:
             lavcopts:
@@ -100,7 +126,9 @@ profiles:
                 4096: 5086
 
   - name: TED
-    match: '^http://feedproxy\.google\.com/~r/TEDTalks_video\b'
+    match:
+        uri: '^http://feedproxy\.google\.com/~r/TEDTalks_video\b'
+
     options:
         set:
             ofps: 24
@@ -115,20 +143,26 @@ profiles:
     #
     #     http://www.gametrailers.com/player/48298.html
 
-    # extract the page ID
-    match: '^http://(www\.)?gametrailers\.com/download/(?<page_id>\d+)/[^.]+\.flv$'
+    # 1) extract the page ID
+    match:
+        uri: '^http://(www\.)?gametrailers\.com/download/(?<page_id>\d+)/[^.]+\.flv$'
 
+    # 2) and use it to restore the URI of the HTML
     options:
-        # and use it to restore the URI of the HTML
-        uri: 'http://www.gametrailers.com/player/$page_id.html'
+        let:
+            uri: 'http://www.gametrailers.com/player/$page_id.html'
 
   - name: GameTrailers.com
-    match: '^http://(www\.)?gametrailers\.com/'
+    match:
+        uri: '^http://(www\.)?gametrailers\.com/'
+
     # The order is important here! Make sure we get the variables before we set the URI
     options:
         # extract some values from the HTML
         - get:
             movie_id: '\bmov_game_id\s*=\s*(\d+)'
             filename: 'http://www.gametrailers.com/download/\d+/(t_[^.]+)\.wmv'
+
         # now use them to rewrite the URI
-        - uri: 'http://trailers-ak.gametrailers.com/gt_vault/$movie_id/$filename.flv'
+        - let:
+            uri: 'http://trailers-ak.gametrailers.com/gt_vault/$movie_id/$filename.flv'
