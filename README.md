@@ -42,8 +42,16 @@ You'll need a version of perl >= 5.10.0. This should be easy to find on Mac OS X
 
 # Tips
 * Use `pmsencoder --version` to see configuration details e.g. to find out the location of the logfile
-* The config file is looked for in the path specified in the PMSENCODER_CONFIG environment variable (which should specify the file's full path), followed by the user config directory (shown in the output of `pmsencoder --version`). If no custom config file is specified for either of these, the default config file is used ("default config file" in the `pmsencoder --version` output)
-* mencoder is looked for in the mencoder_path specified in the config file, the path specified in the MENCODER_PATH environment variable, the current directory, or the PATH environment variable
+* mencoder is looked for in following places (in order):
+  * the `mencoder_path` specified in the config file
+  * the path specified in the PMSENCODER_PATH environment variable
+  * the current working directory
+  * the directories specified in the PATH environment variable
+  * (on Windows) the $PMSENCODER/res directory
+* the config file is looked for in the following locations:
+  * the path in the PMSENCODER_CONFIG environment variable
+  * the "user config directory" setting displayed by `pmsencoder --version`
+  * the "default config file" displayed by `pmsencoder --version`
 * The config file is in [YAML](http://en.wikipedia.org/wiki/YAML) format. It can have a .conf, .yml or .yaml extension
 * Don't modify the default config file. Copy (don't link) it to the directory listed as "user config dir" in the output of `pmsencoder --version` and modify the copy. Delete the copy if you wish to revert to the default configuration.
 
