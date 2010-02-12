@@ -48,7 +48,7 @@ You'll need a version of perl >= 5.10.0. This should be easy to find on Mac OS X
   * the current working directory
   * the directories specified in the PATH environment variable
   * (on Windows) the $PMSENCODER/res directory
-* the config file is looked for in the following locations:
+* The config file is looked for in the following locations:
   * the path in the PMSENCODER_CONFIG environment variable
   * the "user config directory" setting displayed by `pmsencoder --version`
   * the "default config file" displayed by `pmsencoder --version`

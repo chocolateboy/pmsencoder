@@ -421,13 +421,14 @@ method initialize_stash() {
     my $context = ((-t STDIN) && (-t STDOUT))? 'CLI' : 'PMS';
 
     $self->exec_let(context => $context); # use exec_let so it's logged
+    $self->exec_let(platform => $^X);
 
     # don't try to set the URI/file if none was supplied
     if ($uri_index < @$argv) {
         my $uri = splice @$argv, $uri_index, 1; # *remove* the URI - restored in run()
 
         # FIXME: should probably use a naming convention to distinguish builtin names from user-defined names
-        $self->exec_let(uri => $uri); # use exec_let so it's logged
+        $self->exec_let(uri => $uri);
     }
 }
 
