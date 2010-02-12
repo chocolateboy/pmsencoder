@@ -421,7 +421,7 @@ method initialize_stash() {
     my $context = ((-t STDIN) && (-t STDOUT))? 'CLI' : 'PMS';
 
     $self->exec_let(context => $context); # use exec_let so it's logged
-    $self->exec_let(platform => $^X);
+    $self->exec_let(platform => $^O);
 
     # don't try to set the URI/file if none was supplied
     if ($uri_index < @$argv) {
