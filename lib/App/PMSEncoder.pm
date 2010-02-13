@@ -23,6 +23,7 @@ use POSIX qw(strftime);
 
 # CPAN modules
 use File::HomeDir; # technically, this is not always needed, but using it unconditionally simplifies the code slightly
+use Scope::Guard qw(scope_guard);
 use IO::All;
 use IPC::Cmd qw(can_run);
 use IPC::System::Simple 1.20 qw(systemx capturex);
@@ -31,11 +32,11 @@ use Method::Signatures::Simple;
 use Path::Class qw(file dir);
 use YAML::Tiny qw(Load); # not the best YAML processor, but good enough, and the easiest to install
 
-# use File::ShareDir;           # not used on Windows
 # use Cava::Pack;               # Windows only
+# use File::ShareDir;           # not used on Windows
 # use LWP::Simple qw(head get)  # loaded on demand
 
-our $VERSION = '0.70';          # PMSEncoder version: logged to aid diagnostics
+our $VERSION = '0.71';          # PMSEncoder version: logged to aid diagnostics
 our $CONFIG_VERSION = '0.70';   # croak if the config file needs upgrading; XXX try not to change this too often
 
 # mencoder arguments
@@ -46,6 +47,13 @@ has argv => (
     trigger    => method($argv) {
         $self->debug('argv: ' . (@$argv ? "@$argv" : ''));
     },
+);
+
+# is this the Windows build package with Cava?
+has cava => (
+    is      => 'ro',
+    isa     => 'Bool',
+    default => sub { eval { require Cava::Pack; 1 } }
 );
 
 # the YAML config file as a hash ref
@@ -106,11 +114,11 @@ has mencoder_path => (
     builder => '_build_mencoder_path',
 );
 
-# is this running on Windows?
+# is this running on Windows (e.g. the Cava build, ActivePerl, Strawberry Perl, Cygwin)
 has mswin => (
     is      => 'ro',
     isa     => 'Bool',
-    default => sub { eval { require Cava::Pack; 1 } }
+    default => sub { $^O eq 'MSWin32' },
 );
 
 # full path to this executable
@@ -184,17 +192,17 @@ method BUILD {
     $logfile->append($/) if (-s $logfile_path);
     $self->debug(PMSENCODER . " $VERSION ($^O)");
 
-    # on Win32, it might make sense for the config file to be in $PMS_HOME, typically C:\Program Files\PS3 Media Server
+    # on Win32, it makes sense to use the bundled mencoder e.g. $PMS_HOME\win32\mencoder.exe
     # Unfortunately, PMS' registry entries are currently broken, so we can't rely on them (e.g. we
     # can't use Win32::TieRegistry):
     #
     #     http://code.google.com/p/ps3mediaserver/issues/detail?id=555
     #
-    # Instead we bundle the default (i.e. fallback) config file (and mencoder.exe) in $PMSENCODER_HOME/res.
+    # Instead we bundle mencoder in $PMSENCODER_HOME/res.
     # we use the private _get_resource_path method to abstract away the platform-specifics
 
     # initialize resource handling and fixup our stored $0 on Windows
-    if ($self->mswin) {
+    if ($self->cava) {
         Cava::Pack::SetResourcePath('res');
 
         # declare a private method - at runtime!
@@ -219,7 +227,33 @@ method BUILD {
     $self->default_config_path($self->get_resource_path(PMSENCODER_CONFIG, REQUIRE_RESOURCE_EXISTS));
     $self->debug('path: ' . $self->self_path);
 
+    # create callbacks hooks for transcoding events
+    for my $event (qw(start end error)) {
+        # arrayref of coderefs (callbacks) to be fired when transcoding ends
+        has $event => (
+            is         => 'ro',
+            isa        => 'ArrayRef',
+            lazy       => 1,
+            auto_deref => 1,
+            default    => sub { [] },
+        );
+
+        $self->meta->add_method("on_$event", sub {
+            my $callbacks = $self->$event;
+
+            for my $callback (@$callbacks) {
+                $callback->();
+            }
+        });
+    }
+
     return $self;
+}
+
+# basic regex matcher - URI::Split and Regexp::Common::URI are of no use
+method is_uri ($path) {
+    # from URI::Split, which goes out of its way to not DWYM
+    return ($path =~ m{(?:(?:[^:/?#]+):)(?://([^/?#]*))([^?#]*)(?:\?([^#]*))?(?:#(.*))?}) ? 1 : 0;
 }
 
 # given a filename, return the full path e.g. pmsencoder.yml => /home/<username>/perl5/whatever/pmsencoder.yml
@@ -341,9 +375,54 @@ method isopt ($arg) {
     return (defined($arg) && (substr($arg, 0, 1) eq '-'));
 }
 
+# run mencoder in *nixes
+method run_unix($mencoder, $argv) {
+    my $parent = $$;
+    my ($error, $pid);
+
+    # cleanup if the parent gets reaped before the child
+    # TERM: clean up politely
+    my $guard = Scope::Guard->new(
+        sub {
+            if ($pid) {
+                $self->debug("terminating child process: $pid");
+                kill KILL => $pid; # this needs to be KILL :-(
+            }
+        }
+    );
+
+    $pid = fork();
+
+    if (defined $pid) {
+        if ($pid) { # parent
+            for my $signal (qw(ALRM HUP INT PIPE POLL PROF TERM USR1 USR2 VTALRM STKFLT)) {
+                $SIG{$signal} = sub {
+                    $self->debug("got signal: $signal");
+                    undef $guard; # trigger child termination
+                }
+            }
+
+            $self->debug("wating for child $pid to exit");
+            sleep 1;
+            my $waitpid = waitpid $pid, 0; # block until the child exits
+            $error = $?;
+            $self->debug("waitpid for $pid returned: $waitpid");
+        } else { # child
+            # via IPC::System::Simple
+            # this is so poorly described in perlfunc, it might as well be undocumented 
+            $self->debug("child process $$ (parent: $parent): running mencoder");
+            (exec { $mencoder } $mencoder, @$argv) || $self->fatal("can't exec $mencoder: $!"); # bypass the shell
+        }
+    } else {
+        $self->fatal("can't fork $mencoder"); # is $! set if fork fails?
+    }
+
+    return $error;
+}
+
 # run mencoder
 method run {
-    # if this is a web transcode, modify @ARGV ($self->argv) according to the recipes in the config file.
+    # possibly modify @ARGV ($self->argv) and/or the stash according to the recipes in the config file.
     # either way, load and process the config file in case it includes an mencoder path
     $self->process_config();
 
@@ -355,23 +434,29 @@ method run {
     # performed any @ARGV modifications
     my $argv = $self->argv();
 
-    # @ARGV ($self->argv) may be undef if no URI was supplied e.g. pmsencoder called with no args.
-    # only do this if this is a web transcode: there's no painless way to distinguish all the different ways
-    # in which mencoder can be called for local file transcodes
-
-    # now update the URI from the value in the stash
+    # if defined, update the URI from the value in the stash
     my $stash = $self->stash;
 
     unshift(@$argv, $stash->{uri}) if (defined $stash->{uri}); # always set it as the first argument
 
     $self->debug("exec: $mencoder" . (@$argv ? " @$argv" : ''));
+    $self->on_start();
 
-    eval { systemx($mencoder, @$argv) };
+    my $error;
 
-    if ($@) {
-        $self->fatal("can't exec mencoder: $@");
+    if ($self->mswin) { # when in Redmond, s{fork/exec}{CreateProcess}
+        $error = eval { systemx($mencoder, @$argv) };
+        $self->fatal("can't exec mencoder: $@") if ($@);
+    } else {
+        $error = $self->run_unix($mencoder, $argv);
+    }
+
+    if ($error) {
+        $self->debug("mencoder exited with error: $error");
+        $self->on_error;
     } else {
         $self->debug('ok');
+        $self->on_end;
     }
 
     exit 0;
@@ -401,7 +486,6 @@ method match($hash) {
     my @debug;
 
     while (my ($key, $value) = each (%$hash)) { 
-        # this will fail on (exists $stash->{uri}) unless this is a web transcode
         if ((defined $key) && (defined $value) && (exists $stash->{$key}) && ($stash->{$key} =~ $value)) {
             # merge and log any named captures
             while (my ($named_capture_key, $named_capture_value) = each(%+)) {
@@ -423,6 +507,14 @@ method match($hash) {
         $self->stash($old_stash); # rollback
         return 0;
     }
+}
+
+# return a pretty-printed Data::Dumper dump of the supplied reference
+method ddump ($ref) {
+    require Data::Dumper;
+    local $Data::Dumper::Indent = local $Data::Dumper::Terse = local $Data::Dumper::Sortkeys = 1;
+    chomp(my $dump = Data::Dumper::Dumper($ref));
+    return $dump;
 }
 
 =for comment
@@ -480,7 +572,7 @@ Setting msglevel=cfgparser=0
 # in an ideal world, we would be able to determine the indices of the URI by parsing the output
 # of mencoder's cfgparser module. Unfortunately, its logging is ambiguous i.e. if it sees an option like
 #
-#     -quite foo
+#     -quiet foo
 #
 # before logging "Adding file foo", it inaccurately logs "Setting quiet=foo"
 #
@@ -513,7 +605,7 @@ method extract_uri {
         '-exit' # bogus argument to halt mencoder
     );
 
-    my @uris = map { chomp; /^Adding file (.+)$/ ? $1 : () } @cfgparser;
+    my @uris = map { chomp; /^Adding file (.+)$/ ? $1 : () } @cfgparser; # XXX not localized
 
     unless (@uris) {
         $self->debug("no URI supplied");
@@ -521,7 +613,10 @@ method extract_uri {
     }
 
     # for now, restrict pmsencoder to only handling one URI
-    $self->fatal("multiple URIs are not currently supported") unless (@uris == 1);
+    unless (@uris == 1) {
+        my $uris = $self->ddump(\@uris);
+        $self->fatal("multiple URIs are not currently supported: $uris") 
+    }
 
     my $uri = $uris[0];
 
@@ -537,7 +632,7 @@ method extract_uri {
 }
 
 # initiialize the symbol table hashref
-method initialize_stash() {
+method initialize_stash {
     my $stash = $self->stash();
     my $argv  = $self->argv();
     my $context = ((-t STDIN) && (-t STDOUT))? 'CLI' : 'PMS'; # FIXME: doesn't detect CLI under Cygwin/rxvt-native
@@ -545,12 +640,21 @@ method initialize_stash() {
     # FIXME: should probably use a naming convention to distinguish
     # builtin names (uri, context &c.) from user-defined names (video_id, t &c.)
     $self->exec_let(context => $context); # use exec_let so it's logged; void context: logged immediately
-    $self->exec_let(platform => $^O); # note: void context means these are logged immediately
-    # TODO: set $mode e.g. web (URI) vs local (filename)
+    $self->exec_let(platform => $^O);
 
     # don't try to set the URI if none was supplied e.g. pmsencoder called with no args
     my $uri = $self->extract_uri();
-    $self->exec_let(uri => $uri) if (defined $uri); # note: void context means these are logged immediately
+
+    if (defined $uri) {
+        $self->exec_let(uri => $uri);
+
+        # XXX this may not be the same criteria PMS uses
+        if ($self->is_uri($uri)) {
+            $self->exec_let(mode => 'Web');
+        } else {
+            $self->exec_let(mode => 'File');
+        }
+    }
 }
 
 # load the config file and match the current command against any profiles
@@ -861,6 +965,6 @@ chocolateboy <chocolate@cpan.org>
 
 =head1 VERSION
 
-0.70
+0.71
 
 =cut

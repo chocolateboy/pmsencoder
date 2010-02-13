@@ -1,5 +1,10 @@
-0.71: Fri Feb 12 01:09:36 GMT 2010
+0.71: Sat Feb 13 23:05:51 GMT 2010
+    - add hooks for transcoding events
+    - fix handling for non-Web transcodes
+    - improve URI detection
     - expose platform in stash
+    - fix orphan processes
+    - improve logging
 
 0.70: Thu Feb 11 20:17:17 GMT 2010
     - improved flexibility of matching/rewriting
