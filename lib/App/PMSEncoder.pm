@@ -9,13 +9,11 @@ use constant PMSENCODER => 'pmsencoder';
 use constant {
     CHECK_RESOURCE_EXISTS   => 1,
     DISTRO                  => 'App-PMSEncoder',
-    FILE_INDEX              => 4,
     MENCODER_EXE            => 'mencoder.exe',
     PMSENCODER_CONFIG       => PMSENCODER . '.yml',
     PMSENCODER_EXE          => PMSENCODER . '.exe',
     PMSENCODER_LOG          => PMSENCODER . '.log',
     REQUIRE_RESOURCE_EXISTS => 2,
-    URI_INDEX               => 0,
 };
 
 # core modules
@@ -27,8 +25,8 @@ use POSIX qw(strftime);
 use File::HomeDir; # technically, this is not always needed, but using it unconditionally simplifies the code slightly
 use IO::All;
 use IPC::Cmd qw(can_run);
-use IPC::System::Simple 1.20 qw(systemx); # 
-use List::MoreUtils qw(first_index any);
+use IPC::System::Simple 1.20 qw(systemx capturex);
+use List::MoreUtils qw(first_index any indexes);
 use Method::Signatures::Simple;
 use Path::Class qw(file dir);
 use YAML::Tiny qw(Load); # not the best YAML processor, but good enough, and the easiest to install
@@ -63,7 +61,7 @@ has config_file_ext => (
     is         => 'ro',
     isa        => 'ArrayRef',
     auto_deref => 1,
-    default    => sub { [qw(conf yml yaml)] },
+    default    => sub { [ qw(conf yml yaml) ] },
 );
 
 # full path to the config file - an exception is thrown if one can't be found
@@ -130,18 +128,6 @@ has stash => (
     auto_deref => 1,
 );
 
-# position in argv of the filename/URI.
-# this *must* be constructed lazily i.e. when process_config requests it (via run)
-# XXX for a while (squashed bug), it was still being initialised in BUILD,
-# a holdover from an earlier version in which the config file was both loaded and
-# processed in BUILD
-has uri_index => (
-    is      => 'rw',
-    isa     => 'Int',
-    lazy    => 1,
-    builder => '_build_uri_index',
-);
-
 # full path to the dir searched for the user's config file
 has user_config_dir => (
     is  => 'rw',
@@ -156,6 +142,8 @@ has user_config_dir => (
 # so it's one less dependency to worry about
 
 {
+    # %ATTRIBUTES contains the coderef => attributes map e.g. \&App::PMSEncoder::youtube => [ 'Raw' ]
+    # %ATTRIBUTES_OK allows quick lookup of handled attributes by mapping them to true e.g. Raw => 1
     my (%ATTRIBUTES, %ATTRIBUTES_OK);
 
     # this needs to be initialised before MODIFY_CODE_ATTRIBUTES is called i.e. at compile-time
@@ -166,7 +154,7 @@ has user_config_dir => (
         my ($class, $code, @attrs) = @_;
         my (@keep, @discard);
 
-        # partition attributes into those we handle (i.e. those listed in @ATTRIBUTES) and those we don't
+        # partition attributes into those we handle (i.e. those listed in %ATTRIBUTES_OK) and those we don't
         for my $attr (@attrs) {
             if ($ATTRIBUTES_OK{$attr}) {
                 push @keep, $attr;
@@ -175,21 +163,24 @@ has user_config_dir => (
             }
         }
 
-        $ATTRIBUTES{$code} = [@keep];
-        return @discard;    # return any attributes we don't handle
+        $ATTRIBUTES{$code} = [ @keep ];
+        return @discard; # return any attributes we don't handle
     }
 
-    # by using %ATTRIBUTES directly we can bypass attributes::get and FETCH_CODE_ATTRIBUTES
+    # by keeping track of attributes in our own %ATTRIBUTES map,
+    # we can bypass attributes::get and FETCH_CODE_ATTRIBUTES
     method has_attribute($code, $attribute) {
         any { $_ eq $attribute } @{ $ATTRIBUTES{$code} || [] };
     }
 }
 
+# initialize static data like platform-specific settings.
+# most attributes are constructed lazily
 method BUILD {
     my $logfile_path = $self->logfile_path(file(File::Spec->tmpdir, PMSENCODER_LOG)->stringify);
-
     my $logfile = $self->logfile(io($logfile_path));
-    $logfile->append('')->autoflush(1); # force it, so we can turn on autoflush
+
+    $logfile->append('')->autoflush(1); # force it, so we can turn on autoflush; XXX shd probably be fixed in IO::All
     $logfile->append($/) if (-s $logfile_path);
     $self->debug(PMSENCODER . " $VERSION ($^O)");
 
@@ -202,7 +193,7 @@ method BUILD {
     # Instead we bundle the default (i.e. fallback) config file (and mencoder.exe) in $PMSENCODER_HOME/res.
     # we use the private _get_resource_path method to abstract away the platform-specifics
 
-    # initialize resource handling and fixup the stored $0 on Windows
+    # initialize resource handling and fixup our stored $0 on Windows
     if ($self->mswin) {
         Cava::Pack::SetResourcePath('res');
 
@@ -211,7 +202,7 @@ method BUILD {
             Cava::Pack::Resource($name)
         }
 
-        # XXX squashed bug: make sure _get_resource_path is defined before (indirectly) using it to set self_path
+        # XXX squashed bug: make sure _get_resource_path is defined *before* (indirectly) using it to set self_path
         $self->self_path(file($self->get_resource_path(''), File::Spec->updir, PMSENCODER_EXE)->absolute->stringify);
     } else {
         require File::ShareDir; # no need to worry about this not being picked up by Cava as it's non-Windows only
@@ -224,13 +215,14 @@ method BUILD {
 
     my $data_dir = File::HomeDir->my_data;
 
-    $self->user_config_dir(dir($data_dir, '.' . PMSENCODER)->stringify);
+    $self->user_config_dir(dir($data_dir, '.' . PMSENCODER)->stringify); # ~/.pmsencoder
     $self->default_config_path($self->get_resource_path(PMSENCODER_CONFIG, REQUIRE_RESOURCE_EXISTS));
     $self->debug('path: ' . $self->self_path);
 
     return $self;
 }
 
+# given a filename, return the full path e.g. pmsencoder.yml => /home/<username>/perl5/whatever/pmsencoder.yml
 method get_resource_path ($name, $exists) {
     my $path = $self->_get_resource_path($name);
 
@@ -239,7 +231,7 @@ method get_resource_path ($name, $exists) {
             return (-f $path) ? $path : undef;
         } elsif ($exists == REQUIRE_RESOURCE_EXISTS) {
             return (-f $path) ? $path : $self->fatal("can't find resource: $name");
-        } else {    # internal error - shouldn't get here
+        } else { # internal error - shouldn't get here
             $self->fatal("invalid flag for get_resource_path($name): $exists");
         }
     } else {
@@ -247,6 +239,7 @@ method get_resource_path ($name, $exists) {
     }
 }
 
+# return a text resource as a string or list of lines, according to context
 method get_resource ($name) {
     my $path = $self->get_resource_path($name, REQUIRE_RESOURCE_EXISTS);
 
@@ -255,27 +248,20 @@ method get_resource ($name) {
 
 # dump various config settings - useful for troubleshooting
 method version {
-    my $user_config_dir = $self->user_config_dir || '<undef>';    # may be undef according to the File::HomeDir docs
+    my $user_config_dir = $self->user_config_dir || '<undef>'; # may be undef according to the File::HomeDir docs
 
     print STDOUT
       PMSENCODER, ":            $VERSION ($^O $Config{osvers})", $/,
-      'perl:                  ', sprintf('%vd', $^V), $/,
-      'config file version:   ', $self->config->{version}, $/,    # sanity-checked by _process_config
-      'config file:           ', $self->config_file_path(),    $/,
-      'default config file:   ', $self->default_config_path(), $/,
-      'logfile:               ', $self->logfile_path(),        $/,
-      'mencoder path:         ', $self->mencoder_path(),       $/,
-      'user config directory: ', $user_config_dir, $/,
+      'perl:                  ', sprintf('%vd', $^V),            $/,
+      'config file version:   ', $self->config->{version},       $/, # the version is sanity-checked by _process_config
+      'config file:           ', $self->config_file_path(),      $/,
+      'default config file:   ', $self->default_config_path(),   $/,
+      'logfile:               ', $self->logfile_path(),          $/,
+      'mencoder path:         ', $self->mencoder_path(),         $/,
+      'user config directory: ', $user_config_dir,               $/,
 }
 
-# squashed bug: this has to be created lazily i.e. more fallout from allowing argv to be set after initialisation.
-# we should leave this as late as possible e.g. (shouldn't happen but could) in case the args method is called multiple times
-method _build_uri_index {
-    # 4 is hardwired in net.pms.encoders.MEncoderVideo.launchTranscode
-    # FIXME: document where the hardwiring of the 0th index for the URI is found
-    $self->isdef('prefer-ipv4') ? URI_INDEX : FILE_INDEX;
-}
-
+# encapsulate the mencoder lookup logic
 method _build_mencoder_path {
     my $ext = $Config{_exe};
 
@@ -294,6 +280,7 @@ method _build_mencoder_path {
       || $self->fatal("can't find mencoder");
 }
 
+# encapsulate the config file lookup logic 
 method _build_config_file_path {
     # first: check the environment variable (should contain the absolute path)
     if (exists $ENV{PMSENCODER_CONFIG}) {
@@ -328,17 +315,20 @@ method _build_config_file_path {
     }
 }
 
+# print a diagnostic message to the logfile
 method debug ($message) {
     my $now = strftime("%Y-%m-%d %H:%M:%S", localtime);
 
     $self->logfile->append("$now: $$: $message", $/);
 }
 
+# print a diagnostic messaage to the logfile, then die with an error
 method fatal ($message) {
     $self->debug("ERROR: $message");
     die $self->self_path . ": $VERSION: $$: ERROR: $message", $/;
 }
 
+# return true if an option is set, false otherwise
 method isdef ($name) {
     my $argv = $self->argv;
     my $index = first_index { $_ eq "-$name" } $self->argv;
@@ -346,24 +336,32 @@ method isdef ($name) {
     return ($index != -1);
 }
 
+# return true if the argument is an option name, false otherwise
 method isopt ($arg) {
     return (defined($arg) && (substr($arg, 0, 1) eq '-'));
 }
 
+# run mencoder
 method run {
-    # modify $self->argv according to the recipes in the config file
+    # if this is a web transcode, modify @ARGV ($self->argv) according to the recipes in the config file.
+    # either way, load and process the config file in case it includes an mencoder path
     $self->process_config();
 
-    # FIXME: allow this to be set via the stash i.e. conditionally (and thus remove the global mencoder_path setting)
+    # FIXME: allow this to be set via the stash i.e. conditionally,
+    # XXX and remove the global mencoder_path setting?
     my $mencoder = $self->mencoder_path();
 
-    # XXX obviously, this must be retrieved *after* process_config has performed any modifications
+    # XXX obviously, this must be retrieved *after* process_config has (possibly)
+    # performed any @ARGV modifications
     my $argv = $self->argv();
+
+    # @ARGV ($self->argv) may be undef if no URI was supplied e.g. pmsencoder called with no args.
+    # only do this if this is a web transcode: there's no painless way to distinguish all the different ways
+    # in which mencoder can be called for local file transcodes
 
     # now update the URI from the value in the stash
     my $stash = $self->stash;
 
-    # may be undef if no URI was supplied e.g. pmsencoder with no args
     unshift(@$argv, $stash->{uri}) if (defined $stash->{uri}); # always set it as the first argument
 
     $self->debug("exec: $mencoder" . (@$argv ? " @$argv" : ''));
@@ -379,6 +377,7 @@ method run {
     exit 0;
 }
 
+# load the (YAML) config file as (typically) a hash ref
 # XXX this is the only builder whose name doesn't begin with _build
 method _load_config {
     my $config_file = $self->config_file_path();
@@ -392,51 +391,174 @@ method _load_config {
     return $config || $self->fatal("config is undefined");
 }
 
-method exec_match($hash) {
-    my $old_stash = { $self->stash() }; # shallow copy - good enough as there are no reference values (currently)
+# return a true value if the config file defines a profile that matches the current command
+# may modify the stash as a side effect
+# if the match succeeds, returns a closure that logs the operations performed during the match
+method match($hash) {
+    my $old_stash = { $self->stash() }; # shallow copy - good enough as there are no reference values (yet)
     my $stash = $self->{stash};
     my $match = 1;
+    my @debug;
 
     while (my ($key, $value) = each (%$hash)) { 
+        # this will fail on (exists $stash->{uri}) unless this is a web transcode
         if ((defined $key) && (defined $value) && (exists $stash->{$key}) && ($stash->{$key} =~ $value)) {
             # merge and log any named captures
             while (my ($named_capture_key, $named_capture_value) = each(%+)) {
-                $self->exec_let($named_capture_key, $named_capture_value); # updates $stash
+                push @debug, $self->exec_let($named_capture_key, $named_capture_value); # updates $stash
             }
         } else {
-            $self->stash($old_stash);
             $match = 0;
             last;
         }
     }
 
-    return $match;
-}
-
-method initialize_stash() {
-    my $stash = $self->stash();
-    my $argv  = $self->argv();
-    my $uri_index = $self->uri_index;
-    # FIXME: doesn't detect CLI under Cygwin/rxvt-native
-    my $context = ((-t STDIN) && (-t STDOUT))? 'CLI' : 'PMS';
-
-    $self->exec_let(context => $context); # use exec_let so it's logged
-    $self->exec_let(platform => $^O);
-
-    # don't try to set the URI/file if none was supplied
-    if ($uri_index < @$argv) {
-        my $uri = splice @$argv, $uri_index, 1; # *remove* the URI - restored in run()
-
-        # FIXME: should probably use a naming convention to distinguish builtin names from user-defined names
-        $self->exec_let(uri => $uri);
+    if ($match) {
+        return sub {
+            for my $thunk (@debug) {
+                $thunk->();
+            }
+        };
+    } else {
+        $self->stash($old_stash); # rollback
+        return 0;
     }
 }
 
+=for comment
+
+mencoder -really-quiet                                                                                                   \
+         -msglevel cfgparser=7                                                                                           \
+         'http://www.youtube.com/get_video?fmt=18&video_id=ZOU8GIRUd_g&t=vjVQa1PpcFPy7dX2O3oTUTznaQQVo2eH-iAbAzj7D5M%3D' \
+         -prefer-ipv4                                                                                                    \
+         -oac lavc                                                                                                       \
+         -of lavf                                                                                                        \
+         -lavfopts format=dvd                                                                                            \
+         -ovc lavc                                                                                                       \
+         -lavcopts vcodec=mpeg2video:vbitrate=4096:threads=1:acodec=ac3:abitrate=128                                     \
+         -ofps 25                                                                                                        \
+         -o deleteme.mpg                                                                                                 \
+         -cache 16384                                                                                                    \
+         -vf harddup                                                                                                     \
+         -msglevel cfgparser=0                                                                                           \
+         -exit
+         
+STDOUT:
+
+Adding file http://www.youtube.com/get_video?fmt=18&video_id=ZOU8GIRUd_g&t=vjVQa1PpcFPy7dX2O3oTUTznaQQVo2eH-iAbAzj7D5M%3D
+Checking prefer-ipv4=-oac
+Setting oac=lavc
+Setting of=lavf
+Setting lavfopts=format=dvd
+Setting ovc=lavc
+Setting lavcopts=vcodec=mpeg2video:vbitrate=4096:threads=1:acodec=ac3:abitrate=128
+Setting ofps=25
+Setting o=deleteme.mpg
+Checking cache=16384
+Checking vf=harddup
+Adding file input.mpg
+Setting msglevel=cfgparser=0
+
+=cut
+
+# extract the filename/uri
+#
+# this does two things 1) determine the URIs 2) determine their indices in @ARGV so we can remove
+# them now, possibly modify them via the stash, then restore them in run()
+#
+# we need to remove them, rather than modifying them in place because option removals (exec_remove)
+# means their indices aren't fixed. actually, we coul;d replace removed arguments with dummy arguments e.g.
+# -quiet, but we'd still need to track the indices to change the URI(s). removing them avoids
+# clogging the args with dummies (which is what PMS does)
+#
+# XXX there may be more than one URI; for the time being we only extract the first
+#
+# XXX for the time being, we suppress the "-exit is not an MEncoder option" error message
+# (so it's not sent to the debug log); it might make more sense to trap the error and raise it if it's
+# not our expected error
+#
+# in an ideal world, we would be able to determine the indices of the URI by parsing the output
+# of mencoder's cfgparser module. Unfortunately, its logging is ambiguous i.e. if it sees an option like
+#
+#     -quite foo
+#
+# before logging "Adding file foo", it inaccurately logs "Setting quiet=foo"
+#
+# In light of this, there are 3 remaining options for determining the indices:
+#
+# 1) assume the URIs are unambiguous and use List::MoreUtils::indices
+# 2) call mencoder repeatedly, adding an option at a time and logging the last index whenever an "Adding..." appears
+# 3) copy the data from various mencoder headers to duplicate mencoder's option parsing
+#
+# For now, the first option is implemented
+#
+# For 2), we'd only need to call mencoder n times, where n = 1 + x times, where x is the number of URIs
+# detected in the first pass. in addition, if the URI is unambiguous, then n = 1.
+# XXX The only concern with this is the orphan mencoder process issue. The last thing we want is every
+# call to pmsmencoder spawning a bunch of mencoder orphans.
+#
+# TODO: add pathological examples to the test suite
+
+method extract_uri {
+    my $argv = $self->argv;
+    my $mencoder = $self->mencoder_path;
+
+    my @cfgparser = capturex(
+        [ 1 ], # ignore exit code
+        $mencoder,
+        '-really-quiet',
+        '-msglevel' => 'cfgparser=7',
+        @$argv,
+        '-msglevel' => 'cfgparser=0', # don't send the "-exit is not an MEncoder option" error to stderr
+        '-exit' # bogus argument to halt mencoder
+    );
+
+    my @uris = map { chomp; /^Adding file (.+)$/ ? $1 : () } @cfgparser;
+
+    unless (@uris) {
+        $self->debug("no URI supplied");
+        return undef;
+    }
+
+    # for now, restrict pmsencoder to only handling one URI
+    $self->fatal("multiple URIs are not currently supported") unless (@uris == 1);
+
+    my $uri = $uris[0];
+
+    # check for unambiguous URIs
+    my @indices = indexes { $_ eq $uri } @$argv;
+
+    $self->fatal("ambiguous URIs are not currently supported: $uri") unless (@indices == 1);
+
+    my $index = $indices[0];
+
+    splice @$argv, $index, 1; # *remove* the URI - restored in run()
+    return $uri;
+}
+
+# initiialize the symbol table hashref
+method initialize_stash() {
+    my $stash = $self->stash();
+    my $argv  = $self->argv();
+    my $context = ((-t STDIN) && (-t STDOUT))? 'CLI' : 'PMS'; # FIXME: doesn't detect CLI under Cygwin/rxvt-native
+
+    # FIXME: should probably use a naming convention to distinguish
+    # builtin names (uri, context &c.) from user-defined names (video_id, t &c.)
+    $self->exec_let(context => $context); # use exec_let so it's logged; void context: logged immediately
+    $self->exec_let(platform => $^O); # note: void context means these are logged immediately
+    # TODO: set $mode e.g. web (URI) vs local (filename)
+
+    # don't try to set the URI if none was supplied e.g. pmsencoder called with no args
+    my $uri = $self->extract_uri();
+    $self->exec_let(uri => $uri) if (defined $uri); # note: void context means these are logged immediately
+}
+
+# load the config file and match the current command against any profiles
 method process_config {
     # make sure we can load the config, and that it's sane, before initializing the stash
     my $config = $self->config();
 
-    # FIXME: this blindly assumes the config file is sane for the most part
+    # FIXME: this assumes the config file is sane for the most part
     # XXX use Kwalify?
 
     my $version = $config->{version};
@@ -448,9 +570,11 @@ method process_config {
     my $profiles = $config->{profiles};
 
     if ($profiles) {
-        # initialize the stash i.e. setup entries for uri, context &c. that may be matched in the config file.
-        # do this lazily; no point unless there are profiles
-        $self->initialize_stash();
+        # initialize the stash i.e. setup entries for uri (if this is a web transcode),
+        # context &c. that may be matched in the config file.
+        # do this lazily; no point unless profiles are defined
+
+        $self->initialize_stash;
 
         for my $profile (@$profiles) {
             my $profile_name = $profile->{name};
@@ -463,14 +587,20 @@ method process_config {
             my $match = $profile->{match};
 
             unless ($match) {
-                $self->debug("nivalid profile: no match supplied for: $profile_name");
+                $self->debug("invalid profile: no match supplied for: $profile_name");
                 next;
             }
 
             # may update the stash if successful
-            next unless ($self->exec_match($match));
+            my $matched = $self->match($match);
+            next unless ($matched);
 
             $self->debug("matched profile: $profile_name");
+
+            # only show the exec_let log messages *after* we've announced the profile match
+            # (otherwise we see "setting video_id to ...\nmatched profile: YouTube",
+            # which is confusing)
+            $matched->(); # now we know the match has succeeded force/redeem the thunked log messages
 
             my $options = $profile->{options};
 
@@ -512,7 +642,8 @@ method process_config {
 
 ################################# MEncoder Options ################################
 
-# extract the media URI - see http://stackoverflow.com/questions/1883737/getting-an-flv-from-youtube-in-net
+# extract the media URI and assign it in the stash
+# see http://stackoverflow.com/questions/1883737/getting-an-flv-from-youtube-in-net
 method exec_youtube ($formats) :Raw {
     my $stash = $self->stash;
     my $uri   = $stash->{uri};
@@ -539,7 +670,7 @@ method exec_youtube ($formats) :Raw {
         for my $fmt (@$formats) {
             my $media_uri = "http://www.youtube.com/get_video?fmt=$fmt&video_id=$video_id&t=$t";
             next unless (LWP::Simple::head $media_uri);
-            $self->exec_let(uri => $media_uri); # set the new URI; use exec_let so it's logged
+            $self->exec_let(uri => $media_uri); # set the new URI; use exec_let so it's logged; void context: log it now
             $found = 1;
             last;
         }
@@ -550,6 +681,7 @@ method exec_youtube ($formats) :Raw {
     $self->fatal("can't retrieve YouTube video from $uri") unless ($found);
 }
 
+# set an mencoder option
 method exec_set ($name, $value) {
     $name = "-$name";
 
@@ -570,6 +702,7 @@ method exec_set ($name, $value) {
     }
 }
 
+# perform a search and replace in the value of an mencoder option
 # TODO: handle undef, a single hashref and an array of hashrefs
 method exec_replace ($name, $hash) {
     $name = "-$name";
@@ -585,6 +718,7 @@ method exec_replace ($name, $hash) {
     }
 }
 
+# remove an mencoder option
 method exec_remove ($name) {
     $name = "-$name";
 
@@ -617,24 +751,37 @@ method exec_remove ($name) {
     }
 }
 
-# define a variable in the stash, performing any variable substitution
+# define a variable in the stash, performing any variable substitutions
 method exec_let ($name, $value) {
     my $stash = $self->stash();
     my $original_value = $value;
+    my @debug = ();
 
-    $self->debug("setting \$$name to $value");
+    push @debug, sub { $self->debug("setting \$$name to $value") };
 
     while (my ($key, $replace) = each(%$stash)) {
         my $search = qr{(?:(?:\$$key\b)|(?:\$\{$key\}))};
 
         if ($value =~ $search) {
-            $self->debug("replacing \$$key with '$replace' in $value");
+            push @debug, sub { $self->debug("replacing \$$key with '$replace' in $value") };
             $value =~ s{$search}{$replace}g;
         }
     }
 
     $stash->{$name} = $value;
-    $self->debug("set \$$name to $value") unless ($value eq $original_value);
+    push @debug, sub { $self->debug("set \$$name to $value") unless ($value eq $original_value) };
+
+    my $debug = sub {
+        for my $thunk (@debug) {
+            $thunk->();
+        }
+    };
+
+    if (defined wantarray) {
+        return $debug;
+    } else { # void context: redeem debug promises
+        $debug->();
+    }
 }
 
 # define a variable in the stash by extracting a value from the document pointed to by the current URI
@@ -654,15 +801,16 @@ method exec_get ($key, $value) {
     if (defined $value) {
         $self->debug("extracting \$$key from $uri");
         my ($extract) = $document =~ /$value/;
-        $self->exec_let($key, $extract);
+        $self->exec_let($key, $extract); # void context: log it now
     } else {
         $document =~ /$key/;
         while (my ($named_capture_key, $named_capture_value) = (each %+)) {
-            $self->exec_let($named_capture_key, $named_capture_value);
+            $self->exec_let($named_capture_key, $named_capture_value); # void context: log it now
         }
     }
 }
 
+# remove an entry from the stash
 # XXX unused/untested
 method exec_delete ($key) {
     my $stash = $self->stash;

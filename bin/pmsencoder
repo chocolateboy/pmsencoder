@@ -44,7 +44,7 @@ use App::PMSEncoder;
 
 # FIXME: this still accepts -test &c. Plough through the
 # hundreds of alternatives to Getopt::Long to find something that DWIM
-use Getopt::Long qw(:config posix_default no_ignore_case no_auto_abbrev);
+use Getopt::Long qw(:config posix_default no_ignore_case no_auto_abbrev pass_through);
 
 my $test;
 my $pmsencoder = App::PMSEncoder->new();
