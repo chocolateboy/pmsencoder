@@ -14,6 +14,7 @@ use constant {
     PMSENCODER_EXE          => PMSENCODER . '.exe',
     PMSENCODER_LOG          => PMSENCODER . '.log',
     REQUIRE_RESOURCE_EXISTS => 2,
+    SHUTDOWN_SIGNALS        => [ qw(ALRM HUP INT PIPE POLL PROF TERM USR1 USR2 VTALRM STKFLT) ],
 };
 
 # core modules
@@ -229,8 +230,10 @@ method BUILD {
 
     # create callbacks hooks for transcoding events
     for my $event (qw(start end error)) {
+        my $event_list = "$event\_callbacks";
+
         # arrayref of coderefs (callbacks) to be fired when transcoding ends
-        has $event => (
+        has $event_list => (
             is         => 'ro',
             isa        => 'ArrayRef',
             lazy       => 1,
@@ -239,7 +242,7 @@ method BUILD {
         );
 
         $self->meta->add_method("on_$event", sub {
-            my $callbacks = $self->$event;
+            my $callbacks = $self->$event_list;
 
             for my $callback (@$callbacks) {
                 $callback->();
@@ -375,18 +378,16 @@ method isopt ($arg) {
     return (defined($arg) && (substr($arg, 0, 1) eq '-'));
 }
 
-# run mencoder in *nixes
 method run_unix($mencoder, $argv) {
     my $parent = $$;
     my ($error, $pid);
 
     # cleanup if the parent gets reaped before the child
-    # TERM: clean up politely
     my $guard = Scope::Guard->new(
         sub {
             if ($pid) {
                 $self->debug("terminating child process: $pid");
-                kill KILL => $pid; # this needs to be KILL :-(
+                kill TERM => $pid; # clean up *politely*
             }
         }
     );
@@ -395,25 +396,29 @@ method run_unix($mencoder, $argv) {
 
     if (defined $pid) {
         if ($pid) { # parent
-            for my $signal (qw(ALRM HUP INT PIPE POLL PROF TERM USR1 USR2 VTALRM STKFLT)) {
+            local %SIG;
+
+            for my $signal (@{ SHUTDOWN_SIGNALS() }) {
                 $SIG{$signal} = sub {
-                    $self->debug("got signal: $signal");
-                    undef $guard; # trigger child termination
+                    $self->debug("forwarding signal: $signal");
+                    kill $signal => $pid;
+                    $error = "child received signal: $signal";
                 }
             }
 
-            $self->debug("wating for child $pid to exit");
             sleep 1;
-            my $waitpid = waitpid $pid, 0; # block until the child exits
-            $error = $?;
-            $self->debug("waitpid for $pid returned: $waitpid");
+            # $self->debug("wating for child $pid to exit");
+            waitpid $pid, 0; # block until the child exits
+            $guard->dismiss();
+            $error ||= "child exited with status: $?" if ($?);
         } else { # child
-            # via IPC::System::Simple
-            # this is so poorly described in perlfunc, it might as well be undocumented 
+            $guard->dismiss;
             $self->debug("child process $$ (parent: $parent): running mencoder");
-            (exec { $mencoder } $mencoder, @$argv) || $self->fatal("can't exec $mencoder: $!"); # bypass the shell
+            # bypass the shell (pjf++); this is so poorly described in perlfunc, it might as well be undocumented 
+            (exec { $mencoder } $mencoder, @$argv) || $self->fatal("can't exec $mencoder: $!");
         }
     } else {
+        $guard->dismiss;
         $self->fatal("can't fork $mencoder"); # is $! set if fork fails?
     }
 
@@ -442,17 +447,10 @@ method run {
     $self->debug("exec: $mencoder" . (@$argv ? " @$argv" : ''));
     $self->on_start();
 
-    my $error;
-
-    if ($self->mswin) { # when in Redmond, s{fork/exec}{CreateProcess}
-        $error = eval { systemx($mencoder, @$argv) };
-        $self->fatal("can't exec mencoder: $@") if ($@);
-    } else {
-        $error = $self->run_unix($mencoder, $argv);
-    }
+    my $error = $self->run_unix($mencoder, $argv);
 
     if ($error) {
-        $self->debug("mencoder exited with error: $error");
+        $self->debug("error running mencoder: $error");
         $self->on_error;
     } else {
         $self->debug('ok');
