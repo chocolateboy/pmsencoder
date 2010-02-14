@@ -378,6 +378,7 @@ method isopt ($arg) {
     return (defined($arg) && (substr($arg, 0, 1) eq '-'));
 }
 
+# run mencoder on *nixes
 method run_unix($mencoder, $argv) {
     my $parent = $$;
     my ($error, $pid);
