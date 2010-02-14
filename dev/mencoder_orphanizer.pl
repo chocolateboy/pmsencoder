@@ -52,7 +52,7 @@ say "This script will spawn $MENCODERS $mencoders running $THREADS threads each 
     "to kill them cleanly, leaving orphan processes.";
 
 my $continue = prompt(
-    "Are you sure you want to do this (and know how to clean up afterwards e.g. killall -9 mencoder)? Y/n",
+    "Are you sure you want to do this (and know how to clean up afterwards e.g. killall -TERM mencoder)? Y/n",
     'n'
 );
 
@@ -81,8 +81,7 @@ for my $count (1 .. $MENCODERS) {
         warn "created child: $pid", $/;
         push @PIDS, $pid;
     } else { # child
-        warn "execing $MENCODER", $/; 
-        say "@COMMAND";
+        warn "process $$: execing @COMMAND", $/; 
         (exec { $MENCODER } @COMMAND, '-o', $temp_file)
             or die "can't exec $MENCODER: $!"; # obscure syntax for bypassing the shell
     }
