@@ -3,14 +3,17 @@
 use strict;
 use warnings;
 
+use FindBin qw($Bin);
 use Test::Command tests => 2;
 
+my $pmsencoder = "$Bin/../bin/pmsencoder";
+
 stderr_like(
-    [ qw(pmsencoder foo bar) ],
+    "$pmsencoder foo bar",
     qr{\bERROR: multiple URIs are not currently supported: \['foo','bar'\]}
 );
 
 stderr_like(
-    [ qw(pmsencoder foo -o foo) ],
+    "$pmsencoder foo -o foo",
     qr{\bERROR: ambiguous URIs are not currently supported: 'foo' found at multiple indices: \[0,2\]}
 );

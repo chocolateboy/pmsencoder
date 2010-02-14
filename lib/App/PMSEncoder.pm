@@ -287,8 +287,8 @@ method version {
     print STDOUT
       PMSENCODER, ":            $VERSION ($^O $Config{osvers})", $/,
       'perl:                  ', sprintf('%vd', $^V),            $/,
-      'config file version:   ', $self->config->{version},       $/, # the version is sanity-checked by _process_config
       'config file:           ', $self->config_file_path(),      $/,
+      'config file version:   ', $self->config->{version},       $/, # the version is sanity-checked by _process_config
       'default config file:   ', $self->default_config_path(),   $/,
       'logfile:               ', $self->logfile_path(),          $/,
       'mencoder path:         ', $self->mencoder_path(),         $/,
@@ -640,6 +640,8 @@ method extract_uri {
 method initialize_stash {
     my $stash = $self->stash();
     my $argv  = $self->argv();
+
+    # XXX: doesn't work under the test harness
     my $context = ((-t STDIN) && (-t STDOUT))? 'CLI' : 'PMS'; # FIXME: doesn't detect CLI under Cygwin/rxvt-native
 
     # FIXME: should probably use a naming convention to distinguish
@@ -647,9 +649,9 @@ method initialize_stash {
     $self->exec_let(context => $context); # use exec_let so it's logged; void context: logged immediately
     $self->exec_let(platform => $^O);
 
-    # don't try to set the URI if none was supplied e.g. pmsencoder called with no args
     my $uri = $self->extract_uri();
 
+    # don't try to set the URI if none was supplied e.g. pmsencoder called with no args
     if (defined $uri) {
         $self->exec_let(uri => $uri);
 

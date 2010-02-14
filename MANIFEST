@@ -23,4 +23,6 @@ MANIFEST			This list of files
 META.yml
 README.md
 t/01_use.t
+t/uri.t
+t/version.t
 TODO

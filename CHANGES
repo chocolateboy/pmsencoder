@@ -5,6 +5,7 @@
     - expose platform in stash
     - fix orphan processes
     - improve logging
+    - more tests 
 
 0.70: Thu Feb 11 20:17:17 GMT 2010
     - improved flexibility of matching/rewriting
