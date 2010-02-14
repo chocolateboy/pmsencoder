@@ -4,7 +4,6 @@ conf/pmsencoder.yml
 conf/test_args.txt
 conf/WEB.conf
 inc/Module/AutoInstall.pm
-inc/Module/Install.pm
 inc/Module/Install/AutoInstall.pm
 inc/Module/Install/Base.pm
 inc/Module/Install/Can.pm
@@ -12,6 +11,7 @@ inc/Module/Install/Fetch.pm
 inc/Module/Install/Include.pm
 inc/Module/Install/Makefile.pm
 inc/Module/Install/Metadata.pm
+inc/Module/Install.pm
 inc/Module/Install/Scripts.pm
 inc/Module/Install/Share.pm
 inc/Module/Install/Win32.pm
@@ -23,5 +23,4 @@ MANIFEST			This list of files
 META.yml
 README.md
 t/01_use.t
-t/pod.t
 TODO

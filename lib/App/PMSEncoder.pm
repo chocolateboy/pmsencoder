@@ -509,11 +509,12 @@ method match($hash) {
     }
 }
 
-# return a pretty-printed Data::Dumper dump of the supplied reference
-method ddump ($ref) {
+# return a pretty-printed Data::Dumper dump of the supplied value
+method ddump ($value) {
     require Data::Dumper;
-    local $Data::Dumper::Indent = local $Data::Dumper::Terse = local $Data::Dumper::Sortkeys = 1;
-    chomp(my $dump = Data::Dumper::Dumper($ref));
+    local $Data::Dumper::Indent = 0;
+    local $Data::Dumper::Terse = local $Data::Dumper::Sortkeys = 1;
+    chomp(my $dump = Data::Dumper::Dumper($value));
     return $dump;
 }
 
@@ -623,7 +624,11 @@ method extract_uri {
     # check for unambiguous URIs
     my @indices = indexes { $_ eq $uri } @$argv;
 
-    $self->fatal("ambiguous URIs are not currently supported: $uri") unless (@indices == 1);
+    unless (@indices == 1) {
+        my $quoted_uri = $self->ddump($uri);
+        my $indices = $self->ddump(\@indices);
+        $self->fatal("ambiguous URIs are not currently supported: $quoted_uri found at multiple indices: $indices") 
+    }
 
     my $index = $indices[0];
 

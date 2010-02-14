@@ -36,6 +36,8 @@ if ($ENV{PMSENCODER_WIN32}) { # only set this if, for some reason, you want to b
 
 install_script 'bin/pmsencoder';
 repository     'http://github.com/chocolateboy/pmsencoder';
+
+test_requires  'Test::Command' => '0.08';
 test_requires  'Test::More';
 
 auto_install();
