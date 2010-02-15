@@ -24,13 +24,13 @@ use POSIX qw(strftime);
 
 # CPAN modules
 use File::HomeDir; # technically, this is not always needed, but using it unconditionally simplifies the code slightly
-use Scope::Guard qw(scope_guard);
 use IO::All;
 use IPC::Cmd qw(can_run);
 use IPC::System::Simple 1.20 qw(systemx capturex);
 use List::MoreUtils qw(first_index any indexes);
 use Method::Signatures::Simple;
 use Path::Class qw(file dir);
+use Scope::Guard;
 use YAML::Tiny qw(Load); # not the best YAML processor, but good enough, and the easiest to install
 
 # use Cava::Pack;               # Windows only
@@ -228,6 +228,7 @@ method BUILD {
     $self->default_config_path($self->get_resource_path(PMSENCODER_CONFIG, REQUIRE_RESOURCE_EXISTS));
     $self->debug('path: ' . $self->self_path);
 
+=for comment
     # create callbacks hooks for transcoding events
     for my $event (qw(start end error)) {
         my $event_list = "$event\_callbacks";
@@ -249,6 +250,7 @@ method BUILD {
             }
         });
     }
+=cut
 
     return $self;
 }
@@ -378,7 +380,27 @@ method isopt ($arg) {
     return (defined($arg) && (substr($arg, 0, 1) eq '-'));
 }
 
-# run mencoder on *nixes
+# run mencoder in the simplest way possible *that doesn't leave nehind orphan processes*
+# this performs an exec on non-Windows, so any orphan processes are PMS's fault
+# (see dev/mencoder_orphanize)
+# XXX doesn't work on Windows, of course
+method run_simple($mencoder, $argv) {
+    if ($self->mswin) {
+        eval { systemx($mencoder, @$argv) };
+        if ($@) {
+            $self->fatal("error running mencoder: $@");
+        } else {
+            $self->debug('ok');
+        }
+    } else {
+        # bypass the shell (pjf++); this is so poorly described in perlfunc, it might as well be undocumented 
+        (exec { $mencoder } $mencoder, @$argv) || $self->fatal("can't exec $mencoder: $!");
+    }
+
+    exit 0;
+}
+
+# run mencoder on *nixes XXX currently unused
 method run_unix($mencoder, $argv) {
     my $parent = $$;
     my ($error, $pid);
@@ -399,22 +421,28 @@ method run_unix($mencoder, $argv) {
         if ($pid) { # parent
             local %SIG;
 
+            $SIG{CHLD} = 'IGNORE'; # ignore child termination signals; we'll get those soon enough via waitpid
+
             for my $signal (@{ SHUTDOWN_SIGNALS() }) {
                 $SIG{$signal} = sub {
-                    $self->debug("forwarding signal: $signal");
-                    kill $signal => $pid;
-                    $error = "child received signal: $signal";
+                    $self->debug("forwarding signal to child ($pid): $signal");
+
+                    if (kill $signal => $pid) {
+                        $error = "child ($pid) received signal: $signal";
+                    }
                 }
             }
 
-            sleep 1;
-            # $self->debug("wating for child $pid to exit");
+            sleep 1; # give the child a chance to start
             waitpid $pid, 0; # block until the child exits
             $guard->dismiss();
-            $error ||= "child exited with status: $?" if ($?);
+
+            if (not($error) && $?) {
+                $error = "child ($pid) exited with status: $?";
+            }
         } else { # child
             $guard->dismiss;
-            $self->debug("child process $$ (parent: $parent): running mencoder");
+            $self->debug("child of $parent: running mencoder");
             # bypass the shell (pjf++); this is so poorly described in perlfunc, it might as well be undocumented 
             (exec { $mencoder } $mencoder, @$argv) || $self->fatal("can't exec $mencoder: $!");
         }
@@ -446,19 +474,7 @@ method run {
     unshift(@$argv, $stash->{uri}) if (defined $stash->{uri}); # always set it as the first argument
 
     $self->debug("exec: $mencoder" . (@$argv ? " @$argv" : ''));
-    $self->on_start();
-
-    my $error = $self->run_unix($mencoder, $argv);
-
-    if ($error) {
-        $self->debug("error running mencoder: $error");
-        $self->on_error;
-    } else {
-        $self->debug('ok');
-        $self->on_end;
-    }
-
-    exit 0;
+    $self->run_simple($mencoder, $argv); # XXX doesn't return
 }
 
 # load the (YAML) config file as (typically) a hash ref
@@ -478,6 +494,8 @@ method _load_config {
 # return a true value if the config file defines a profile that matches the current command
 # may modify the stash as a side effect
 # if the match succeeds, returns a closure that logs the operations performed during the match
+# (this prevents us logging a bunch of side effects (e.g. stash changes) that then become obsolete
+# (i.e. are rolled back) if one of the conditions of the match subsequently fails)
 method match($hash) {
     my $old_stash = { $self->stash() }; # shallow copy - good enough as there are no reference values (yet)
     my $stash = $self->{stash};
@@ -558,16 +576,16 @@ Setting msglevel=cfgparser=0
 # this does two things 1) determine the URIs 2) determine their indices in @ARGV so we can remove
 # them now, possibly modify them via the stash, then restore them in run()
 #
-# we need to remove them, rather than modifying them in place because option removals (exec_remove)
-# means their indices aren't fixed. actually, we coul;d replace removed arguments with dummy arguments e.g.
+# we need to remove them, rather than modifying them in place, because option removals (exec_remove)
+# means their indices aren't fixed. actually, we could replace removed arguments with dummy arguments e.g.
 # -quiet, but we'd still need to track the indices to change the URI(s). removing them avoids
-# clogging the args with dummies (which is what PMS does)
+# clogging the args with noisy dummy arguments (which is what PMS does)
 #
 # XXX there may be more than one URI; for the time being we only extract the first
 #
 # XXX for the time being, we suppress the "-exit is not an MEncoder option" error message
-# (so it's not sent to the debug log); it might make more sense to trap the error and raise it if it's
-# not our expected error
+# (so it's not sent to the debug log); it might make more sense to trap any mencoder error
+# and raise it if it's not our expected -exit error
 #
 # in an ideal world, we would be able to determine the indices of the URI by parsing the output
 # of mencoder's cfgparser module. Unfortunately, its logging is ambiguous i.e. if it sees an option like
@@ -575,19 +593,22 @@ Setting msglevel=cfgparser=0
 #     -quiet foo
 #
 # before logging "Adding file foo", it inaccurately logs "Setting quiet=foo"
+# TODO this really needs to be fixed in mencoder
 #
-# In light of this, there are 3 remaining options for determining the indices:
+# In light of this, there are 3 remaining options for determining the URI indices:
 #
 # 1) assume the URIs are unambiguous and use List::MoreUtils::indices
 # 2) call mencoder repeatedly, adding an option at a time and logging the last index whenever an "Adding..." appears
 # 3) copy the data from various mencoder headers to duplicate mencoder's option parsing
 #
-# For now, the first option is implemented
+# For now, the first option is implemented. This should work 99% of the time: URIs don't resemble mencoder options
+# and the filenames supplied by PMS are absolute paths. Colons are used in Mac OS filenames, but mencoder
+# option values don't usually start with a colon
 #
 # For 2), we'd only need to call mencoder n times, where n = 1 + x times, where x is the number of URIs
 # detected in the first pass. in addition, if the URI is unambiguous, then n = 1.
-# XXX The only concern with this is the orphan mencoder process issue. The last thing we want is every
-# call to pmsmencoder spawning a bunch of mencoder orphans.
+#
+# FIXME this calls mencoder without any of the careful protection against signals in run_unix()
 #
 # TODO: add pathological examples to the test suite
 
@@ -596,23 +617,24 @@ method extract_uri {
     my $mencoder = $self->mencoder_path;
 
     my @cfgparser = capturex(
-        [ 1 ], # ignore exit code
+        [ 1 ], # ignore exit code == 1
         $mencoder,
         '-really-quiet',
-        '-msglevel' => 'cfgparser=7',
+        '-msglevel' => 'cfgparser=7', # log cfgparser
         @$argv,
-        '-msglevel' => 'cfgparser=0', # don't send the "-exit is not an MEncoder option" error to stderr
+        '-msglevel' => 'cfgparser=0', # disable most logging i.e. don't log "-exit is not an MEncoder option"
         '-exit' # bogus argument to halt mencoder
     );
 
-    my @uris = map { chomp; /^Adding file (.+)$/ ? $1 : () } @cfgparser; # XXX not localized
+    # the "Adding file..." message is hardwired in English in parser-mecmd.c - though it probably shouldn't be
+    my @uris = map { chomp; /^Adding file (.+)$/ ? $1 : () } @cfgparser;
 
     unless (@uris) {
-        $self->debug("no URI supplied");
+        $self->debug('no URI supplied');
         return undef;
     }
 
-    # for now, restrict pmsencoder to only handling one URI
+    # for now, restrict pmsencoder to only handle one URI
     unless (@uris == 1) {
         my $uris = $self->ddump(\@uris);
         $self->fatal("multiple URIs are not currently supported: $uris") 
@@ -640,7 +662,7 @@ method initialize_stash {
     my $stash = $self->stash();
     my $argv  = $self->argv();
 
-    # XXX: doesn't work under the test harness
+    # XXX: doesn't work under the test harness i.e. returns "PMS"
     my $context = ((-t STDIN) && (-t STDOUT))? 'CLI' : 'PMS'; # FIXME: doesn't detect CLI under Cygwin/rxvt-native
 
     # FIXME: should probably use a naming convention to distinguish
@@ -654,7 +676,7 @@ method initialize_stash {
     if (defined $uri) {
         $self->exec_let(uri => $uri);
 
-        # XXX this may not be the same criteria PMS uses
+        # XXX this is not going to agree with the criteria PMS uses (i.e. is it in WEB.conf)
         if ($self->is_uri($uri)) {
             $self->exec_let(mode => 'Web');
         } else {
@@ -680,8 +702,7 @@ method process_config {
     my $profiles = $config->{profiles};
 
     if ($profiles) {
-        # initialize the stash i.e. setup entries for uri (if this is a web transcode),
-        # context &c. that may be matched in the config file.
+        # initialize the stash i.e. setup entries for uri, context &c. that may be used as match criteria.
         # do this lazily; no point unless profiles are defined
 
         $self->initialize_stash;
@@ -707,9 +728,14 @@ method process_config {
 
             $self->debug("matched profile: $profile_name");
 
-            # only show the exec_let log messages *after* we've announced the profile match
-            # (otherwise we see "setting video_id to ...\nmatched profile: YouTube",
-            # which is confusing)
+            # only show the exec_let log messages *after* we've announced the profile match.
+            # otherwise we see:
+            #
+            #     setting video_id to ...
+            #     matched profile: YouTube
+            #
+            # i.e. the effects of a successful profile match before we've logged the match - which is confusing
+
             $matched->(); # now we know the match has succeeded force/redeem the thunked log messages
 
             my $options = $profile->{options};
@@ -750,9 +776,11 @@ method process_config {
     }
 }
 
-################################# MEncoder Options ################################
+################################# Operators ################################
 
-# extract the media URI and assign it in the stash
+# given (in the stash) the $video_id and $t values of a YouTube media URI (i.e. the URI of an .flv, .mp4 &c.),
+# construct the full URI with various $fmt values in succession and set the stash $uri value to the first one
+# that's valid (based on a HEAD request)
 # see http://stackoverflow.com/questions/1883737/getting-an-flv-from-youtube-in-net
 method exec_youtube ($formats) :Raw {
     my $stash = $self->stash;
@@ -791,7 +819,7 @@ method exec_youtube ($formats) :Raw {
     $self->fatal("can't retrieve YouTube video from $uri") unless ($found);
 }
 
-# set an mencoder option
+# set an mencoder option - create it if it doesn't exist
 method exec_set ($name, $value) {
     $name = "-$name";
 
@@ -894,7 +922,7 @@ method exec_let ($name, $value) {
     }
 }
 
-# define a variable in the stash by extracting a value from the document pointed to by the current URI
+# define a variable in the stash by extracting its value from the document pointed to by the current URI
 method exec_get ($key, $value) {
     my $stash = $self->stash;
     my $uri   = $stash->{uri} || $self->fatal("can't perform get op: no URI defined"); 
@@ -907,12 +935,11 @@ method exec_get ($key, $value) {
         $self->document->{$uri};
     };
 
-    # key: 'value (?<named_capture>...)'
-    if (defined $value) {
+    if (defined $value) { # extract the first parenthesized capture
         $self->debug("extracting \$$key from $uri");
         my ($extract) = $document =~ /$value/;
         $self->exec_let($key, $extract); # void context: log it now
-    } else {
+    } else { # extract any named captures
         $document =~ /$key/;
         while (my ($named_capture_key, $named_capture_value) = (each %+)) {
             $self->exec_let($named_capture_key, $named_capture_value); # void context: log it now
