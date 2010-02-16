@@ -30,7 +30,7 @@ use IPC::System::Simple 1.20 qw(systemx capturex);
 use List::MoreUtils qw(first_index any indexes);
 use Method::Signatures::Simple;
 use Path::Class qw(file dir);
-use Scope::Guard;
+use Proc::Simple;
 use YAML::Tiny qw(Load); # not the best YAML processor, but good enough, and the easiest to install
 
 # use Cava::Pack;               # Windows only
@@ -380,78 +380,44 @@ method isopt ($arg) {
     return (defined($arg) && (substr($arg, 0, 1) eq '-'));
 }
 
-# run mencoder in the simplest way possible *that doesn't leave nehind orphan processes*
-# this performs an exec on non-Windows, so any orphan processes are PMS's fault
-# (see dev/mencoder_orphanize)
-# XXX doesn't work on Windows, of course
-method run_simple($mencoder, $argv) {
-    if ($self->mswin) {
-        eval { systemx($mencoder, @$argv) };
-        if ($@) {
-            $self->fatal("error running mencoder: $@");
-        } else {
-            $self->debug('ok');
-        }
-    } else {
-        # bypass the shell (pjf++); this is so poorly described in perlfunc, it might as well be undocumented 
-        (exec { $mencoder } $mencoder, @$argv) || $self->fatal("can't exec $mencoder: $!");
-    }
+# run mencoder in the simplest way possible *that doesn't leave behind orphan processes*
+# XXX this is still a work in progress
+#
+# on all platforms, we need to trap a SIGTERM (from the console on Windows or from PMS on *nixes),
+# and SIGINT (from the console on *nixes)
+#
+# XXX note: Cygwin's rxvt-native is broken, and doesn't send (or perl doesn't receive) INT or TERM on Ctrl-C
 
-    exit 0;
-}
-
-# run mencoder on *nixes XXX currently unused
-method run_unix($mencoder, $argv) {
+method spawn ($mencoder, $argv) {
     my $parent = $$;
-    my ($error, $pid);
+    my $pid;
 
-    # cleanup if the parent gets reaped before the child
-    my $guard = Scope::Guard->new(
-        sub {
-            if ($pid) {
-                $self->debug("terminating child process: $pid");
-                kill TERM => $pid; # clean up *politely*
-            }
-        }
-    );
+    local %SIG;
 
-    $pid = fork();
-
-    if (defined $pid) {
-        if ($pid) { # parent
-            local %SIG;
-
-            $SIG{CHLD} = 'IGNORE'; # ignore child termination signals; we'll get those soon enough via waitpid
-
-            for my $signal (@{ SHUTDOWN_SIGNALS() }) {
-                $SIG{$signal} = sub {
-                    $self->debug("forwarding signal to child ($pid): $signal");
-
-                    if (kill $signal => $pid) {
-                        $error = "child ($pid) received signal: $signal";
-                    }
+    for my $signal (qw(TERM INT HUP CHLD)) {
+        $SIG{$signal} = sub {
+            if ($$ == $parent) {
+                if ($signal eq 'CHLD') {
+                    $self->debug("signal caught ($signal): $!");
+                } else {
+                    $self->debug("signal caught ($signal): sending TERM to $pid");
+                    kill(KILL => $pid);
                 }
             }
-
-            sleep 1; # give the child a chance to start
-            waitpid $pid, 0; # block until the child exits
-            $guard->dismiss();
-
-            if (not($error) && $?) {
-                $error = "child ($pid) exited with status: $?";
-            }
-        } else { # child
-            $guard->dismiss;
-            $self->debug("child of $parent: running mencoder");
-            # bypass the shell (pjf++); this is so poorly described in perlfunc, it might as well be undocumented 
-            (exec { $mencoder } $mencoder, @$argv) || $self->fatal("can't exec $mencoder: $!");
-        }
-    } else {
-        $guard->dismiss;
-        $self->fatal("can't fork $mencoder"); # is $! set if fork fails?
+            $self->debug("exiting");
+            exit;
+        };
     }
 
-    return $error;
+    $pid = fork();
+    $self->fatal("can't fork mencoder process") unless (defined $pid);
+
+    if ($pid) { # parent
+        $self->debug("launched mencoder process: $pid");
+        sleep;
+    } else { # child
+        (exec { $mencoder } $mencoder, @$argv) or $self->fatal("can't exec mencoder");
+    }
 }
 
 # run mencoder
@@ -474,7 +440,15 @@ method run {
     unshift(@$argv, $stash->{uri}) if (defined $stash->{uri}); # always set it as the first argument
 
     $self->debug("exec: $mencoder" . (@$argv ? " @$argv" : ''));
-    $self->run_simple($mencoder, $argv); # XXX doesn't return
+    $self->spawn($mencoder, $argv);
+
+=for comment
+    if ($@) {
+        $self->debug("error running $mencoder: $@");
+    } else {
+        $self->debug("ok");
+    }
+=cut
 }
 
 # load the (YAML) config file as (typically) a hash ref

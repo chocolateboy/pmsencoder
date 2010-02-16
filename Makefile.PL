@@ -22,7 +22,6 @@ requires 'LWP::Simple';
 requires 'Method::Signatures::Simple'  => '0.05';
 requires 'Mouse'                       => '0.49';
 requires 'Path::Class'                 => '0.18';
-requires 'Scope::Guard'                => '0.03';
 requires 'YAML::Tiny'                  => '1.41';
 
 # platform-specific access to resources e.g. default config file, bundled mencoder,
