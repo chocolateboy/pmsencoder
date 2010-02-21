@@ -13,6 +13,7 @@ license  'artistic_2';
 all_from 'lib/App/PMSEncoder.pm';
 include  'Module::AutoInstall';
 
+requires 'local::lib';
 requires 'File::HomeDir'               => '0.89';
 requires 'IO::All'                     => '0.39';
 requires 'IPC::Cmd';
