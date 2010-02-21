@@ -1,7 +1,7 @@
 bin/pmsencoder
 CHANGES
 conf/pmsencoder.yml
-conf/test_args.txt
+conf/default_args.txt
 conf/WEB.conf
 inc/Module/AutoInstall.pm
 inc/Module/Install/AutoInstall.pm

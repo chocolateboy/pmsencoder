@@ -30,7 +30,6 @@ use IPC::System::Simple 1.20 qw(systemx capturex);
 use List::MoreUtils qw(first_index any indexes);
 use Method::Signatures::Simple;
 use Path::Class qw(file dir);
-use Proc::Simple;
 use YAML::Tiny qw(Load); # not the best YAML processor, but good enough, and the easiest to install
 
 # use Cava::Pack;               # Windows only
@@ -388,36 +387,8 @@ method isopt ($arg) {
 #
 # XXX note: Cygwin's rxvt-native is broken, and doesn't send (or perl doesn't receive) INT or TERM on Ctrl-C
 
-method spawn ($mencoder, $argv) {
-    my $parent = $$;
-    my $pid;
-
-    local %SIG;
-
-    for my $signal (qw(TERM INT HUP CHLD)) {
-        $SIG{$signal} = sub {
-            if ($$ == $parent) {
-                if ($signal eq 'CHLD') {
-                    $self->debug("signal caught ($signal): $!");
-                } else {
-                    $self->debug("signal caught ($signal): sending TERM to $pid");
-                    kill(KILL => $pid);
-                }
-            }
-            $self->debug("exiting");
-            exit;
-        };
-    }
-
-    $pid = fork();
-    $self->fatal("can't fork mencoder process") unless (defined $pid);
-
-    if ($pid) { # parent
-        $self->debug("launched mencoder process: $pid");
-        sleep;
-    } else { # child
-        (exec { $mencoder } $mencoder, @$argv) or $self->fatal("can't exec mencoder");
-    }
+method spawn($mencoder, $argv) {
+    exec { $mencoder } @$argv; # since this is no longer supported, use the *nix solution
 }
 
 # run mencoder
@@ -440,15 +411,13 @@ method run {
     unshift(@$argv, $stash->{uri}) if (defined $stash->{uri}); # always set it as the first argument
 
     $self->debug("exec: $mencoder" . (@$argv ? " @$argv" : ''));
-    $self->spawn($mencoder, $argv);
+    my $error = $self->spawn($mencoder, $argv);
 
-=for comment
-    if ($@) {
-        $self->debug("error running $mencoder: $@");
+    if ($error) {
+        $self->debug("error running $mencoder: $error");
     } else {
         $self->debug("ok");
     }
-=cut
 }
 
 # load the (YAML) config file as (typically) a hash ref
