@@ -387,7 +387,7 @@ method isopt ($arg) {
 #
 # XXX note: Cygwin's rxvt-native is broken, and doesn't send (or perl doesn't receive) INT or TERM on Ctrl-C
 
-method spawn($mencoder, @$argv) {
+method spawn($mencoder, $argv) {
     exec { $mencoder } @$argv; # since this is no longer supported, use the *nix solution
 }
 
