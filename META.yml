@@ -4,11 +4,12 @@ author:
   - 'chocolateboy <chocolate@cpan.org>'
 build_requires:
   ExtUtils::MakeMaker: 6.42
+  Test::Command: 0.08
   Test::More: 0
 configure_requires:
   ExtUtils::MakeMaker: 6.42
 distribution_type: module
-generated_by: 'Module::Install version 0.93'
+generated_by: 'Module::Install version 0.94'
 license: artistic_2
 meta-spec:
   url: http://module-build.sourceforge.net/META-spec-v1.4.html
@@ -19,19 +20,22 @@ no_index:
     - conf
     - inc
     - t
+    - xt
 requires:
   File::HomeDir: 0.89
   File::ShareDir: 1.01
   IO::All: 0.39
-  IPC::Cmd: 0.56
+  IPC::Cmd: 0
+  IPC::System::Simple: 1.20
   LWP::Simple: 0
   List::MoreUtils: 0.22
   Method::Signatures::Simple: 0.05
   Mouse: 0.49
   Path::Class: 0.18
   YAML::Tiny: 1.41
+  local::lib: 0
   perl: 5.10.0
 resources:
   license: http://opensource.org/licenses/artistic-license-2.0.php
   repository: http://github.com/chocolateboy/pmsencoder
-version: 0.70
+version: 0.71

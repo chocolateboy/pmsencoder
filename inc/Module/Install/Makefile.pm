@@ -7,7 +7,7 @@ use Module::Install::Base ();
 
 use vars qw{$VERSION @ISA $ISCORE};
 BEGIN {
-	$VERSION = '0.93';
+	$VERSION = '0.94';
 	@ISA     = 'Module::Install::Base';
 	$ISCORE  = 1;
 }
@@ -118,7 +118,7 @@ sub tests_recursive {
 	%test_dir = ();
 	require File::Find;
 	File::Find::find( \&_wanted_t, $dir );
-	if ( -d 'xt' and ($ENV{RELEASE_TESTING} or $self->author) ) {
+	if ( -d 'xt' and ($Module::Install::AUTHOR or $ENV{RELEASE_TESTING}) ) {
 		File::Find::find( \&_wanted_t, 'xt' );
 	}
 	$self->tests( join ' ', map { "$_/*.t" } sort keys %test_dir );
@@ -162,8 +162,10 @@ sub write {
 	$args->{NAME}     =~ s/-/::/g;
 	$DB::single = 1;
 	if ( $self->tests ) {
-		$args->{test} = { TESTS => $self->tests };
-	} elsif ( -d 'xt' and ($self->author or $ENV{RELEASE_TESTING}) ) {
+		$args->{test} = {
+			TESTS => $self->tests,
+		};
+	} elsif ( -d 'xt' and ($Module::Install::AUTHOR or $ENV{RELEASE_TESTING}) ) {
 		$args->{test} = {
 			TESTS => join( ' ', map { "$_/*.t" } grep { -d $_ } qw{ t xt } ),
 		};
@@ -233,10 +235,12 @@ sub write {
 
 	$args->{INSTALLDIRS} = $self->installdirs;
 
-	my %args = map { ( $_ => $args->{$_} ) } grep {defined($args->{$_})} keys %$args;
+	my %args = map {
+		( $_ => $args->{$_} ) } grep {defined($args->{$_} )
+	} keys %$args;
 
 	my $user_preop = delete $args{dist}->{PREOP};
-	if (my $preop = $self->admin->preop($user_preop)) {
+	if ( my $preop = $self->admin->preop($user_preop) ) {
 		foreach my $key ( keys %$preop ) {
 			$args{dist}->{$key} = $preop->{$key};
 		}
@@ -306,4 +310,4 @@ sub postamble {
 
 __END__
 
-#line 435
+#line 439
