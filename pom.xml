@@ -1,0 +1,136 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns              = "http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi          = "http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation = "http://maven.apache.org/POM/4.0.0
+                               http://maven.apache.org/maven-v4_0_0.xsd">
+
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>com.chocolatey.pmsencoder</groupId>
+    <artifactId>pmsencoder</artifactId>
+    <name>PMSEncoder</name>
+    <packaging>jar</packaging>
+    <version>1.0.0</version>
+
+    <description>
+	A plugin for PS3 Media Server that adds support for recipe-driven web video streaming.
+    </description>
+
+    <properties>
+        <repo>http://groovypp.artifactoryonline.com/groovypp</repo>
+        <groovypp-version>0.2.4</groovypp-version>
+    </properties>
+
+    <build>
+        <defaultGoal>surefire-report:report</defaultGoal>
+
+        <sourceDirectory>${project.basedir}/src/main/groovy</sourceDirectory>
+        <testSourceDirectory>${project.basedir}/src/test/groovy</testSourceDirectory>
+
+        <plugins>
+            <plugin>
+                <groupId>org.codehaus.gmaven</groupId>
+                <artifactId>gmaven-plugin</artifactId>
+                <version>1.2</version>
+                <executions>
+                    <execution>
+                        <id>compile-groovy</id>
+                        <phase>compile</phase>
+                        <goals>
+                            <goal>compile</goal>
+                        </goals>
+                        <configuration>
+                            <sources>
+                                <fileset>
+                                    <directory>${project.basedir}/src/main/groovy</directory>
+                                    <includes>
+                                        <include>**/*.groovy</include>
+                                    </includes>
+                                </fileset>
+                            </sources>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>compile-groovy-tests</id>
+                        <phase>test-compile</phase>
+                        <goals>
+                            <goal>testCompile</goal>
+                        </goals>
+                        <configuration>
+                            <sources>
+                                <fileset>
+                                    <directory>${project.basedir}/src/test/groovy</directory>
+                                    <includes>
+                                        <include>**/*.groovy</include>
+                                    </includes>
+                                </fileset>
+                            </sources>
+                        </configuration>
+                    </execution>
+                </executions>
+                <configuration>
+                    <providerSelection>1.7</providerSelection>
+                    <verbose>true</verbose>
+                    <debug>true</debug>
+                    <stacktrace>true</stacktrace>
+                </configuration>
+                <dependencies>
+                    <dependency>
+                        <groupId>org.codehaus.gmaven.runtime</groupId>
+                        <artifactId>gmaven-runtime-1.7</artifactId>
+                        <version>1.2</version>
+                        <exclusions>
+                            <exclusion>
+                                <groupId>org.codehaus.groovy</groupId>
+                                <artifactId>groovy-all</artifactId>
+                            </exclusion>
+                        </exclusions>
+                    </dependency>
+                    <dependency>
+                        <groupId>org.mbte.groovypp</groupId>
+                        <artifactId>groovypp-all</artifactId>
+                        <version>${groovypp-version}</version>
+                    </dependency>
+                </dependencies>
+            </plugin>
+        </plugins>
+    </build>
+
+    <repositories>
+        <repository>
+            <id>libs-releases</id>
+            <url>${repo}/libs-releases</url>
+        </repository>
+        <repository>
+            <id>libs-snapshots</id>
+            <url>${repo}/libs-snapshots</url>
+        </repository>
+    </repositories>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.mbte.groovypp</groupId>
+            <artifactId>groovypp-all</artifactId>
+            <version>${groovypp-version}</version>
+            <scope>compile</scope>
+        </dependency>
+    	<dependency>
+    		<groupId>org.codehaus.groovy.modules.http-builder</groupId>
+    		<artifactId>http-builder</artifactId>
+    		<version>0.5.0</version>
+    		<type>jar</type>
+    		<scope>compile</scope>
+    	</dependency>
+    	<dependency>
+    		<groupId>com.google.code.ps3mediaserver</groupId>
+    		<artifactId>ps3-media-server</artifactId>
+    		<version>1.20.409</version>
+    	</dependency>
+    	<dependency>
+	    <groupId>info.codesaway.util.regexplus</groupId>
+    	    <artifactId>regex-plus</artifactId>
+	    <version>2010-05-05</version> <!-- unversioned (grr) so use an arbitrary date --> 
+    	</dependency>
+    </dependencies>
+
+</project>
