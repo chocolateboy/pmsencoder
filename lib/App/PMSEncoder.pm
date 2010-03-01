@@ -49,7 +49,7 @@ has argv => (
     },
 );
 
-# is this the Windows build package with Cava?
+# is this the Windows build packaged with Cava?
 has cava => (
     is      => 'ro',
     isa     => 'Bool',
@@ -228,7 +228,7 @@ method BUILD {
     $self->debug('path: ' . $self->self_path);
 
 =for comment
-    # create callbacks hooks for transcoding events
+    # create callback hooks for transcoding events
     for my $event (qw(start end error)) {
         my $event_list = "$event\_callbacks";
 
@@ -645,7 +645,7 @@ method process_config {
     my $profiles = $config->{profiles};
 
     if ($profiles) {
-        # initialize the stash i.e. setup entries for uri, context &c. that may be used as match criteria.
+        # initialize the stash i.e. set up entries for uri, context &c. that may be used as match criteria.
         # do this lazily; no point unless profiles are defined
 
         $self->initialize_stash;
