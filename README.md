@@ -27,7 +27,7 @@ You'll need a version of perl >= 5.10.0. This should be easy to find on Mac OS X
   * `mencoder_path = C:\\Program Files\\PMSEncoder\\pmsencoder.exe`
 * Restart PMS
 
-## Linux, Mac OS X &c. <a name="Linux, Mac OS X &c."></a>
+## Linux, Mac OS X &c. <a name="Unix"></a>
 
 For now, PMSEncoder will need to be installed from source e.g.
 
