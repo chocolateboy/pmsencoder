@@ -32,8 +32,7 @@ You'll need a version of perl >= 5.10.0. This should be easy to find on Mac OS X
 For now, PMSEncoder will need to be installed from source e.g.
 
   * Download the latest copy of [cpanminus](http://github.com/miyagawa/cpanminus) e.g. `wget http://cpanmin.us`
-  * `chmod +x cpanm`
-  * `cpanm --local-lib ~/perl5 --install http://github.com/chocolateboy/pmsencoder/tarball/master`
+  * `perl ./cpanm --local-lib ~/perl5 --install http://github.com/chocolateboy/pmsencoder/tarball/master`
 * Save your settings and quit PMS
 * Add your pmsencoder path to your PMS.conf e.g.:
   * `mencoder_path = \/home\/<username>\/perl5\/bin\/pmsencoder`
