@@ -33,7 +33,7 @@ For now, PMSEncoder will need to be installed from source e.g.
 
   * Download the latest copy of [cpanminus](http://github.com/miyagawa/cpanminus) e.g. `wget http://cpanmin.us`
   * `chmod +x cpanm`
-  * `cpanm --install http://github.com/chocolateboy/pmsencoder/tarball/master`
+  * `cpanm --local-lib ~/perl5 --install http://github.com/chocolateboy/pmsencoder/tarball/master`
 * Save your settings and quit PMS
 * Add your pmsencoder path to your PMS.conf e.g.:
   * `mencoder_path = \/home\/<username>\/perl5\/bin\/pmsencoder`
