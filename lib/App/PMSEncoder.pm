@@ -217,7 +217,8 @@ method BUILD {
 
         # declare a private method - at runtime!
         method _get_resource_path($name) {
-            File::ShareDir::dist_file(DISTRO, $name)
+	    # XXX bug fix: don't croak if the resource can't be found: we handle that ourselves
+            eval { File::ShareDir::dist_file(DISTRO, $name) };
         }
     }
 
@@ -266,9 +267,9 @@ method get_resource_path ($name, $exists) {
 
     if ($exists) {
         if ($exists == CHECK_RESOURCE_EXISTS) {
-            return (-f $path) ? $path : undef;
+            return (defined($path) && (-f $path)) ? $path : undef;
         } elsif ($exists == REQUIRE_RESOURCE_EXISTS) {
-            return (-f $path) ? $path : $self->fatal("can't find resource: $name");
+            return (defined($path) && (-f $path)) ? $path : $self->fatal("can't find resource: $name");
         } else { # internal error - shouldn't get here
             $self->fatal("invalid flag for get_resource_path($name): $exists");
         }
