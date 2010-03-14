@@ -3,15 +3,12 @@ use 5.010000;
 use strict;
 use warnings;
 
-BEGIN { $ENV{PERL_AUTOINSTALL_PREFER_CPAN} = 1 }
-
 use inc::Module::Install;
 
 name     'App-PMSEncoder';
 author   'chocolateboy <chocolate@cpan.org>';
 license  'artistic_2';
 all_from 'lib/App/PMSEncoder.pm';
-include  'Module::AutoInstall';
 
 requires 'local::lib';
 requires 'File::HomeDir'               => '0.89';
@@ -41,5 +38,4 @@ repository     'http://github.com/chocolateboy/pmsencoder';
 test_requires  'Test::Command' => '0.08';
 test_requires  'Test::More';
 
-auto_install();
 WriteAll();
