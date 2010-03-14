@@ -42,7 +42,7 @@ For now, PMSEncoder will need to be installed from source e.g.
 * Use `pmsencoder --version` to see configuration details e.g. to find out the location of the logfile
 * mencoder is looked for in following places (in order):
   * the `mencoder_path` specified in the config file
-  * the path specified in the PMSENCODER_PATH environment variable
+  * the path specified in the MENCODER_PATH environment variable
   * the current working directory
   * the directories specified in the PATH environment variable
   * (on Windows) the $PMSENCODER/res directory
