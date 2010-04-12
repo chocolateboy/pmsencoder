@@ -97,7 +97,8 @@ profiles:
 
     options:
           # extract the resource's sekrit identifier ($t) from the HTML
-        - get: '"t":\s*"(?<t>[^"]+)"'
+          # - get: '"t":\s*"(?<t>[^"]+)"'
+        - get: '&t=(?<t>[^&]+)'
 
           # now, with $video_id and $t defined, call the custom YouTube
           # handler with an array of formats in descending order of preference

@@ -750,7 +750,8 @@ method exec_youtube ($formats) :Raw {
         require LWP::Simple;
 
         for my $fmt (@$formats) {
-            my $media_uri = "http://www.youtube.com/get_video?fmt=$fmt&video_id=$video_id&t=$t";
+	    my $media_uri = "http://www.youtube.com/get_video?fmt=$fmt&video_id=$video_id&t=$t";
+	    $self->debug("requesting $media_uri");
             next unless (LWP::Simple::head $media_uri);
             $self->exec_let(uri => $media_uri); # set the new URI; use exec_let so it's logged; void context: log it now
             $found = 1;
