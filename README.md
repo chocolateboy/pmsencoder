@@ -14,7 +14,7 @@ There are no additional dependencies.
 
 ## Linux, Mac OS X &c. <a name="Linux, Mac OS X &c."></a>
 
-You'll need a version of perl >= 5.10.0. This should be easy to find on Mac OS X, Linux and other *nixes if it isn't installed already (run `perl -v` to check).
+You'll need build tools and a version of perl >= 5.10.0. This should be easy to find on Mac OS X, Linux and other *nixes if it isn't installed already (run `perl -v` to check).
 
 # Installation <a name="Installation"></a>
 
