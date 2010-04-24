@@ -31,8 +31,9 @@ You'll need build tools and a version of perl >= 5.10.0. This should be easy to 
 
 For now, PMSEncoder will need to be installed from source e.g.
 
-  * Download the latest copy of [cpanminus](http://github.com/miyagawa/cpanminus) e.g. `wget http://cpanmin.us`
-  * `perl ./cpanm --local-lib ~/perl5 --install http://github.com/chocolateboy/pmsencoder/tarball/master`
+* Download the latest copy of [cpanminus](http://github.com/miyagawa/cpanminus) e.g. `wget http://cpanmin.us`
+* `perl ./cpanm --local-lib ~/perl5 --install http://github.com/chocolateboy/pmsencoder/tarball/master`
+* Move "MEncoder Web" to the top of the list of "Video Web Streaming Engines" on the PMS "Transcoding Settings" tab
 * Save your settings and quit PMS
 * Add your pmsencoder path to your PMS.conf e.g.:
   * `mencoder_path = \/home\/<username>\/perl5\/bin\/pmsencoder`
@@ -62,7 +63,7 @@ Please do the following when reporting any issues:
 
 1. try to stream a web video
 2. wait until it fails
-3. post the pmsencoder.log and the debug.log (as a zipped attachment)
+3. post your PMS.conf, pmsencoder.log and debug.log (as a zipped attachment)
 
 # Support <a name="Support"></a>
 
