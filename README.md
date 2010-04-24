@@ -58,9 +58,15 @@ For now, PMSEncoder will need to be installed from source e.g.
 * Run `pmsencoder --test` to test pmsencoder from the command line
 * Check the PMS debug.log
 
+Please do the following when reporting any issues:
+
+1. try to stream a web video
+2. wait until it fails
+3. post the pmsencoder.log and the debug.log (as a zipped attachment)
+
 # Support <a name="Support"></a>
 
-* For more details, discussion and troubleshooting tips, see [this thread](http://ps3mediaserver.org/forum/viewtopic.php?f=6&t=5002) ([start here](http://ps3mediaserver.org/forum/viewtopic.php?f=6&t=5002#p22479)).
+For more details, discussion and troubleshooting tips, see [this thread](http://ps3mediaserver.org/forum/viewtopic.php?f=6&t=5002) ([start here](http://ps3mediaserver.org/forum/viewtopic.php?f=6&t=5002#p22479)).
 
 # Version <a name="Version"></a>
 

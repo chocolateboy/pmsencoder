@@ -110,7 +110,7 @@ profiles:
         
   - name: Apple Trailers
     match:
-        uri: '^http://(?:(?:movies|www)\.)?apple\.com/.+$'
+        uri: '^http://(?:(?:movies|www|trailers)\.)?apple\.com/.+$'
 
     # FIXME: 4096 is a needlessly high video bitrate; they typically weigh in at ~1200 Kbps
     options:
@@ -120,7 +120,7 @@ profiles:
 
   - name: Apple Trailers HD
     match:
-        uri: '^http://(?:(?:movies|www)\.)?apple\.com/.+\.m4v$'
+        uri: '^http://(?:(?:movies|www|trailers)\.)?apple\.com/.+\.m4v$'
 
     options:
         replace:
