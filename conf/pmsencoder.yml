@@ -1,10 +1,8 @@
 # XXX: don't edit this file unless you're familiar with YAML: indentation is important!
 # XXX: don't use JSON syntax! the YAML parser currently used to process this (YAML::Tiny) doesn't grok it
 
-# this is the version of PMSEncoder in which this config file *syntax* was introduced i.e.
-# the oldest version of PMSEncoder that will work with this file
 # XXX Don't change this!
-version: 0.70
+version: 0.72
 
 # XXX: only set this if pmsencoder can't find your system's mencoder i.e.
 # if it dies with a "can't find mencoder" message. Supply the full path,
