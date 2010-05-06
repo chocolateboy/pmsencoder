@@ -330,7 +330,7 @@ class Actions {
                 int index = args.findIndexOf { it == name }
              
                 if (index != -1) {
-                    map.sort().each { search, replace -> // sort to ensure determinism in the tests
+                    map.each { search, replace ->
                         logger.debug("replacing $search with $replace")
                         // TODO support named captures
                         // FIXME: encapsulate args handling
