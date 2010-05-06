@@ -6,7 +6,7 @@ import static groovyx.net.http.ContentType.TEXT
 import static groovyx.net.http.Method.GET
 import static groovyx.net.http.Method.HEAD
 
-// ther's too much delegation magic for Groovy++ to handle this (currently)
+// there's too much delegation magic for Groovy++ to handle this (currently)
 class HTTPClient {
     private HTTPBuilder http = new HTTPBuilder()
 
