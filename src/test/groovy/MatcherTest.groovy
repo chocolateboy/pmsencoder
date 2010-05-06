@@ -37,14 +37,14 @@ class MatcherTest extends GroovyTestCase {
     ) {
         List<String> matches = matcher.match(stash, args)
 
-        println "got matches: $matches"
-        println "want matches: $expectedMatches"
+        // println "got matches: $matches"
+        // println "want matches: $expectedMatches"
         assert matches == expectedMatches
-        println "got stash: $stash"
-        println "want stash: $expectedStash"
+        // println "got stash: $stash"
+        // println "want stash: $expectedStash"
         assert stash == expectedStash
-        println "got args: $args"
-        println "want args: $expectedArgs"
+        // println "got args: $args"
+        // println "want args: $expectedArgs"
         assert args == expectedArgs
     }
 
@@ -109,9 +109,9 @@ class MatcherTest extends GroovyTestCase {
             stash,                                // stash
             [ '-lavcopts', 'vbitrate=4096' ],     // args
             [                                     // expected matches
-		'Apple Trailers',
-		'Apple Trailers HD'
-	    ],
+                'Apple Trailers',
+                'Apple Trailers HD'
+            ],
             want_stash,                           // expected stash
             [                                     // expected args
                 '-lavcopts', 'vbitrate=5086',
@@ -138,8 +138,8 @@ class MatcherTest extends GroovyTestCase {
         assert stash.keySet().toList() == [ 'uri', 'video_id', 't' ]
         assert stash['t']
         assert stash['video_id'] == '_OBlgSz8sSM'
-	// XXX assert doesn't like GStrings
-	String want_uri = "$youtube/get_video?fmt=18&video_id=${stash['video_id']}&t=${stash['t']}"
+        // XXX assert doesn't like GStrings
+        String want_uri = "$youtube/get_video?fmt=18&video_id=${stash['video_id']}&t=${stash['t']}"
         assert stash['uri'] == want_uri.toString()
         assert args == []
     }
@@ -162,10 +162,10 @@ class MatcherTest extends GroovyTestCase {
     }
 
     void testGameTrailers() {
-	def page_id = '48298'
-	def filename = 't_ufc09u_educate_int_gt'
+        def page_id = '48298'
+        def filename = 't_ufc09u_educate_int_gt'
         def uri = "http://www.gametrailers.com/download/$page_id/${filename}.flv"
-	def movie_id = '5162'
+        def movie_id = '5162'
         def want_uri = "http://trailers-ak.gametrailers.com/gt_vault/$movie_id/${filename}.flv"
         def stash = new Stash(uri: uri)
         def want_stash = new Stash(
@@ -180,9 +180,9 @@ class MatcherTest extends GroovyTestCase {
             stash,                                // stash
             [],                                   // args
             [                                     // expected matches
-	        'GameTrailers (Revert PMS Workaround)',
-	        'GameTrailers',
-	    ],
+                'GameTrailers (Revert PMS Workaround)',
+                'GameTrailers',
+            ],
             want_stash,                           // expected stash
             []                                    // expected args
         )

@@ -15,16 +15,16 @@ class RegexHelper {
 
         if (matchFound) {
             /*
-		store named groups as name => match pairs in stash
-		XXX 0 is the index of the entire matched string, so group indeces start at 1 
-		XXX groupCount is the number of explicit groups
-	    */
-	    /*
-	        we have to kick this old-school because groovy ranges
-	        are bidirectional (i.e. (1 .. 0) works)
+                store named groups as name => match pairs in stash
+                XXX 0 is the index of the entire matched string, so group indeces start at 1 
+                XXX groupCount is the number of explicit groups
+            */
+            /*
+                we have to kick this old-school because groovy ranges
+                are bidirectional (i.e. (1 .. 0) works)
             */
 
-	    int groupCount = matcher.groupCount()
+            int groupCount = matcher.groupCount()
 
             for (int i = 1; i <= groupCount; ++i) {
                 String name = matcher.getGroupName(i)

@@ -11,17 +11,17 @@ interface MatchClosure {
 
 class Stash extends LinkedHashMap<String, String> {
     Stash() {
-	super()
+        super()
     }
 
     Stash(Stash old) {
-	super(old)
+        super(old)
         // old.each { name, value -> put(name, value) }
         // super(old)
     }
 
     Stash(Map<Object, Object> old) {
-	super()
+        super()
         old.each { name, value -> put(name.toString(), value.toString()) }
     }
 }
@@ -67,7 +67,7 @@ class Matcher {
     }
 
     List<String> match(Stash stash, List<String> args) {
-	config.match(stash, args) // we could use the @Delegate annotation, but this is cleaner/clearer
+        config.match(stash, args) // we could use the @Delegate annotation, but this is cleaner/clearer
     }
 }
 
@@ -83,7 +83,7 @@ class Config {
     List<String> match(Stash stash, List<String> args) {
         // work around Groovy++'s inner-class-style restriction that outer value types must be final
         List<String> matched = []
-	logger.debug("matching URI: ${stash['uri']}")
+        logger.debug("matching URI: ${stash['uri']}")
         profiles.each { profile ->
             Closure actions
 
@@ -138,7 +138,7 @@ class Profile {
                 // merge all the name/value bindings resulting from the match
                 new_stash.each { name, value -> actions.let(stash, name, value) }
                 actions.executeActions(stash, args)
-		return name
+                return name
             }
         } else {
             return null
@@ -208,37 +208,37 @@ class Actions {
     // public because Profile needs to call it
     void let(Stash stash, String name, String value) {
         if ((stash[name] == null) || (stash[name] != value)) {
-	    String[] new_value = [ value ] // FIXME can't get reference to work transparently
+            String[] new_value = [ value ] // FIXME can't get reference to work transparently
             logger.debug("setting \$$name to $value")
          
             stash.each { stash_key, stash_value ->
                 /*
                     TODO see if there's a way to do this natively i.e. interpret the string
                     as a GString (with bindings in "stash") rather than performing the
-		    interpolation manually. this would also allow the string to contain
-		    arbitrary groovy expressions e.g.
+                    interpolation manually. this would also allow the string to contain
+                    arbitrary groovy expressions e.g.
 
-			match {
-			    matches uri: '^http://www\\.example\\.com/<id>\\.html'
-			}
+                        match {
+                            matches uri: '^http://www\\.example\\.com/<id>\\.html'
+                        }
 
-			action {
-			    let uri: 'http://www.example.com/${id + 1}.html'
-			}
+                        action {
+                            let uri: 'http://www.example.com/${id + 1}.html'
+                        }
                 */
                 def var_name_regex = ~/(?:(?:\$$stash_key\b)|(?:\$\{$stash_key\}))/
          
                 if (new_value[0] =~ var_name_regex) {
                     logger.debug("replacing \$$stash_key with '${stash_value.replaceAll("'", "\\'")}' in ${new_value[0]}")
-		    // XXX squashed bug: strings are immutable!
+                    // XXX squashed bug: strings are immutable!
                     new_value[0] = new_value[0].replaceAll(var_name_regex, stash_value)
                 }
             }
 
-	    // if (new_value[0] != value) {
-		stash[name] = new_value[0]
-		logger.debug("set \$$name to ${new_value[0]}")
-	    // }
+            // if (new_value[0] != value) {
+                stash[name] = new_value[0]
+                logger.debug("set \$$name to ${new_value[0]}")
+            // }
         }
     }
 
@@ -252,22 +252,22 @@ class Actions {
         actions << { stash, args ->
             String uri = stash['uri']
             String document = cache[uri]
-	    Stash new_stash = new Stash()
+            Stash new_stash = new Stash()
 
             if (!document) {
-		document = cache[uri] = http.get(uri)
+                document = cache[uri] = http.get(uri)
             }
 
-	    assert document
+            assert document
 
-	    logger.debug("matching contents of $uri against $regex")
+            logger.debug("matching content of $uri against $regex")
 
             if (RegexHelper.match(document, regex, new_stash)) {
-		logger.debug("success")
+                logger.debug("success")
                 new_stash.each { name, value -> let(stash, name, value) }
-	    } else {
-		logger.debug("failure")
-	    }
+            } else {
+                logger.debug("failure")
+            }
         }
     }
 
