@@ -219,7 +219,7 @@ class Actions {
                     arbitrary groovy expressions e.g.
 
                         match {
-                            matches uri: '^http://www\\.example\\.com/<id>\\.html'
+                            matches uri: '^http://www\\.example\\.com/(?<id>\\d+)\\.html'
                         }
 
                         action {
