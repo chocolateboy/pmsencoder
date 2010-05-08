@@ -16,8 +16,6 @@ class Stash extends LinkedHashMap<String, String> {
 
     Stash(Stash old) {
         super(old)
-        // old.each { name, value -> put(name, value) }
-        // super(old)
     }
 
     Stash(Map<Object, Object> old) {
@@ -197,7 +195,6 @@ class Actions {
 
     Actions(Logger logger) {
         this.logger = logger
-        // this.logger = profile.getLogger() // XXX wtf? profile is null
     }
 
     String executeActions(Stash stash, List<String> args) {
@@ -213,7 +210,7 @@ class Actions {
          
             stash.each { stash_key, stash_value ->
                 /*
-                    TODO see if there's a way to do this natively i.e. interpret the string
+                    TODO do this natively i.e. interpret the string
                     as a GString (with bindings in "stash") rather than performing the
                     interpolation manually. this would also allow the string to contain
                     arbitrary groovy expressions e.g.
@@ -235,10 +232,8 @@ class Actions {
                 }
             }
 
-            // if (new_value[0] != value) {
-                stash[name] = new_value[0]
-                logger.debug("set \$$name to ${new_value[0]}")
-            // }
+	    stash[name] = new_value[0]
+	    logger.debug("set \$$name to ${new_value[0]}")
         }
     }
 
