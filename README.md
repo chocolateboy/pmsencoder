@@ -61,7 +61,7 @@ For now, PMSEncoder will need to be installed from source e.g.
 
 Please do the following when reporting any issues:
 
-1. try to stream a web video
+1. try to stream a web video from PMS
 2. wait until it fails
 3. post your PMS.conf, pmsencoder.log and debug.log (as a zipped attachment)
 
