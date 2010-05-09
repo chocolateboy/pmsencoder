@@ -13,7 +13,7 @@ config {
         XXX Don't change this!
     */
 
-    version 1.00
+    version '1.0.0'
 
     profile ('YouTube') {
         // extract the resource's video_id from the URI of the standard YouTube page

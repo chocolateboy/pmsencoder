@@ -35,6 +35,7 @@ class Matcher extends Logger {
             log.info("loading config: $path")
             this.path = path
             this.load(path)
+            log.info("config file version: ${config.version}")
         }
     }
 
@@ -54,7 +55,7 @@ class Matcher extends Logger {
 }
 
 class Config extends Logger {
-    Double version
+    String version
     private List<Profile> profiles = []
 
     List<String> match(Stash stash, List<String> args) {
@@ -74,7 +75,7 @@ class Config extends Logger {
     }
 
     // DSL method
-    void version(Double version) {
+    void version(String version) {
         this.version = version
     }
 
@@ -222,6 +223,7 @@ class Actions extends Logger {
             Stash new_stash = new Stash()
 
             if (!document) {
+		log.info("getting $uri")
                 document = cache[uri] = http.get(uri)
             }
 

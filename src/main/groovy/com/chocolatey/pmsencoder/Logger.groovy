@@ -10,7 +10,8 @@ import org.apache.log4j.Logger as Log4JLogger
 */
 
 abstract class Logger { // uninstantiable
-    protected static Log4JLogger getLog() { // expose a "log" property - grr, too much magic
+    // this should really be static, but we don't want to faff around with log5j
+    protected Log4JLogger getLog() { // expose a "log" property - grr, too much magic
         Log4JLogger.getLogger(getClass().name)
     }
 }
