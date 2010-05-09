@@ -39,7 +39,7 @@ class Matcher extends Logger {
             log.info("config file version: ${config.version}")
         }
 
-	args = [
+	defaultArgs = [
             "-prefer-ipv4",
             "-oac", "lavc",
             "-of", "lavf",
@@ -62,8 +62,10 @@ class Matcher extends Logger {
         script.run()
     }
 
-    List<String> match(Stash stash, List<String> args) {
-	defaultArgs.each { args << it }
+    List<String> match(Stash stash, List<String> args, boolean useDefault = true) {
+	if (useDefault) {
+	    defaultArgs.each { args << it }
+	}
         config.match(stash, args) // we could use the @Delegate annotation, but this is cleaner/clearer
     }
 }

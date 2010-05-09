@@ -27,7 +27,7 @@ class MatcherTest extends GroovyTestCase {
         Stash expectedStash,
         List<String> expectedArgs
     ) {
-        List<String> matches = matcher.match(stash, args)
+        List<String> matches = matcher.match(stash, args, false)
 
         // println "got matches: $matches"
         // println "want matches: $expectedMatches"
@@ -125,7 +125,7 @@ class MatcherTest extends GroovyTestCase {
         def stash = new Stash(uri: uri)
         def args = []
 
-        List<String> matches = matcher.match(stash, args)
+        List<String> matches = matcher.match(stash, args, false)
 
         assert matches == [ 'YouTube' ]
         assert stash.keySet().toList() == [ 'uri', 'video_id', 't' ]

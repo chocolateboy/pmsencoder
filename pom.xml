@@ -37,7 +37,8 @@
                         <id>compile-groovy</id>
                         <phase>compile</phase>
                         <goals>
-                            <goal>compile</goal>
+			    <goal>generateStubs</goal>
+			    <goal>compile</goal>
                         </goals>
                         <configuration>
                             <sources>
@@ -54,7 +55,7 @@
                         <id>compile-groovy-tests</id>
                         <phase>test-compile</phase>
                         <goals>
-                            <goal>testCompile</goal>
+			    <goal>testCompile</goal>
                         </goals>
                         <configuration>
                             <sources>
