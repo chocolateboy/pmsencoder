@@ -1,30 +1,22 @@
 @Typed
 package com.chocolatey.pmsencoder
 
+import org.junit.BeforeClass
 import groovy.util.GroovyTestCase
+import org.apache.log4j.xml.DOMConfigurator
 
 import com.chocolatey.pmsencoder.Stash
 import com.chocolatey.pmsencoder.Matcher
-import com.chocolatey.pmsencoder.Logger
 
-class TestLogger extends Logger {
-    void debug(String msg) {
-        println("DEBUG: $msg")
-    }
-
-    void fatal(String msg) {
-        println("ERROR: $msg")
-    }
-}
 
 class MatcherTest extends GroovyTestCase {
     Matcher matcher
-    Logger logger
 
     void setUp() {
-        logger = new TestLogger() // XXX for now
+	String xml = this.getClass().getResource('/log4j.xml').getFile()
+	DOMConfigurator.configure(xml)
         def path = this.getClass().getResource('/pmsencoder.groovy').getFile()
-        matcher = new Matcher(path, logger)
+        matcher = new Matcher(path)
     }
 
     private void assertMatch(
@@ -49,7 +41,7 @@ class MatcherTest extends GroovyTestCase {
     }
 
     // no match - change nothing
-    void testBase() {
+    private void simple() {
         def uri = 'http://www.example.com'
         def stash = new Stash(uri: uri)
         def want_stash = new Stash(uri: uri)
@@ -66,7 +58,8 @@ class MatcherTest extends GroovyTestCase {
 
     // confirm that there are no side-effects that prevent this returning the same result for the same input
     void testIdempotent() {
-        testBase()
+        simple()
+        simple()
     }
 
     void testApple() {

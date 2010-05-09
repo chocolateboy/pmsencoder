@@ -13,7 +13,7 @@
     <version>1.0.0</version>
 
     <description>
-	A plugin for PS3 Media Server that adds support for recipe-driven web video streaming.
+        A plugin for PS3 Media Server that adds support for recipe-driven web video streaming.
     </description>
 
     <properties>
@@ -68,13 +68,16 @@
                         </configuration>
                     </execution>
                 </executions>
+
                 <configuration>
                     <providerSelection>1.7</providerSelection>
                     <verbose>true</verbose>
                     <debug>true</debug>
                     <stacktrace>true</stacktrace>
                 </configuration>
+
                 <dependencies>
+
                     <dependency>
                         <groupId>org.codehaus.gmaven.runtime</groupId>
                         <artifactId>gmaven-runtime-1.7</artifactId>
@@ -86,11 +89,13 @@
                             </exclusion>
                         </exclusions>
                     </dependency>
+
                     <dependency>
                         <groupId>org.mbte.groovypp</groupId>
                         <artifactId>groovypp-all</artifactId>
                         <version>${groovypp-version}</version>
                     </dependency>
+
                 </dependencies>
             </plugin>
         </plugins>
@@ -105,6 +110,10 @@
             <id>libs-snapshots</id>
             <url>${repo}/libs-snapshots</url>
         </repository>
+        <repository>
+            <id>smokejumper</id>
+            <url>http://repo.smokejumperit.com</url>
+        </repository>
     </repositories>
 
     <dependencies>
@@ -114,23 +123,32 @@
             <version>${groovypp-version}</version>
             <scope>compile</scope>
         </dependency>
-    	<dependency>
-    		<groupId>org.codehaus.groovy.modules.http-builder</groupId>
-    		<artifactId>http-builder</artifactId>
-    		<version>0.5.0</version>
-    		<type>jar</type>
-    		<scope>compile</scope>
-    	</dependency>
-    	<dependency>
-    		<groupId>com.google.code.ps3mediaserver</groupId>
-    		<artifactId>ps3-media-server</artifactId>
-    		<version>1.20.409</version>
-    	</dependency>
-    	<dependency>
+
+	<dependency>
+	    <groupId>org.codehaus.groovy.modules.http-builder</groupId>
+	    <artifactId>http-builder</artifactId>
+	    <version>0.5.0</version>
+	    <scope>compile</scope>
+	</dependency>
+
+	<dependency>
+	    <groupId>com.google.code.ps3mediaserver</groupId>
+	    <artifactId>ps3-media-server</artifactId>
+	    <version>1.20.409</version>
+	</dependency>
+
+	<dependency>
 	    <groupId>info.codesaway.util.regexplus</groupId>
-    	    <artifactId>regex-plus</artifactId>
+	    <artifactId>regex-plus</artifactId>
 	    <version>2010-05-05</version> <!-- unversioned (grr) so use an arbitrary date --> 
-    	</dependency>
+	</dependency>
+
+        <dependency>
+            <groupId>log4j</groupId>
+            <artifactId>log4j</artifactId>
+            <version>1.2.16</version>
+        </dependency>
+
     </dependencies>
 
 </project>

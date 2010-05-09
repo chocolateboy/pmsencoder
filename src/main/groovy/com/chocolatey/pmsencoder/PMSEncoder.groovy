@@ -1,6 +1,8 @@
 @Typed
 package com.chocolatey.pmsencoder
 
+import org.apache.log4j.Logger
+
 interface ActionClosure {
     void call(Stash stash, List<String> args)
 }
@@ -24,31 +26,16 @@ class Stash extends LinkedHashMap<String, String> {
     }
 }
 
-class Logger {
-    void debug(GString msg) {
-        debug(msg.toString())
-    }
-
-    void debug(String msg) { }
-
-    void fatal(GString msg) {
-        fatal(msg.toString())
-    }
-
-    void fatal(String msg) { }
-}
-
-class NullLogger extends Logger { }
-
 class Matcher {
     String path
     Config config
+    private Logger log = Logger.getLogger(this.class.name)
 
-    Matcher(String path, Logger logger = new NullLogger()) {
-        config = new Config(logger)
+    Matcher(String path) {
+        config = new Config()
 
         if (path != null) {
-            logger.debug("loading config: $path")
+            log.info("loading config: $path")
             this.path = path
             this.load(path)
         }
@@ -72,16 +59,12 @@ class Matcher {
 class Config {
     Double version
     private List<Profile> profiles = []
-    private Logger logger
-
-    Config(Logger logger) {
-        this.logger = logger
-    }
+    private Logger log = Logger.getLogger(this.class.name)
 
     List<String> match(Stash stash, List<String> args) {
         // work around Groovy++'s inner-class-style restriction that outer value types must be final
         List<String> matched = []
-        logger.debug("matching URI: ${stash['uri']}")
+        log.info("matching URI: ${stash['uri']}")
         profiles.each { profile ->
             Closure actions
 
@@ -108,7 +91,7 @@ class Config {
     // DSL method
     @Typed(TypePolicy.DYNAMIC) // Groovy++ doesn't support delegation yet
     void profile (String name, Closure closure) {
-        Profile profile = new Profile(name, logger)
+        Profile profile = new Profile(name)
         profile.with(closure)
         profiles << profile
     }
@@ -117,12 +100,11 @@ class Config {
 class Profile {
     private Match match
     private Actions actions
-    private Logger logger
     public String name
+    private Logger log = Logger.getLogger(this.class.name)
 
-    Profile(String name, Logger logger) {
+    Profile(String name) {
         this.name = name
-        this.logger = logger
     }
 
     Closure match(Stash stash, List<String> args) {
@@ -132,7 +114,7 @@ class Profile {
 
         if (match.match(new_stash, args)) {
             return {
-                logger.debug("matched $name")
+                log.info("matched $name")
                 // merge all the name/value bindings resulting from the match
                 new_stash.each { name, value -> actions.let(stash, name, value) }
                 actions.executeActions(stash, args)
@@ -154,7 +136,7 @@ class Profile {
     // DSL method
     @Typed(TypePolicy.DYNAMIC) // Groovy++ doesn't support delegation yet
     void action (Closure closure) {
-        Actions actions = new Actions(logger)
+        Actions actions = new Actions()
         actions.with(closure)
         this.actions = actions
     }
@@ -191,11 +173,7 @@ class Actions {
     private List<ActionClosure> actions = []
     @Lazy private HTTPClient http = new HTTPClient()
     private Map<String, String> cache = [:]
-    private Logger logger
-
-    Actions(Logger logger) {
-        this.logger = logger
-    }
+    private Logger log = Logger.getLogger(this.class.name)
 
     String executeActions(Stash stash, List<String> args) {
         actions.each { action -> action(stash, args) }
@@ -206,7 +184,7 @@ class Actions {
     void let(Stash stash, String name, String value) {
         if ((stash[name] == null) || (stash[name] != value)) {
             String[] new_value = [ value ] // FIXME can't get reference to work transparently
-            logger.debug("setting \$$name to $value")
+            log.info("setting \$$name to $value")
          
             stash.each { stash_key, stash_value ->
                 /*
@@ -226,14 +204,14 @@ class Actions {
                 def var_name_regex = ~/(?:(?:\$$stash_key\b)|(?:\$\{$stash_key\}))/
          
                 if (new_value[0] =~ var_name_regex) {
-                    logger.debug("replacing \$$stash_key with '${stash_value.replaceAll("'", "\\'")}' in ${new_value[0]}")
+                    log.info("replacing \$$stash_key with '${stash_value.replaceAll("'", "\\'")}' in ${new_value[0]}")
                     // XXX squashed bug: strings are immutable!
                     new_value[0] = new_value[0].replaceAll(var_name_regex, stash_value)
                 }
             }
 
 	    stash[name] = new_value[0]
-	    logger.debug("set \$$name to ${new_value[0]}")
+	    log.info("set \$$name to ${new_value[0]}")
         }
     }
 
@@ -255,13 +233,13 @@ class Actions {
 
             assert document
 
-            logger.debug("matching content of $uri against $regex")
+            log.info("matching content of $uri against $regex")
 
             if (RegexHelper.match(document, regex, new_stash)) {
-                logger.debug("success")
+                log.info("success")
                 new_stash.each { name, value -> let(stash, name, value) }
             } else {
-                logger.debug("failure")
+                log.info("failure")
             }
         }
     }
@@ -280,13 +258,13 @@ class Actions {
         actions << { stash, args ->
             // the sort order is predictable (for tests) as long as we (and Groovy) use LinkedHashMap
             map.each { name, value ->
-                logger.debug("inside set: $name => $value")
+                log.info("inside set: $name => $value")
                 name = "-$name"
                 int index = args.findIndexOf { it == name }
              
                 if (index == -1) {
                     if (value) {
-                        logger.debug("adding $name $value")
+                        log.info("adding $name $value")
                         /*
                             XXX squashed bug - we need to modify stash and args in-place,
                             which means we can't use:
@@ -301,11 +279,11 @@ class Actions {
                         */
                         args << name << value
                     } else {
-                        logger.debug("adding $name")
+                        log.info("adding $name")
                         args << name // FIXME: encapsulate @args handling
                     }
                 } else if (value) {
-                    logger.debug("setting $name to $value")
+                    log.info("setting $name to $value")
                     args[ index + 1 ] = value // FIXME: encapsulate @args handling
                 }
             }
@@ -326,7 +304,7 @@ class Actions {
              
                 if (index != -1) {
                     map.each { search, replace ->
-                        logger.debug("replacing $search with $replace")
+                        log.info("replacing $search with $replace")
                         // TODO support named captures
                         // FIXME: encapsulate args handling
                         String value = args[ index + 1 ]
@@ -379,24 +357,24 @@ class Actions {
                 found = formats.any { fmt ->
                     String media_uri = "http://www.youtube.com/get_video?fmt=$fmt&video_id=$video_id&t=$t"
 
-                    logger.debug("trying $media_uri")
+                    log.info("trying $media_uri")
 
                     if (http.head(media_uri)) {
-                        logger.debug("success")
+                        log.info("success")
                         // set the new URI - note use the low-level interface NOT the (deferred) DSL interface!
                         let(stash, 'uri', media_uri)
                         return true
                     } else {
-                        logger.debug("failure")
+                        log.info("failure")
                         return false
                     }
                 }
             } else {
-                logger.fatal("no formats defined for $uri")
+                log.fatal("no formats defined for $uri")
             }
          
             if (!found) {
-                logger.fatal("can't retrieve YouTube video from $uri")
+                log.fatal("can't retrieve YouTube video from $uri")
             }
         }
     }
