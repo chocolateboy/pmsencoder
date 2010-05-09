@@ -1,5 +1,7 @@
 package com.chocolatey.pmsencoder;
 
+import java.util.ArrayList;
+
 import javax.swing.JComponent;
 
 import com.chocolatey.pmsencoder.Matcher;
@@ -13,7 +15,9 @@ import net.pms.external.StartStopListener;
 import net.pms.formats.Format;
 import net.pms.PMS;
 
-class Plugin extends StartStopListener {
+import org.apache.log4j.xml.DOMConfigurator;
+
+class Plugin implements StartStopListener {
     private Matcher matcher;
     private String log4jConfig;
     private String pmsencoderConfig;
@@ -28,12 +32,12 @@ class Plugin extends StartStopListener {
 	PMS.minimal("initializing PMSEncoder");
 
 	// set up log4j
-	log4jConfig = getClass().getResource("/log4j.xml").getFile();
+	log4jConfig = this.getClass().getResource("/log4j.xml").getFile();
 	PMS.minimal("log4j config file: " + log4jConfig);
 	DOMConfigurator.configure(log4jConfig);
 
 	// load default PMSEncoder config file
-	pmsencoderConfig = getClass().getResource("/pmsencoder.groovy").getFile();
+	pmsencoderConfig = this.getClass().getResource("/pmsencoder.groovy").getFile();
 	PMS.minimal("PMSEncoder config file: " + pmsencoderConfig);
 	matcher = new Matcher(pmsencoderConfig);
 
@@ -42,7 +46,7 @@ class Plugin extends StartStopListener {
 	pmsencoder = new Engine(configuration, matcher);
 	customConfigFile = (String)configuration.getCustomProperty(PMSENCODER_CONFIG_FILE_PATH);
 
-	if (customConfigFile) {
+	if (customConfigFile != null) {
 	    PMS.minimal("custom config file defined: " + customConfigFile);
 	}
 
@@ -59,30 +63,27 @@ class Plugin extends StartStopListener {
     }
 
     @Override
-    String name() {
+    public String name() {
 	return "PMSEncoder plugin for PS3 Media Server";
     }
 
     @Override
-    JComponent config() { // no config GUI (though Griffon would make this bearable)
+    public JComponent config() { // no config GUI (though Griffon would make this bearable)
 	return null;
     }
 
-    /*
     @Override
-    void nowPlaying(DLNAMediaInfo media, DLNAResource resource) {
-	PMS.minimal("PMSEncoder: now playing")
+    public void nowPlaying(DLNAMediaInfo media, DLNAResource resource) {
+	PMS.minimal("PMSEncoder: now playing");
     }
 
     @Override
-    void donePlaying(DLNAMediaInfo media, DLNAResource resource) {
-	PMS.minimal("PMSEncoder: done playing")
+    public void donePlaying(DLNAMediaInfo media, DLNAResource resource) {
+	PMS.minimal("PMSEncoder: done playing");
     }
 
     @Override
-    void shutdown () {
+    public void shutdown () {
 	// nothing to do
     }
-
-    */
 }

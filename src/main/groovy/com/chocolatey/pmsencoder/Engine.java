@@ -1,6 +1,8 @@
-package net.pms.encoders;
+package com.chocolatey.pmsencoder;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.swing.JComponent;
 
@@ -9,6 +11,7 @@ import com.chocolatey.pmsencoder.Stash;
 
 import net.pms.configuration.PmsConfiguration;
 import net.pms.dlna.DLNAMediaInfo;
+import net.pms.encoders.MEncoderWebVideo;
 import net.pms.formats.Format;
 import net.pms.io.OutputParams;
 import net.pms.io.PipeProcess;
@@ -39,12 +42,15 @@ public class Engine extends MEncoderWebVideo {
     public ProcessWrapper launchTranscode(String uri, DLNAMediaInfo media, OutputParams params) throws IOException {
 	Stash stash = new Stash();
 	stash.put("uri", uri);
-	List<String> args = new List<String>();
+	List<String> args = new ArrayList<String>();
+	List<String> matches;
 
 	log.info("looking for match for " + uri);
 
 	try {
-	    if (matcher.match(stash, args)) {
+	    matches = matcher.match(stash, args);
+
+	    if (matches != null) {
 		log.info("matched " + uri);
 	    } else {
 		log.info("didn't match " + uri);

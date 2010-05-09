@@ -2,7 +2,7 @@ package com.chocolatey.pmsencoder;
 
 import java.util.ArrayList;
 
-import com.chocolatey.pmsencoder.PMSEncoder;
+import com.chocolatey.pmsencoder.Engine;
 
 import net.pms.encoders.Player;
 import net.pms.PMS;
@@ -14,8 +14,8 @@ public class WEB extends net.pms.formats.WEB {
 
 	if (type == VIDEO) {
 	    for (String engine : PMS.getConfiguration().getEnginesAsList(PMS.get().getRegistry())) {
-		if (engine.equals(PMSEncoder.ID)) {
-		    profiles.add(0, PMSEncoder.class);
+		if (engine.equals(Engine.ID)) {
+		    profiles.add(0, Engine.class);
 		}
 	    }
 	}

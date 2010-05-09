@@ -28,15 +28,50 @@
         <testSourceDirectory>${project.basedir}/src/test/groovy</testSourceDirectory>
 
         <plugins>
-	    <plugin>
-		<groupId>org.apache.maven.plugins</groupId>
-		<artifactId>maven-compiler-plugin</artifactId>
-		<version>2.3</version>
-		<configuration>
-		    <source>1.5</source>
-		    <target>1.5</target>
-		</configuration>
-	    </plugin>
+
+            <plugin>
+                <artifactId>minijar-maven-plugin</artifactId>
+                <groupId>org.codehaus.mojo</groupId>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>ueberjar</goal>
+                        </goals>
+                        <configuration>
+                            <stripUnusedClasses>true</stripUnusedClasses>
+<!--
+                            <includeDependencies>
+                                <param>org.vafer:dependency</param>
+                            </includeDependencies>
+                            <includeDependenciesInRelocation>
+                                <param>org.vafer:dependency</param>
+                            </includeDependenciesInRelocation>
+-->
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <plugin>
+                <artifactId>maven-assembly-plugin</artifactId>
+                <version>2.2-beta-5</version>
+                <configuration>
+                    <descriptorRefs>
+                        <descriptorRef>jar-with-dependencies</descriptorRef>
+                    </descriptorRefs>
+                </configuration>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>2.3</version>
+                <configuration>
+                    <source>1.5</source>
+                    <target>1.5</target>
+                </configuration>
+            </plugin>
 
             <plugin>
                 <groupId>org.codehaus.gmaven</groupId>
@@ -47,8 +82,8 @@
                         <id>compile-groovy</id>
                         <phase>compile</phase>
                         <goals>
-			    <goal>generateStubs</goal>
-			    <goal>compile</goal>
+                            <goal>generateStubs</goal>
+                            <goal>compile</goal>
                         </goals>
                         <configuration>
                             <sources>
@@ -65,7 +100,7 @@
                         <id>compile-groovy-tests</id>
                         <phase>test-compile</phase>
                         <goals>
-			    <goal>testCompile</goal>
+                            <goal>testCompile</goal>
                         </goals>
                         <configuration>
                             <sources>
@@ -135,24 +170,25 @@
             <scope>compile</scope>
         </dependency>
 
-	<dependency>
-	    <groupId>org.codehaus.groovy.modules.http-builder</groupId>
-	    <artifactId>http-builder</artifactId>
-	    <version>0.5.0</version>
-	    <scope>compile</scope>
-	</dependency>
+        <dependency>
+            <groupId>org.codehaus.groovy.modules.http-builder</groupId>
+            <artifactId>http-builder</artifactId>
+            <version>0.5.0</version>
+            <scope>compile</scope>
+        </dependency>
 
-	<dependency>
-	    <groupId>com.google.code.ps3mediaserver</groupId>
-	    <artifactId>ps3-media-server</artifactId>
-	    <version>1.20.409</version>
-	</dependency>
+        <dependency>
+            <groupId>com.google.code.ps3mediaserver</groupId>
+            <artifactId>ps3-media-server</artifactId>
+            <version>1.20.409</version>
+            <scope>provided</scope>
+        </dependency>
 
-	<dependency>
-	    <groupId>info.codesaway.util.regexplus</groupId>
-	    <artifactId>regex-plus</artifactId>
-	    <version>2010-05-05</version> <!-- unversioned (grr) so use an arbitrary date --> 
-	</dependency>
+        <dependency>
+            <groupId>info.codesaway.util.regexplus</groupId>
+            <artifactId>regex-plus</artifactId>
+            <version>2010-05-05</version> <!-- unversioned (grr) so use an arbitrary date --> 
+        </dependency>
 
         <dependency>
             <groupId>log4j</groupId>
