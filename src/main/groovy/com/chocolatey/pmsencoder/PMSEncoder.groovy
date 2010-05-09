@@ -1,8 +1,6 @@
 @Typed
 package com.chocolatey.pmsencoder
 
-import org.apache.log4j.Logger
-
 interface ActionClosure {
     void call(Stash stash, List<String> args)
 }
@@ -26,10 +24,9 @@ class Stash extends LinkedHashMap<String, String> {
     }
 }
 
-class Matcher {
+class Matcher extends Logger {
     String path
     Config config
-    private Logger log = Logger.getLogger(this.class.name)
 
     Matcher(String path) {
         config = new Config()
@@ -56,10 +53,9 @@ class Matcher {
     }
 }
 
-class Config {
+class Config extends Logger {
     Double version
     private List<Profile> profiles = []
-    private Logger log = Logger.getLogger(this.class.name)
 
     List<String> match(Stash stash, List<String> args) {
         // work around Groovy++'s inner-class-style restriction that outer value types must be final
@@ -97,11 +93,10 @@ class Config {
     }
 }
 
-class Profile {
+class Profile extends Logger {
     private Match match
     private Actions actions
     public String name
-    private Logger log = Logger.getLogger(this.class.name)
 
     Profile(String name) {
         this.name = name
@@ -168,12 +163,11 @@ class Match {
     }
 }
 
-class Actions {
+class Actions extends Logger {
     /* TODO: add configurable proxy support */
     private List<ActionClosure> actions = []
     @Lazy private HTTPClient http = new HTTPClient()
     private Map<String, String> cache = [:]
-    private Logger log = Logger.getLogger(this.class.name)
 
     String executeActions(Stash stash, List<String> args) {
         actions.each { action -> action(stash, args) }
