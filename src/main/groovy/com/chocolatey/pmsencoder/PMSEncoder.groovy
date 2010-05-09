@@ -27,6 +27,7 @@ class Stash extends LinkedHashMap<String, String> {
 class Matcher extends Logger {
     String path
     Config config
+    List<String> defaultArgs
 
     Matcher(String path) {
         config = new Config()
@@ -37,6 +38,18 @@ class Matcher extends Logger {
             this.load(path)
             log.info("config file version: ${config.version}")
         }
+
+	args = [
+            "-prefer-ipv4",
+            "-oac", "lavc",
+            "-of", "lavf",
+            "-lavfopts", "format=dvd",
+            "-ovc", "lavc",
+            "-lavcopts", "vcodec=mpeg2video:vbitrate=4096:threads=2:acodec=ac3:abitrate=128",
+            "-ofps", "25",
+            "-cache", "16384",
+            "-vf", "harddup"
+        ]
     }
 
     private void load(String path) {
@@ -50,6 +63,7 @@ class Matcher extends Logger {
     }
 
     List<String> match(Stash stash, List<String> args) {
+	defaultArgs.each { args << it }
         config.match(stash, args) // we could use the @Delegate annotation, but this is cleaner/clearer
     }
 }
