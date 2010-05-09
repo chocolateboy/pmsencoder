@@ -17,7 +17,7 @@ import net.pms.io.ProcessWrapperImpl;
 
 import org.apache.log4j.Logger;
 
-public class PMSEncoder extends MEncoderWebVideo {
+public class Engine extends MEncoderWebVideo {
     public static final String ID = "pmsencoder";
     private Matcher matcher;
     private final PmsConfiguration configuration;
@@ -28,7 +28,7 @@ public class PMSEncoder extends MEncoderWebVideo {
 	return ID;
     }
 
-    public PMSEncoder(PmsConfiguration configuration, Matcher matcher) {
+    public Engine(PmsConfiguration configuration, Matcher matcher) {
         super(configuration);
         this.configuration = configuration;
         this.matcher = matcher;

@@ -3,7 +3,7 @@ package com.chocolatey.pmsencoder;
 import javax.swing.JComponent;
 
 import com.chocolatey.pmsencoder.Matcher;
-import com.chocolatey.pmsencoder.PMSEncoder;
+import com.chocolatey.pmsencoder.Engine;
 import com.chocolatey.pmsencoder.WEB;
 
 import net.pms.configuration.PmsConfiguration;
@@ -19,7 +19,7 @@ class Plugin extends StartStopListener {
     private String pmsencoderConfig;
     private static final String PMSENCODER_CONFIG_FILE_PATH = "pmsencoder.config_file"; // XXX not used yet
     private PmsConfiguration configuration;
-    private PMSEncoder pmsencoder;
+    private Engine pmsencoder;
     private String customConfigFile; // XXX not used yet
     private PMS pms;
     private ArrayList<Format> extensions;
@@ -28,18 +28,18 @@ class Plugin extends StartStopListener {
 	PMS.minimal("initializing PMSEncoder");
 
 	// set up log4j
-	log4jConfig = getClass().getResource('/log4j.xml').getFile();
+	log4jConfig = getClass().getResource("/log4j.xml").getFile();
 	PMS.minimal("log4j config file: " + log4jConfig);
 	DOMConfigurator.configure(log4jConfig);
 
 	// load default PMSEncoder config file
-	pmsencoderConfig = getClass().getResource('/pmsencoder.groovy').getFile();
+	pmsencoderConfig = getClass().getResource("/pmsencoder.groovy").getFile();
 	PMS.minimal("PMSEncoder config file: " + pmsencoderConfig);
 	matcher = new Matcher(pmsencoderConfig);
 
 	// initialize the PMSEncoder object that launches the transcode
 	configuration = PMS.getConfiguration();
-	pmsencoder = new PMSEncoder(configuration, matcher);
+	pmsencoder = new Engine(configuration, matcher);
 	customConfigFile = (String)configuration.getCustomProperty(PMSENCODER_CONFIG_FILE_PATH);
 
 	if (customConfigFile) {
@@ -59,13 +59,13 @@ class Plugin extends StartStopListener {
     }
 
     @Override
-    String name () {
-	"PMSEncoder plugin for PS3 Media Server"
+    String name() {
+	return "PMSEncoder plugin for PS3 Media Server";
     }
 
     @Override
-    JComponent config () { // no config GUI (though Griffon would make this bearable)
-	null
+    JComponent config() { // no config GUI (though Griffon would make this bearable)
+	return null;
     }
 
     /*
