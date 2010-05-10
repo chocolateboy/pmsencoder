@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns              = "http://maven.apache.org/POM/4.0.0"
-         xmlns:xsi          = "http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation = "http://maven.apache.org/POM/4.0.0
-                               http://maven.apache.org/maven-v4_0_0.xsd">
+    xmlns:xsi          = "http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation = "http://maven.apache.org/POM/4.0.0
+    http://maven.apache.org/maven-v4_0_0.xsd">
 
     <modelVersion>4.0.0</modelVersion>
 
@@ -19,7 +19,30 @@
     <properties>
         <repo>http://groovypp.artifactoryonline.com/groovypp</repo>
         <groovypp-version>0.2.4</groovypp-version>
+	<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
+
+    <repositories>
+        <repository>
+            <id>libs-releases</id>
+            <url>${repo}/libs-releases</url>
+        </repository>
+        <repository>
+            <id>libs-snapshots</id>
+            <url>${repo}/libs-snapshots</url>
+        </repository>
+    </repositories>
+
+    <pluginRepositories>
+        <pluginRepository>
+            <id>plugins-releases</id>
+            <url>${repo}/plugins-releases</url>
+        </pluginRepository>
+        <pluginRepository>
+            <id>plugins-snapshots</id>
+            <url>${repo}/plugins-snapshots</url>
+        </pluginRepository>
+    </pluginRepositories>
 
     <build>
         <defaultGoal>surefire-report:report</defaultGoal>
@@ -28,6 +51,73 @@
         <testSourceDirectory>${project.basedir}/src/test/groovy</testSourceDirectory>
 
         <plugins>
+
+            <!-- in the absensce of a super-POM -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <configuration>
+                    <source>1.5</source>
+                    <target>1.5</target>
+                </configuration>
+            </plugin>
+
+            <plugin>
+                <groupId>org.codehaus.gmaven</groupId>
+                <artifactId>gmaven-plugin</artifactId>
+                <version>1.2</version>
+
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>generateStubs</goal>
+                            <goal>compile</goal>
+                            <goal>generateTestStubs</goal>
+                            <goal>testCompile</goal>
+                        </goals>
+                    </execution>
+                </executions>
+
+                <configuration>
+                    <providerSelection>1.7</providerSelection>
+                    <verbose>true</verbose>
+                    <debug>true</debug>
+                    <stacktrace>true</stacktrace>
+                </configuration>
+
+                <dependencies>
+
+                    <dependency>
+                        <groupId>org.codehaus.gmaven.runtime</groupId>
+                        <artifactId>gmaven-runtime-1.7</artifactId>
+                        <version>1.2</version>
+                        <exclusions>
+                            <exclusion>
+                                <groupId>org.codehaus.groovy</groupId>
+                                <artifactId>groovy-all</artifactId>
+                            </exclusion>
+                            <exclusion>
+                                <groupId>junit</groupId>
+                                <artifactId>junit</artifactId>
+                            </exclusion>
+                        </exclusions>
+                    </dependency>
+
+                    <dependency>
+                        <groupId>org.mbte.groovypp</groupId>
+                        <artifactId>groovypp</artifactId>
+                        <version>${groovypp-version}</version>
+                    </dependency>
+
+                    <dependency>
+                        <groupId>junit</groupId>
+                        <artifactId>junit</artifactId>
+                        <version>4.7</version>
+                    </dependency>
+
+                </dependencies>
+
+            </plugin>
 
             <plugin>
                 <artifactId>minijar-maven-plugin</artifactId>
@@ -63,106 +153,12 @@
                 </configuration>
             </plugin>
 
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-compiler-plugin</artifactId>
-                <version>2.3</version>
-                <configuration>
-                    <source>1.5</source>
-                    <target>1.5</target>
-                </configuration>
-            </plugin>
-
-            <plugin>
-                <groupId>org.codehaus.gmaven</groupId>
-                <artifactId>gmaven-plugin</artifactId>
-                <version>1.2</version>
-                <executions>
-                    <execution>
-                        <id>compile-groovy</id>
-                        <phase>compile</phase>
-                        <goals>
-                            <goal>generateStubs</goal>
-                            <goal>compile</goal>
-                        </goals>
-                        <configuration>
-                            <sources>
-                                <fileset>
-                                    <directory>${project.basedir}/src/main/groovy</directory>
-                                    <includes>
-                                        <include>**/*.groovy</include>
-                                    </includes>
-                                </fileset>
-                            </sources>
-                        </configuration>
-                    </execution>
-                    <execution>
-                        <id>compile-groovy-tests</id>
-                        <phase>test-compile</phase>
-                        <goals>
-                            <goal>testCompile</goal>
-                        </goals>
-                        <configuration>
-                            <sources>
-                                <fileset>
-                                    <directory>${project.basedir}/src/test/groovy</directory>
-                                    <includes>
-                                        <include>**/*.groovy</include>
-                                    </includes>
-                                </fileset>
-                            </sources>
-                        </configuration>
-                    </execution>
-                </executions>
-
-                <configuration>
-                    <providerSelection>1.7</providerSelection>
-                    <verbose>true</verbose>
-                    <debug>true</debug>
-                    <stacktrace>true</stacktrace>
-                </configuration>
-
-                <dependencies>
-
-                    <dependency>
-                        <groupId>org.codehaus.gmaven.runtime</groupId>
-                        <artifactId>gmaven-runtime-1.7</artifactId>
-                        <version>1.2</version>
-                        <exclusions>
-                            <exclusion>
-                                <groupId>org.codehaus.groovy</groupId>
-                                <artifactId>groovy-all</artifactId>
-                            </exclusion>
-                        </exclusions>
-                    </dependency>
-
-                    <dependency>
-                        <groupId>org.mbte.groovypp</groupId>
-                        <artifactId>groovypp-all</artifactId>
-                        <version>${groovypp-version}</version>
-                    </dependency>
-
-                </dependencies>
-            </plugin>
         </plugins>
+
     </build>
 
-    <repositories>
-        <repository>
-            <id>libs-releases</id>
-            <url>${repo}/libs-releases</url>
-        </repository>
-        <repository>
-            <id>libs-snapshots</id>
-            <url>${repo}/libs-snapshots</url>
-        </repository>
-        <repository>
-            <id>smokejumper</id>
-            <url>http://repo.smokejumperit.com</url>
-        </repository>
-    </repositories>
-
     <dependencies>
+
         <dependency>
             <groupId>org.mbte.groovypp</groupId>
             <artifactId>groovypp-all</artifactId>
