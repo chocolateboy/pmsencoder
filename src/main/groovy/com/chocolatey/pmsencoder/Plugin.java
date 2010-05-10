@@ -1,7 +1,8 @@
 package com.chocolatey.pmsencoder;
 
+import java.lang.NoSuchMethodException;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
-
 import javax.swing.JComponent;
 
 import com.chocolatey.pmsencoder.Matcher;
@@ -14,6 +15,7 @@ import net.pms.dlna.DLNAResource;
 import net.pms.external.StartStopListener;
 import net.pms.formats.Format;
 import net.pms.PMS;
+import net.pms.newgui.TrTab2;
 
 import org.apache.log4j.xml.DOMConfigurator;
 
@@ -52,14 +54,24 @@ class Plugin implements StartStopListener {
 
 	pms = PMS.get();
 	extensions = pms.getExtensions();
-	pms.registerPlayer(pmsencoder); // XXX this is a private method
 
 	/*
 	 * FIXME: don't assume the position is fixed
 	 * short term: find and replace *if it exists*
 	 * long term: patch PMS to allow plugins to register engines a) separately and b) cleanly
 	 * */
+	registerPlayer();
 	extensions.set(0, new WEB());
+    }
+
+    private void registerPlayer() {
+	try {
+	    Method pmsRegisterPlayer = pmsencoder.getClass().getDeclaredMethod("registerPlayer", pmsencoder.getClass());
+	    pmsRegisterPlayer.setAccessible(true);
+	    pmsRegisterPlayer.invoke(pms);
+	} catch (Throwable e) {
+	    PMS.minimal("error calling PMS.registerPlayer" + e);
+	}
     }
 
     @Override
