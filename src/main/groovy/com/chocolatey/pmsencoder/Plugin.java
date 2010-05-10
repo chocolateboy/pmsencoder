@@ -1,6 +1,6 @@
 package com.chocolatey.pmsencoder;
 
-import java.lang.NoSuchMethodException;
+import java.net.URL;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import javax.swing.JComponent;
@@ -19,10 +19,10 @@ import net.pms.newgui.TrTab2;
 
 import org.apache.log4j.xml.DOMConfigurator;
 
-class Plugin implements StartStopListener {
+public class Plugin implements StartStopListener {
     private Matcher matcher;
-    private String log4jConfig;
-    private String pmsencoderConfig;
+    private URL log4jConfig;
+    private URL pmsencoderConfig;
     private static final String PMSENCODER_CONFIG_FILE_PATH = "pmsencoder.config_file"; // XXX not used yet
     private PmsConfiguration configuration;
     private Engine pmsencoder;
@@ -34,12 +34,12 @@ class Plugin implements StartStopListener {
 	PMS.minimal("initializing PMSEncoder");
 
 	// set up log4j
-	log4jConfig = this.getClass().getResource("/log4j.xml").getFile();
+	log4jConfig = this.getClass().getResource("/log4j.xml");
 	PMS.minimal("log4j config file: " + log4jConfig);
 	DOMConfigurator.configure(log4jConfig);
 
 	// load default PMSEncoder config file
-	pmsencoderConfig = this.getClass().getResource("/pmsencoder.groovy").getFile();
+	pmsencoderConfig = this.getClass().getResource("/pmsencoder.groovy");
 	PMS.minimal("PMSEncoder config file: " + pmsencoderConfig);
 	matcher = new Matcher(pmsencoderConfig);
 
@@ -60,15 +60,15 @@ class Plugin implements StartStopListener {
 	 * short term: find and replace *if it exists*
 	 * long term: patch PMS to allow plugins to register engines a) separately and b) cleanly
 	 * */
-	registerPlayer();
 	extensions.set(0, new WEB());
+	registerPlayer();
     }
 
     private void registerPlayer() {
 	try {
 	    Method pmsRegisterPlayer = pmsencoder.getClass().getDeclaredMethod("registerPlayer", pmsencoder.getClass());
 	    pmsRegisterPlayer.setAccessible(true);
-	    pmsRegisterPlayer.invoke(pms);
+	    pmsRegisterPlayer.invoke(pms, pmsencoder);
 	} catch (Throwable e) {
 	    PMS.minimal("error calling PMS.registerPlayer" + e);
 	}

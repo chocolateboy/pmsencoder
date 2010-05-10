@@ -25,35 +25,34 @@ class Stash extends LinkedHashMap<String, String> {
 }
 
 class Matcher extends Logger {
-    String path
+    URL configURL
     Config config
-    List<String> defaultArgs
+    private static List<String> defaultArgs = [
+	"-prefer-ipv4",
+	"-oac", "lavc",
+	"-of", "lavf",
+	"-lavfopts", "format=dvd",
+	"-ovc", "lavc",
+	"-lavcopts", "vcodec=mpeg2video:vbitrate=4096:threads=2:acodec=ac3:abitrate=128",
+	"-ofps", "25",
+	"-cache", "16384",
+	"-vf", "harddup"
+    ]
 
-    Matcher(String path) {
+    Matcher(URL url) {
         config = new Config()
 
-        if (path != null) {
-            log.info("loading config: $path")
-            this.path = path
-            this.load(path)
+        if (url != null) {
+            log.info("loading config: $url")
+            this.configURL = url
+            this.load(url)
             log.info("config file version: ${config.version}")
         }
-
-	defaultArgs = [
-            "-prefer-ipv4",
-            "-oac", "lavc",
-            "-of", "lavf",
-            "-lavfopts", "format=dvd",
-            "-ovc", "lavc",
-            "-lavcopts", "vcodec=mpeg2video:vbitrate=4096:threads=2:acodec=ac3:abitrate=128",
-            "-ofps", "25",
-            "-cache", "16384",
-            "-vf", "harddup"
-        ]
     }
 
-    private void load(String path) {
-        Script script = new GroovyShell().parse(new File(path))
+    private void load(URL url) {
+	InputStreamReader reader = new InputStreamReader(url.openStream())
+        Script script = new GroovyShell().parse(reader)
         ExpandoMetaClass emc = new ExpandoMetaClass(script.class, false)
 
         emc.setProperty('config', config.&config) // set the DSL's sole top-level method: config

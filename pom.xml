@@ -119,6 +119,7 @@
 
             </plugin>
 
+	    <!--
             <plugin>
                 <artifactId>minijar-maven-plugin</artifactId>
                 <groupId>org.codehaus.mojo</groupId>
@@ -130,18 +131,17 @@
                         </goals>
                         <configuration>
                             <stripUnusedClasses>true</stripUnusedClasses>
-<!--
                             <includeDependencies>
                                 <param>org.vafer:dependency</param>
                             </includeDependencies>
                             <includeDependenciesInRelocation>
                                 <param>org.vafer:dependency</param>
                             </includeDependenciesInRelocation>
--->
                         </configuration>
                     </execution>
                 </executions>
             </plugin>
+	    -->
 
             <plugin>
                 <artifactId>maven-assembly-plugin</artifactId>

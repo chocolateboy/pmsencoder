@@ -13,10 +13,10 @@ class MatcherTest extends GroovyTestCase {
     Matcher matcher
 
     void setUp() {
-	String xml = this.getClass().getResource('/log4j.xml').getFile()
-	DOMConfigurator.configure(xml)
-        def path = this.getClass().getResource('/pmsencoder.groovy').getFile()
-        matcher = new Matcher(path)
+	URL log4jConfig = this.getClass().getResource('/log4j.xml')
+	DOMConfigurator.configure(log4jConfig)
+        URL pmsencoderConfig = this.getClass().getResource('/pmsencoder.groovy')
+        matcher = new Matcher(pmsencoderConfig)
     }
 
     private void assertMatch(
@@ -132,7 +132,7 @@ class MatcherTest extends GroovyTestCase {
         assert stash['t']
         assert stash['video_id'] == '_OBlgSz8sSM'
         // XXX assert doesn't like GStrings
-        String want_uri = "$youtube/get_video?fmt=18&video_id=${stash['video_id']}&t=${stash['t']}"
+        def want_uri = "$youtube/get_video?fmt=18&video_id=${stash['video_id']}&t=${stash['t']}"
         assert stash['uri'] == want_uri.toString()
         assert args == []
     }
