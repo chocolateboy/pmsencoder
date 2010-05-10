@@ -87,12 +87,12 @@ public class Plugin implements StartStopListener {
 
     @Override
     public void nowPlaying(DLNAMediaInfo media, DLNAResource resource) {
-        PMS.minimal("PMSEncoder: now playing");
+
     }
 
     @Override
     public void donePlaying(DLNAMediaInfo media, DLNAResource resource) {
-        PMS.minimal("PMSEncoder: done playing");
+
     }
 
     @Override
