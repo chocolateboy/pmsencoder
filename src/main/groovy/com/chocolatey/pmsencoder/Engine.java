@@ -28,76 +28,77 @@ public class Engine extends MEncoderWebVideo {
 
     @Override
     public String id() {
-	return ID;
+        return ID;
     }
 
     public Engine(PmsConfiguration configuration, Matcher matcher) {
         super(configuration);
         this.configuration = configuration;
         this.matcher = matcher;
-	this.log = Logger.getLogger(this.getClass().getName());
+        this.log = Logger.getLogger(this.getClass().getName());
     }
 
     @Override
     public ProcessWrapper launchTranscode(String uri, DLNAMediaInfo media, OutputParams params) throws IOException {
-	Stash stash = new Stash();
-	stash.put("uri", uri);
-	List<String> args = new ArrayList<String>();
-	List<String> matches;
+        Stash stash = new Stash();
+        stash.put("uri", uri);
+        List<String> args = new ArrayList<String>();
+        List<String> matches;
 
-	log.info("looking for match for " + uri);
+        log.info("invoking matcher for: " + uri);
 
-	try {
-	    matches = matcher.match(stash, args);
+        try {
+            matches = matcher.match(stash, args);
+            int nMatches = matches.size();
 
-	    if (matches != null) {
-		log.info("matched " + uri);
-	    } else {
-		log.info("didn't match " + uri);
-	    }
-	} catch (Throwable e) {
-	    log.error(e);
-	}
+            if (nMatches == 1) {
+                log.info("1 match for: " + uri);
+            } else {
+                log.info(nMatches + " matches for: " + uri);
+            }
+        } catch (Throwable e) {
+            log.error("match error: " + e);
+        }
 
-	params.minBufferSize = params.minFileSize;
-	params.secondread_minsize = 100000;
+        params.minBufferSize = params.minFileSize;
+        params.secondread_minsize = 100000;
 
-	PipeProcess pipe = new PipeProcess("pmsencoder" + System.currentTimeMillis());
-	params.input_pipes[0] = pipe;
+        PipeProcess pipe = new PipeProcess("pmsencoder" + System.currentTimeMillis());
+        params.input_pipes[0] = pipe;
 
-	String cmdArray[] = new String[ args.size() + 4 ];
-	cmdArray[0] = executable();
-	cmdArray[1] = stash.get("uri");
+        String cmdArray[] = new String[ args.size() + 4 ];
+        cmdArray[0] = executable();
+        cmdArray[1] = stash.get("uri");
 
-	for (int i = 0; i < args.size(); ++i) {
-	    cmdArray[ i + 2 ] = args.get(i);
-	}
+        for (int i = 0; i < args.size(); ++i) {
+            cmdArray[ i + 2 ] = args.get(i);
+        }
 
-	cmdArray[ cmdArray.length - 2 ] = "-o";
-	cmdArray[ cmdArray.length - 1 ] = pipe.getInputPipe();
+        cmdArray[ cmdArray.length - 2 ] = "-o";
+        cmdArray[ cmdArray.length - 1 ] = pipe.getInputPipe();
 
-	ProcessWrapper mkfifo_process = pipe.getPipeProcess();
+        ProcessWrapper mkfifo_process = pipe.getPipeProcess();
 
-	ProcessWrapperImpl pw = new ProcessWrapperImpl(cmdArray, params);
-	pw.attachProcess(mkfifo_process);
-	mkfifo_process.runInNewThread();
+        ProcessWrapperImpl pw = new ProcessWrapperImpl(cmdArray, params);
+        pw.attachProcess(mkfifo_process);
+        mkfifo_process.runInNewThread();
 
-	try {
-	    Thread.sleep(50);
-	} catch (InterruptedException e) { }
+        try {
+            Thread.sleep(50);
+        } catch (InterruptedException e) { }
 
-	pipe.deleteLater();
-	pw.runInNewThread();
+        pipe.deleteLater();
+        pw.runInNewThread();
 
-	try {
-	    Thread.sleep(50);
-	} catch (InterruptedException e) { }
+        try {
+            Thread.sleep(50);
+        } catch (InterruptedException e) { }
 
-	return pw;
+        return pw;
     }
 
     @Override
     public String name() {
-	return "PMSEncoder";
+        return "PMSEncoder";
     }
 }

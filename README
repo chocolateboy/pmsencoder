@@ -1,7 +1,0 @@
-To build pmsencoder (e.g. to test fixes), you'll need to install PMS and RegExPlus in your local Maven repo:
-
-    mvn install:install-file -DgroupId=com.google.code.ps3mediaserver -DartifactId=ps3-media-server \
-        -Dversion=1.20.409 -Dpackaging=jar -Dfile=/path/to/pms.jar
-
-    mvn install:install-file -DgroupId=info.codesaway.util.regexplus -DartifactId=regex-plus \
-        -Dversion=2010-05-05 -Dpackaging=jar -Dfile=/path/to/RegExPlus.jar

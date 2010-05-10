@@ -74,7 +74,6 @@ class Config extends Logger {
     private List<Profile> profiles = []
 
     List<String> match(Stash stash, List<String> args) {
-        // work around Groovy++'s inner-class-style restriction that outer value types must be final
         List<String> matched = []
         log.info("matching URI: ${stash['uri']}")
         profiles.each { profile ->
