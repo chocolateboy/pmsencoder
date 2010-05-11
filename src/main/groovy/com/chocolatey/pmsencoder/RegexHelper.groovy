@@ -16,7 +16,7 @@ class RegexHelper {
         if (matchFound) {
             /*
                 store named groups as name => match pairs in stash
-                XXX 0 is the index of the entire matched string, so group indeces start at 1 
+                XXX 0 is the index of the entire matched string, so group indices start at 1 
                 XXX groupCount is the number of explicit groups
             */
             /*
