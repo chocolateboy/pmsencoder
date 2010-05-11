@@ -33,15 +33,15 @@ class Matcher extends Logger {
     URL configURL
     Config config
     private static List<String> defaultArgs = [
-	"-prefer-ipv4",
-	"-oac", "lavc",
-	"-of", "lavf",
-	"-lavfopts", "format=dvd",
-	"-ovc", "lavc",
-	"-lavcopts", "vcodec=mpeg2video:vbitrate=4096:threads=2:acodec=ac3:abitrate=128",
-	"-ofps", "25",
-	"-cache", "16384",
-	"-vf", "harddup"
+        "-prefer-ipv4",
+        "-oac", "lavc",
+        "-of", "lavf",
+        "-lavfopts", "format=dvd",
+        "-ovc", "lavc",
+        "-lavcopts", "vcodec=mpeg2video:vbitrate=4096:threads=2:acodec=ac3:abitrate=128",
+        "-ofps", "25",
+        "-cache", "16384",
+        "-vf", "harddup"
     ]
 
     Matcher(URL url) {
@@ -56,7 +56,7 @@ class Matcher extends Logger {
     }
 
     private void load(URL url) {
-	InputStreamReader reader = new InputStreamReader(url.openStream())
+        InputStreamReader reader = new InputStreamReader(url.openStream())
         Script script = new GroovyShell().parse(reader)
         ExpandoMetaClass emc = new ExpandoMetaClass(script.class, false)
 
@@ -67,9 +67,9 @@ class Matcher extends Logger {
     }
 
     List<String> match(Stash stash, List<String> args, boolean useDefault = true) {
-	if (useDefault) {
-	    defaultArgs.each { args << it }
-	}
+        if (useDefault) {
+            defaultArgs.each { args << it }
+        }
         config.match(stash, args) // we could use the @Delegate annotation, but this is cleaner/clearer
     }
 }
@@ -188,8 +188,8 @@ class Actions extends Logger {
     private List<ActionClosure> actions = []
     @Lazy private HTTPClient http = new HTTPClient()
 
-    String executeActions(Stash stash, List<String> args) {
-	ActionState state = new ActionState()
+    void executeActions(Stash stash, List<String> args) {
+        ActionState state = new ActionState()
         actions.each { action -> action(stash, args, state) }
     }
 
@@ -224,8 +224,8 @@ class Actions extends Logger {
                 }
             }
 
-	    stash[name] = new_value[0]
-	    log.info("set \$$name to ${new_value[0]}")
+            stash[name] = new_value[0]
+            log.info("set \$$name to ${new_value[0]}")
         }
     }
 
@@ -242,7 +242,7 @@ class Actions extends Logger {
             Stash new_stash = new Stash()
 
             if (!document) {
-		log.info("getting $uri")
+                log.info("getting $uri")
                 document = state.cache[uri] = http.get(uri)
             }
 
@@ -376,7 +376,7 @@ class Actions extends Logger {
 
                     if (http.head(media_uri)) {
                         log.info("success")
-                        // set the new URI - note use the low-level interface NOT the (deferred) DSL interface!
+                        // set the new URI - note: use the low-level interface NOT the (deferred) DSL interface!
                         let(stash, 'uri', media_uri)
                         return true
                     } else {
