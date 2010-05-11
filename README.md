@@ -8,7 +8,7 @@ PMSEncoder should work on all platforms supported by PS3 Media Server.
 
 These instructions assume you have the latest versions of [PS3 Media Server](http://ps3mediaserver.org/forum/viewtopic.php?f=2&t=3217) (PMS) and [Java](http://www.java.com/en/download/index.jsp), and a recent MEncoder.
 
-# Installation
+# Installation <a name="Installation"></a>
 
 * download the [PMSEncoder jar file](http://github.com/downloads/chocolateboy/pmsencoder/pmsencoder-1.0.1.jar) and place it in the PMS `plugins`
 * if you have an old version of the plugin, remove it.
@@ -17,7 +17,9 @@ These instructions assume you have the latest versions of [PS3 Media Server](htt
 * if you previously used the standalone version of PMSEncoder, disable it by removing the `mencoder_path = /path/to/pmsencoder` line.
 * restart PMS
 
-To upgrade to a new version of the plugin, simply remove the old version, save the new version, and restart PMS.
+# Upgrading <a name="Upgrading"></a>
+
+To upgrade to a new version of the plugin, simply replace the old version with the new version, and restart PMS.
 
 # Troubleshooting <a name="Troubleshooting"></a>
 
