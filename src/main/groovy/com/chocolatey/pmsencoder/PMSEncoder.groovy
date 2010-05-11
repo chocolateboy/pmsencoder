@@ -2,7 +2,7 @@
 package com.chocolatey.pmsencoder
 
 interface ActionClosure {
-    void call(Stash stash, List<String> args, ActionState state)
+    void call(Stash stash, List<String> args, ActionsState state)
 }
 
 interface MatchClosure {
@@ -25,7 +25,7 @@ class Stash extends LinkedHashMap<String, String> {
 }
 
 // common state shared across a block of actions
-class ActionState {
+class ActionsState {
     Map<String, String> cache = [:]
 }
 
@@ -189,7 +189,7 @@ class Actions extends Logger {
     @Lazy private HTTPClient http = new HTTPClient()
 
     void executeActions(Stash stash, List<String> args) {
-        ActionState state = new ActionState()
+        ActionsState state = new ActionsState()
         actions.each { action -> action(stash, args, state) }
     }
 
