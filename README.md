@@ -23,6 +23,9 @@ To upgrade to a new version of the plugin, simply replace the old jar file with 
 
 # Troubleshooting <a name="Troubleshooting"></a>
 
+* Make sure there's only one version of the plugin in the `plugins` directory.
+* Make sure `pmsencoder` is at the start of the list of engines in PMS.conf.
+* Make sure `mencoder_path` is not set, or is not pointing to the standalone PMSEncoder.
 * Check the PMS debug.log.
 * Check the pmsencoder.log, which should be in the same location as the debug.log.
 
