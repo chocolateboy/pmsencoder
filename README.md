@@ -10,7 +10,7 @@ These instructions assume you have the latest versions of [PS3 Media Server](htt
 
 # Installation <a name="Installation"></a>
 
-* download the [PMSEncoder jar file](http://github.com/downloads/chocolateboy/pmsencoder/pmsencoder-1.0.1.jar) and place it in the PMS `plugins`
+* download the [PMSEncoder jar file](http://github.com/downloads/chocolateboy/pmsencoder/pmsencoder-1.0.1.jar) and place it in the PMS `plugins` directory
 * if you have an old version of the plugin, remove it.
 * add `pmsencoder` to the front of the list of engines in PMS.conf e.g.
   * `engines = pmsencoder,mencoder,tsmuxer,mplayeraudio` &c.
@@ -19,7 +19,7 @@ These instructions assume you have the latest versions of [PS3 Media Server](htt
 
 # Upgrading <a name="Upgrading"></a>
 
-To upgrade to a new version of the plugin, simply replace the old version with the new version, and restart PMS.
+To upgrade to a new version of the plugin, simply replace the old jar file with the new version in the `plugins` directory, and restart PMS.
 
 # Troubleshooting <a name="Troubleshooting"></a>
 
