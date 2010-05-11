@@ -17,7 +17,7 @@ These instructions assume you have the latest versions of [PS3 Media Server](htt
 * if you previously used the standalone version of PMSEncoder, disable it by removing the `mencoder_path = /path/to/pmsencoder` line.
 * restart PMS
 
-# Upgrading <a name="Upgrading"></a>
+## Upgrading <a name="Upgrading"></a>
 
 To upgrade to a new version of the plugin, simply replace the old jar file with the new version in the `plugins` directory, and restart PMS.
 
