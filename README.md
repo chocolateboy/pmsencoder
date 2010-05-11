@@ -37,7 +37,7 @@ For more details, discussion and troubleshooting tips, see the [wiki](http://wik
 
 # Version <a name="Version"></a>
 
-1.0.0
+1.0.1
 
 # License <a name="License"></a>
 
