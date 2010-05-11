@@ -10,7 +10,7 @@
     <artifactId>pmsencoder</artifactId>
     <name>PMSEncoder</name>
     <packaging>jar</packaging>
-    <version>1.0.0</version>
+    <version>1.0.1</version>
 
     <description>
         A plugin for PS3 Media Server that adds support for recipe-driven web video streaming.

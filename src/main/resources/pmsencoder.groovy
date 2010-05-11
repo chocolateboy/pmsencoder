@@ -1,11 +1,3 @@
-/*
-    this file uses a syntax very similar to this:
-
-        http://www.wakaleo.com/blog/237-more-groovy-magic-with-maven-pom-files
-
-    i.e. a kind of Groovy JSON.
-*/
-
 config {
     /*
         this is the version of PMSEncoder in which this config file *syntax* was introduced i.e.
@@ -27,7 +19,7 @@ config {
 
               /*
                   now, with $video_id and $t defined, call the custom YouTube
-                  handler with an array of formats in descending order of preference
+                  handler with a list of formats in descending order of preference
               */
               youtube '22', '18', '6', '5'
         }
@@ -92,8 +84,10 @@ config {
         }
         
         action {
-            // The order is important here! Make sure we get the variables before we set the URI.
-            // extract some values from the HTML
+            /*
+                The order is important here! Make sure we get the variables before we set the URI.
+                extract some values from the HTML
+            */
             get '\\bmov_game_id\\s*=\\s*(?<movie_id>\\d+)'
             get '\\bhttp://www\\.gametrailers\\.com/download/\\d+/(?<filename>t_[^.]+)\\.wmv\\b'
 

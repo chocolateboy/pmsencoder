@@ -2,7 +2,7 @@
 package com.chocolatey.pmsencoder
 
 interface ActionClosure {
-    void call(Stash stash, List<String> args)
+    void call(Stash stash, List<String> args, ActionState state)
 }
 
 interface MatchClosure {
@@ -22,6 +22,11 @@ class Stash extends LinkedHashMap<String, String> {
         super()
         old.each { name, value -> put(name.toString(), value.toString()) }
     }
+}
+
+// common state shared across a block of actions
+class ActionState {
+    Map<String, String> cache = [:]
 }
 
 class Matcher extends Logger {
@@ -182,10 +187,10 @@ class Actions extends Logger {
     /* TODO: add configurable proxy support */
     private List<ActionClosure> actions = []
     @Lazy private HTTPClient http = new HTTPClient()
-    private Map<String, String> cache = [:]
 
     String executeActions(Stash stash, List<String> args) {
-        actions.each { action -> action(stash, args) }
+	ActionState state = new ActionState()
+        actions.each { action -> action(stash, args, state) }
     }
 
     // not a DSL method: do the heavy-lifting of stash assignment
@@ -231,14 +236,14 @@ class Actions extends Logger {
     */
     // DSL method
     void get(String regex) {
-        actions << { stash, args ->
+        actions << { stash, args, state ->
             String uri = stash['uri']
-            String document = cache[uri]
+            String document = state.cache[uri]
             Stash new_stash = new Stash()
 
             if (!document) {
 		log.info("getting $uri")
-                document = cache[uri] = http.get(uri)
+                document = state.cache[uri] = http.get(uri)
             }
 
             assert document
@@ -258,14 +263,14 @@ class Actions extends Logger {
     // DSL method
     void let(Map<String, String> map) {
         map.each { key, value ->
-            actions << { stash, args -> let(stash, key, value) }
+            actions << { stash, args, state -> let(stash, key, value) }
         }
     }
 
     // set an mencoder option - create it if it doesn't exist
     // DSL method
     void set(Map<String, String> map) {
-        actions << { stash, args ->
+        actions << { stash, args, state ->
             // the sort order is predictable (for tests) as long as we (and Groovy) use LinkedHashMap
             map.each { name, value ->
                 log.info("inside set: $name => $value")
@@ -306,7 +311,7 @@ class Actions extends Logger {
     */
     // DSL method
     void replace(Map<String, Map<String, String>> replace_map) {
-        actions << { stash, args ->
+        actions << { stash, args, state ->
             // the sort order is predictable (for tests) as long as we (and Groovy) use LinkedHashMap
             replace_map.each { name, map ->
                 name = "-$name"
@@ -339,7 +344,7 @@ class Actions extends Logger {
 
     // DSL method
     void youtube(String[] formats) {
-        actions << { stash, args ->
+        actions << { stash, args, state ->
             String uri = stash['uri']
             String video_id = stash['video_id']
             String t = stash['t']
