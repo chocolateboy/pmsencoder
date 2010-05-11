@@ -12,8 +12,8 @@
     <appender name="logfile" class="org.apache.log4j.RollingFileAppender">
 	<param name="File" value="pmsencoder.log"/>
 	<param name="Append" value="false" />
-	<param name="MaxFileSize" value="10MB"/>
-	<param name="MaxBackupIndex" value="10"/>
+	<param name="MaxFileSize" value="1MB"/>
+	<param name="MaxBackupIndex" value="2"/>
 	<layout class="org.apache.log4j.PatternLayout">
 	    <param name="ConversionPattern"
 		value="%d{yyyy-MM-dd HH:mm:ss} [%p|%c{1}|%t]: %m%n"/>

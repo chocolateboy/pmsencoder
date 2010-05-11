@@ -197,7 +197,7 @@ class Actions extends Logger {
     // public because Profile needs to call it
     void let(Stash stash, String name, String value) {
         if ((stash[name] == null) || (stash[name] != value)) {
-            String[] new_value = [ value ] // FIXME can't get reference to work transparently
+            String[] new_value = [ value ] // FIXME can't get Reference to work transparently
             log.info("setting \$$name to $value")
          
             stash.each { stash_key, stash_value ->
