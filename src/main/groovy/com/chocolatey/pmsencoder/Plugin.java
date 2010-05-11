@@ -29,7 +29,7 @@ public class Plugin implements StartStopListener {
     private String customConfigFile; // XXX not used yet
     private PMS pms;
     private ArrayList<Format> extensions;
-    private static final String VERSION = "1.0.1";
+    private static final String VERSION = "1.0.1"; // VERSION
 
     public Plugin() {
         PMS.minimal("initializing PMSEncoder " + VERSION);
