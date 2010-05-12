@@ -30,7 +30,7 @@ To upgrade to a new version of the plugin, simply replace the old jar file with 
 * Check the PMS debug.log.
 * Check the pmsencoder.log, which should be in the same location as the debug.log.
 
-# Reporting Issues <a name="Help"></a>
+## Reporting Issues <a name="Help"></a>
 
 Please do the following when reporting any issues:
 
@@ -39,7 +39,7 @@ Please do the following when reporting any issues:
 3. wait until it fails
 4. post your PMS.conf, pmsencoder.log and debug.log (as a zipped attachment)
 
-# Support <a name="Support"></a>
+## Support <a name="Support"></a>
 
 For more details, discussion and troubleshooting tips, see the [wiki](http://wiki.github.com/chocolateboy/pmsencoder/) and [this thread](http://ps3mediaserver.org/forum/viewtopic.php?f=6&t=5002).
 
