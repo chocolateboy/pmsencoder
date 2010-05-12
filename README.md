@@ -30,6 +30,8 @@ To upgrade to a new version of the plugin, simply replace the old jar file with 
 * Check the PMS debug.log.
 * Check the pmsencoder.log, which should be in the same location as the debug.log.
 
+# Reporting Issues <a name="Help"></a>
+
 Please do the following when reporting any issues:
 
 1. restart (or start) PMS
