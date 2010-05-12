@@ -1,6 +1,6 @@
 # Synopsis <a name="Synopsis"></a>
 
-This is a plugin for [PS3 Media Server](http://code.google.com/p/ps3mediaserver/) that adds flexible support for Web video streaming via MEncoder.
+This is a plugin for [PS3 Media Server](http://code.google.com/p/ps3mediaserver/) that adds configurable support for Web video streaming via MEncoder.
 
 # Prerequisites <a name="Prerequisites"></a>
 
