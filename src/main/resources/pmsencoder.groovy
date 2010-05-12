@@ -1,11 +1,16 @@
 config {
-    /*
-        this is the version of PMSEncoder in which this config file *syntax* was introduced i.e.
-        the oldest version of PMSEncoder that will work with this file
-        XXX Don't change this!
-    */
-
-    version '1.0.0'
+    // the default MEncoder args - these can be redefined in a custom config file
+    args = [
+        '-prefer-ipv4',
+        '-oac', 'lavc',
+        '-of', 'lavf',
+        '-lavfopts', 'format=dvd',
+        '-ovc', 'lavc',
+        '-lavcopts', 'vcodec=mpeg2video:vbitrate=4096:threads=2:acodec=ac3:abitrate=128',
+        '-ofps', '25',
+        '-cache', '16384',
+        '-vf', 'harddup'
+    ]
 
     profile ('YouTube') {
         // extract the resource's video_id from the URI of the standard YouTube page

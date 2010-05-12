@@ -1,8 +1,10 @@
 package com.chocolatey.pmsencoder;
 
-import java.net.URL;
+import java.io.File;
 import java.lang.reflect.Method;
+import java.net.URL;
 import java.util.ArrayList;
+
 import javax.swing.JComponent;
 
 import com.chocolatey.pmsencoder.Matcher;
@@ -20,47 +22,38 @@ import net.pms.PMS;
 import org.apache.log4j.xml.DOMConfigurator;
 
 public class Plugin implements StartStopListener {
-    private Matcher matcher;
-    private URL log4jConfig;
-    private URL pmsencoderConfig;
-    private static final String PMSENCODER_CONFIG_FILE_PATH = "pmsencoder.config_file"; // XXX not used yet
+    private static final String VERSION = "1.0.1";
+    private static final String PMSENCODER_CONFIG_FILE_PATH = "pmsencoder.config_file";
     private PmsConfiguration configuration;
     private Engine pmsencoder;
-    private String customConfigFile; // XXX not used yet
+    private Matcher matcher;
     private PMS pms;
-    private ArrayList<Format> extensions;
-    private static final String VERSION = "1.0.1"; // VERSION
-
+    private String currentDirectory;
+   
     public Plugin() {
         PMS.minimal("initializing PMSEncoder " + VERSION);
+        pms = PMS.get();
+	currentDirectory = new File("").getAbsolutePath();
 
         // set up log4j
-        log4jConfig = this.getClass().getResource("/log4j.xml");
+        URL log4jConfig = this.getClass().getResource("/log4j.xml");
         PMS.minimal("log4j config file: " + log4jConfig);
         DOMConfigurator.configure(log4jConfig);
 
-        // load default PMSEncoder config file
-        pmsencoderConfig = this.getClass().getResource("/pmsencoder.groovy");
-        PMS.minimal("PMSEncoder config file: " + pmsencoderConfig);
-        matcher = new Matcher(pmsencoderConfig);
-
-        // initialize the PMSEncoder object that launches the transcode
+        // initialize the Engine object that launches the transcode
         configuration = PMS.getConfiguration();
+
+        // load PMSEncoder config file(s)
+        matcher = new Matcher();
+        loadConfig();
         pmsencoder = new Engine(configuration, matcher);
-        customConfigFile = (String)configuration.getCustomProperty(PMSENCODER_CONFIG_FILE_PATH);
-
-        if (customConfigFile != null) {
-            PMS.minimal("custom config file defined: " + customConfigFile);
-        }
-
-        pms = PMS.get();
-        extensions = pms.getExtensions();
 
         /*
          * FIXME: don't assume the position is fixed
          * short term: find and replace *if it exists*
          * long term: patch PMS to allow plugins to register engines a) separately and b) cleanly
          * */
+        ArrayList<Format> extensions = pms.getExtensions();
         extensions.set(0, new WEB());
         registerPlayer();
     }
@@ -72,6 +65,42 @@ public class Plugin implements StartStopListener {
             pmsRegisterPlayer.invoke(pms, pmsencoder);
         } catch (Throwable e) {
             PMS.minimal("error calling PMS.registerPlayer: " + e);
+        }
+    }
+
+    // GMaven doesn't like generic methods, hence this egregious hack
+    private boolean loadConfig(Object config) {
+        boolean loaded = true;
+
+        try {
+	    PMS.minimal("loading PMSEncoder config file: " + config);
+	    if (config instanceof URL) {
+		matcher.load((URL)config);
+	    } else {
+		matcher.load((String)config);
+	    }
+        } catch (Throwable e) {
+            PMS.minimal("Can't load PMSEncoder config file: " + config + ": " + e);
+            loaded = false;
+        }
+
+        return loaded;
+    }
+
+    private void loadConfig() {
+        URL pmsencoderConfig = this.getClass().getResource("/pmsencoder.groovy");
+	loadConfig(pmsencoderConfig);
+        String customConfigPath = (String)configuration.getCustomProperty(PMSENCODER_CONFIG_FILE_PATH);
+
+        if (customConfigPath != null) {
+            PMS.minimal("custom PMSEncoder config path defined: " + customConfigPath);
+            loadConfig(customConfigPath);
+        } else {
+            PMS.minimal("checking for a custom PMSEncoder file in " + currentDirectory);
+
+            if (!loadConfig("pmsencoder.groovy")) {
+	       loadConfig("pmsencoder.conf");
+	    }
         }
     }
 

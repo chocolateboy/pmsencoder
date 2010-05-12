@@ -1,22 +1,21 @@
 @Typed
 package com.chocolatey.pmsencoder
 
-import org.junit.BeforeClass
 import groovy.util.GroovyTestCase
 import org.apache.log4j.xml.DOMConfigurator
 
 import com.chocolatey.pmsencoder.Stash
 import com.chocolatey.pmsencoder.Matcher
 
-
 class MatcherTest extends GroovyTestCase {
     Matcher matcher
 
     void setUp() {
-	URL log4jConfig = this.getClass().getResource('/log4j.xml')
-	DOMConfigurator.configure(log4jConfig)
+        URL log4jConfig = this.getClass().getResource('/log4j.xml')
+        DOMConfigurator.configure(log4jConfig)
         URL pmsencoderConfig = this.getClass().getResource('/pmsencoder.groovy')
-        matcher = new Matcher(pmsencoderConfig)
+        matcher = new Matcher()
+	matcher.load(pmsencoderConfig)
     }
 
     private void assertMatch(

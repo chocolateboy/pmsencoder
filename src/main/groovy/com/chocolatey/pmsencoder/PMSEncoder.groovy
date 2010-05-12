@@ -1,6 +1,8 @@
 @Typed
 package com.chocolatey.pmsencoder
 
+// class PMSEncoderException extends RuntimeException { }
+
 interface ActionClosure {
     void call(Stash stash, List<String> args, ActionsState state)
 }
@@ -30,33 +32,30 @@ class ActionsState {
 }
 
 class Matcher extends Logger {
-    URL configURL
     Config config
-    private static List<String> defaultArgs = [
-        "-prefer-ipv4",
-        "-oac", "lavc",
-        "-of", "lavf",
-        "-lavfopts", "format=dvd",
-        "-ovc", "lavc",
-        "-lavcopts", "vcodec=mpeg2video:vbitrate=4096:threads=2:acodec=ac3:abitrate=128",
-        "-ofps", "25",
-        "-cache", "16384",
-        "-vf", "harddup"
-    ]
 
-    Matcher(URL url) {
-        config = new Config()
-
-        if (url != null) {
-            log.info("loading config: $url")
-            this.configURL = url
-            this.load(url)
-            log.info("config file version: ${config.version}")
-        }
+    Matcher() {
+	this.config = new Config()
     }
 
-    private void load(URL url) {
-        InputStreamReader reader = new InputStreamReader(url.openStream())
+    void load(String path) {
+        load(new File(path))
+    }
+
+    void load(File file) {
+        load(new FileInputStream(file))
+    }
+
+    void load(URL url) {
+        load(url.openStream())
+    }
+
+    void load(InputStream stream) {
+        load(new InputStreamReader(stream))
+    }
+
+    void load(Reader reader) {
+        // XXX squashed bug: don't drain the reader by logging its value!
         Script script = new GroovyShell().parse(reader)
         ExpandoMetaClass emc = new ExpandoMetaClass(script.class, false)
 
@@ -68,20 +67,20 @@ class Matcher extends Logger {
 
     List<String> match(Stash stash, List<String> args, boolean useDefault = true) {
         if (useDefault) {
-            defaultArgs.each { args << it }
+            config.args.each { args << it }
         }
         config.match(stash, args) // we could use the @Delegate annotation, but this is cleaner/clearer
     }
 }
 
 class Config extends Logger {
-    String version
-    private List<Profile> profiles = []
+    private Map<String, Profile> profiles = [:] // defaults to LinkedHashMap
+    public List<String> args = [] // DSL field
 
     List<String> match(Stash stash, List<String> args) {
         List<String> matched = []
         log.info("matching URI: ${stash['uri']}")
-        profiles.each { profile ->
+        profiles.values().each { profile ->
             Closure actions
 
             if ((actions = profile.match(stash, args))) {
@@ -94,22 +93,23 @@ class Config extends Logger {
     }
 
     // DSL method
-    void version(String version) {
-        this.version = version
-    }
-
-    // DSL method
-    @Typed(TypePolicy.DYNAMIC) // Groovy++ doesn't support delegation yet
+    @Typed(TypePolicy.DYNAMIC) // Groovy++ doesn't support delegation
     void config(Closure closure) {
         this.with(closure)
     }
 
     // DSL method
-    @Typed(TypePolicy.DYNAMIC) // Groovy++ doesn't support delegation yet
+    @Typed(TypePolicy.DYNAMIC) // Groovy++ doesn't support delegation
     void profile (String name, Closure closure) {
         Profile profile = new Profile(name)
         profile.with(closure)
-        profiles << profile
+        profiles[name] = profile
+    }
+
+    // DSL method
+    @Typed(TypePolicy.DYNAMIC) // Groovy++ doesn't support delegation
+    void defaultArgs (List<String> args) {
+        this.defaultArgs = args
     }
 }
 
@@ -141,7 +141,7 @@ class Profile extends Logger {
     }
 
     // DSL method
-    @Typed(TypePolicy.DYNAMIC) // Groovy++ doesn't support delegation yet
+    @Typed(TypePolicy.DYNAMIC) // Groovy++ doesn't support delegation
     void match(Closure closure) {
         Match match = new Match()
         match.with(closure)
@@ -149,7 +149,7 @@ class Profile extends Logger {
     }
 
     // DSL method
-    @Typed(TypePolicy.DYNAMIC) // Groovy++ doesn't support delegation yet
+    @Typed(TypePolicy.DYNAMIC) // Groovy++ doesn't support delegation
     void action (Closure closure) {
         Actions actions = new Actions()
         actions.with(closure)
