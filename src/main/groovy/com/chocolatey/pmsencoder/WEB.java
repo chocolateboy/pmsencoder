@@ -10,16 +10,16 @@ import net.pms.PMS;
 public class WEB extends net.pms.formats.WEB {
     @Override
     public ArrayList<Class<? extends Player>> getProfiles() {
-	ArrayList<Class<? extends Player>> profiles = super.getProfiles();
+        ArrayList<Class<? extends Player>> profiles = super.getProfiles();
 
-	if (type == VIDEO) {
-	    for (String engine : PMS.getConfiguration().getEnginesAsList(PMS.get().getRegistry())) {
-		if (engine.equals(Engine.ID)) {
-		    profiles.add(0, Engine.class);
-		}
-	    }
-	}
+        if (type == VIDEO) {
+            for (String engine : PMS.getConfiguration().getEnginesAsList(PMS.get().getRegistry())) {
+                if (engine.equals(Engine.ID)) {
+                    profiles.add(0, Engine.class);
+                }
+            }
+        }
 
-	return profiles;
+        return profiles;
     }
 }

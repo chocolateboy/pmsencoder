@@ -35,7 +35,7 @@ class Matcher extends Logger {
     Config config
 
     Matcher() {
-	this.config = new Config()
+        this.config = new Config()
     }
 
     void load(String path) {

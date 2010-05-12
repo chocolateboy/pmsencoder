@@ -15,7 +15,7 @@ class MatcherTest extends GroovyTestCase {
         DOMConfigurator.configure(log4jConfig)
         URL pmsencoderConfig = this.getClass().getResource('/pmsencoder.groovy')
         matcher = new Matcher()
-	matcher.load(pmsencoderConfig)
+        matcher.load(pmsencoderConfig)
     }
 
     private void assertMatch(

@@ -33,7 +33,7 @@ public class Plugin implements StartStopListener {
     public Plugin() {
         PMS.minimal("initializing PMSEncoder " + VERSION);
         pms = PMS.get();
-	currentDirectory = new File("").getAbsolutePath();
+        currentDirectory = new File("").getAbsolutePath();
 
         // set up log4j
         URL log4jConfig = this.getClass().getResource("/log4j.xml");
@@ -73,12 +73,12 @@ public class Plugin implements StartStopListener {
         boolean loaded = true;
 
         try {
-	    PMS.minimal("loading PMSEncoder config file: " + config);
-	    if (config instanceof URL) {
-		matcher.load((URL)config);
-	    } else {
-		matcher.load((String)config);
-	    }
+            PMS.minimal("loading PMSEncoder config file: " + config);
+            if (config instanceof URL) {
+                matcher.load((URL)config);
+            } else {
+                matcher.load((String)config);
+            }
         } catch (Throwable e) {
             PMS.minimal("Can't load PMSEncoder config file: " + config + ": " + e);
             loaded = false;
@@ -89,7 +89,7 @@ public class Plugin implements StartStopListener {
 
     private void loadConfig() {
         URL pmsencoderConfig = this.getClass().getResource("/pmsencoder.groovy");
-	loadConfig(pmsencoderConfig);
+        loadConfig(pmsencoderConfig);
         String customConfigPath = (String)configuration.getCustomProperty(PMSENCODER_CONFIG_FILE_PATH);
 
         if (customConfigPath != null) {
@@ -99,8 +99,8 @@ public class Plugin implements StartStopListener {
             PMS.minimal("checking for a custom PMSEncoder file in " + currentDirectory);
 
             if (!loadConfig("pmsencoder.groovy")) {
-	       loadConfig("pmsencoder.conf");
-	    }
+               loadConfig("pmsencoder.conf");
+            }
         }
     }
 
