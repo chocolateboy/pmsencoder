@@ -8,7 +8,8 @@ config {
         '-ovc', 'lavc',
         '-lavcopts', 'vcodec=mpeg2video:vbitrate=4096:threads=2:acodec=ac3:abitrate=128',
         '-ofps', '25',
-        '-cache', '16384',
+        // '-cache', '8192',
+        '-nocache',
         '-vf', 'harddup'
     ]
 
