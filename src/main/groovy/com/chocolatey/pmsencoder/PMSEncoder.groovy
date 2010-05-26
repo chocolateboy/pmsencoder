@@ -124,10 +124,19 @@ class Profile extends Logger {
 
     Closure match(Stash stash, List<String> args) {
         // make sure this uses LinkedHashMap (the Groovy default Map implementation)
-        // to ensure predictable iteration ordering (for tests)
+        // to ensure predictable iteration ordering (e.g. for tests)
         Stash new_stash = new Stash(stash) // clone() doesn't work with Groovy++
 
         if (match.match(new_stash, args)) {
+            /*
+                return a closure that encapsulates all the side-effects of a successful
+                match e.g.
+                
+                1) log the name of the matched profile
+                2) perform any side effects of the match (e.g. bind any variables
+                   that were extracted by calls to the DSL's match method)
+                3) execute the profile's corresponding actions
+            */
             return {
                 log.info("matched $name")
                 // merge all the name/value bindings resulting from the match
@@ -157,7 +166,7 @@ class Profile extends Logger {
     }
 }
 
-// TODO: add isGreaterThan (gt?), isLessThan (lt?), and equals (eq?) matchers
+// TODO: add isGreaterThan (gt?), isLessThan (lt?), and equals (eq?) matchers?
 class Match {
     private List<MatchClosure> matchers = []
 
@@ -176,8 +185,9 @@ class Match {
     boolean match(Stash stash, List<String> args) {
         /*
             XXX groovy++ can't infer the matcher type here, but
-            can infer the action type below; note: it compiles
-            fine if every is replaced by each, so it must be per-method
+            can infer the action type below (actions.each ...),
+            and it compiles fine if every is replaced by each,
+            so it's a method-specific bug
         */
         matchers.every { MatchClosure matcher -> matcher(stash, args) }
     }
@@ -193,7 +203,7 @@ class Actions extends Logger {
         actions.each { action -> action(stash, args, state) }
     }
 
-    // not a DSL method: do the heavy-lifting of stash assignment
+    // not a DSL method: do the heavy-lifting of stash assignment.
     // public because Profile needs to call it
     void let(Stash stash, String name, String value) {
         if ((stash[name] == null) || (stash[name] != value)) {
@@ -215,6 +225,7 @@ class Actions extends Logger {
                             let uri: 'http://www.example.com/${id + 1}.html'
                         }
                 */
+
                 def var_name_regex = ~/(?:(?:\$$stash_key\b)|(?:\$\{$stash_key\}))/
          
                 if (new_value[0] =~ var_name_regex) {
@@ -232,7 +243,7 @@ class Actions extends Logger {
     /*
         1) get the URI pointed to by stash[uri] (if it hasn't already been retrieved)
         2) perform a regex match against the document
-        3) update stash with any named captures
+        3) update the stash with any named captures
     */
     // DSL method
     void get(String regex) {

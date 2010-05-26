@@ -4,7 +4,7 @@ This is a plugin for [PS3 Media Server](http://code.google.com/p/ps3mediaserver/
 
 # Prerequisites <a name="Prerequisites"></a>
 
-PMSEncoder should work on all platforms supported by PS3 Media Server.
+Due to a [bug](http://code.google.com/p/ps3mediaserver/issues/detail?id=766) in the Mac OS X build of PS3 Media Server, PMSEncoder doesn't currently work on Macs. It should work on all other platforms supported by PS3 Media Server.
 
 These instructions assume you have the latest versions of [PS3 Media Server](http://ps3mediaserver.org/forum/viewtopic.php?f=2&t=3217) (PMS) and [Java](http://www.java.com/en/download/index.jsp), and a recent MEncoder.
 
@@ -19,6 +19,10 @@ These instructions assume you have the latest versions of [PS3 Media Server](htt
 ## Upgrading <a name="Upgrading"></a>
 
 To upgrade to a new version of the plugin, simply replace the old jar file with the new version in the `plugins` directory, and restart PMS.
+
+# Tips
+
+* To work around the PMS [bug](http://code.google.com/p/ps3mediaserver/issues/detail?id=759) that causes web video playback to be delayed for ~40s, uncheck "HTTP Engine V2" in the PMS "General Configuration" tab. This can also be done by setting `http_engine_v2 = false` in PMS.conf.
 
 # Troubleshooting <a name="Troubleshooting"></a>
 
