@@ -18,6 +18,6 @@
 // Or:
 
     get uri:   stash[uri], // default
-	xpath: '//foo/bar/@baz',
-	regex: 'foo:(?<bar>bar):baz'
-	format: 'html' // default if xpath is defined
+        xpath: '//foo/bar/@baz',
+        regex: 'foo:(?<bar>bar):baz'
+        format: 'html' // default if xpath is defined
