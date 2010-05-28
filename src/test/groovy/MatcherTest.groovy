@@ -1,46 +1,9 @@
 @Typed
 package com.chocolatey.pmsencoder
 
-import groovy.util.GroovyTestCase
-import org.apache.log4j.xml.DOMConfigurator
-
-import com.chocolatey.pmsencoder.Stash
-import com.chocolatey.pmsencoder.Matcher
-
-class MatcherTest extends GroovyTestCase {
-    Matcher matcher
-
-    void setUp() {
-        URL log4jConfig = this.getClass().getResource('/log4j.xml')
-        DOMConfigurator.configure(log4jConfig)
-        URL pmsencoderConfig = this.getClass().getResource('/pmsencoder.groovy')
-        matcher = new Matcher()
-        matcher.load(pmsencoderConfig)
-    }
-
-    private void assertMatch(
-        String uri,
-        Stash stash,
-        List<String> args,
-        List<String> expectedMatches,
-        Stash expectedStash,
-        List<String> expectedArgs
-    ) {
-        List<String> matches = matcher.match(stash, args, false)
-
-        // println "got matches: $matches"
-        // println "want matches: $expectedMatches"
-        assert matches == expectedMatches
-        // println "got stash: $stash"
-        // println "want stash: $expectedStash"
-        assert stash == expectedStash
-        // println "got args: $args"
-        // println "want args: $expectedArgs"
-        assert args == expectedArgs
-    }
-
+class MatcherTest extends PMSEncoderTestCase {
     // no match - change nothing
-    private void simple() {
+    private void noMatch() {
         def uri = 'http://www.example.com'
         def stash = new Stash(uri: uri)
         def want_stash = new Stash(uri: uri)
@@ -57,8 +20,8 @@ class MatcherTest extends GroovyTestCase {
 
     // confirm that there are no side-effects that prevent this returning the same result for the same input
     void testIdempotent() {
-        simple()
-        simple()
+        noMatch()
+        noMatch()
     }
 
     void testApple() {
@@ -95,7 +58,6 @@ class MatcherTest extends GroovyTestCase {
                 -lavcopts vbitrate=4096
         */
 
-
         assertMatch(
             uri,                                  // URI
             stash,                                // stash
@@ -114,8 +76,8 @@ class MatcherTest extends GroovyTestCase {
     }
 
     /*
-        we can't use assertMatch here as the mysterious t parameter changes - possibly
-        for every request, which means our "fixture" isn't fixed.
+        we can't use assertMatch here as the mysterious t parameter changes (possibly
+        for every request), which means our "fixture" isn't fixed.
         instead we test it manually
     */
     void testYouTube() {
