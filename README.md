@@ -1,17 +1,17 @@
 # Synopsis <a name="Synopsis"></a>
 
-This is a plugin for [PS3 Media Server](http://code.google.com/p/ps3mediaserver/) that adds configurable support for Web video streaming via MEncoder.
+This is a plugin for [PS3 Media Server](http://code.google.com/p/ps3mediaserver/) (PMS) that adds configurable support for Web video streaming via MEncoder.
 
 # Prerequisites <a name="Prerequisites"></a>
 
-Due to a [bug](http://code.google.com/p/ps3mediaserver/issues/detail?id=766) in the Mac OS X build of PS3 Media Server, PMSEncoder doesn't currently work on Macs. It should work on all other platforms supported by PS3 Media Server.
+Due to a [bug](http://code.google.com/p/ps3mediaserver/issues/detail?id=766) in the Mac OS X build of PMS, PMSEncoder doesn't currently work on Macs. In addition, PMS doesn't support web streams for Xbox renderers. PMSEncoder should work on all other platforms supported by PS3 Media Server.
 
-These instructions assume you have the latest versions of [PS3 Media Server](http://ps3mediaserver.org/forum/viewtopic.php?f=2&t=3217) (PMS) and [Java](http://www.java.com/en/download/index.jsp), and a recent MEncoder.
+These instructions assume you have the latest versions of [PS3 Media Server](http://ps3mediaserver.org/forum/viewtopic.php?f=2&t=3217) and [Java](http://www.java.com/en/download/index.jsp), and a recent MEncoder.
 
 # Installation <a name="Installation"></a>
 
 * download the [PMSEncoder jar file](http://github.com/downloads/chocolateboy/pmsencoder/pmsencoder-1.0.1.jar) and place it in the PMS `plugins` directory
-* add `pmsencoder` to the front of the list of engines in PMS.conf e.g.
+* shut down PMS and add `pmsencoder` to the front of the list of engines in PMS.conf e.g.
   * `engines = pmsencoder,mencoder,tsmuxer,mplayeraudio` &c.
 * if you previously used the standalone version of PMSEncoder, disable it by removing the `mencoder_path = /path/to/pmsencoder` line.
 * restart PMS
@@ -26,6 +26,8 @@ To upgrade to a new version of the plugin, simply replace the old jar file with 
 
 # Troubleshooting <a name="Troubleshooting"></a>
 
+* If PMS.conf doesn't exist, create it by clicking the "Save" icon in the PMS GUI.
+* Make sure PMS is not running when editing PMS.conf.
 * Make sure there's only one version of the plugin in the `plugins` directory.
 * Make sure the edited PMS.conf is the one PMS is using (search the filesystem for other copies).
 * Make sure `pmsencoder` is at the start of the list of engines in PMS.conf.
