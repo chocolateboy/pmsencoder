@@ -76,9 +76,8 @@ class MatcherTest extends PMSEncoderTestCase {
     }
 
     /*
-        we can't use assertMatch here as the mysterious t parameter changes (possibly
-        for every request), which means our "fixture" isn't fixed.
-        instead we test it manually
+        we can't use assertMatch here due to the dynamic nature of YouTube's result.
+	instead, do a basic sanity-check that the URI contains youtube.com/videoplayback?
     */
     void testYouTube() {
         def youtube = 'http://www.youtube.com'
@@ -89,12 +88,9 @@ class MatcherTest extends PMSEncoderTestCase {
         List<String> matches = matcher.match(stash, args, false)
 
         assert matches == [ 'YouTube' ]
-        assert stash.keySet().toList() == [ 'uri', 'video_id', 't' ]
-        assert stash['t']
+        assert stash.keySet().toList() == [ 'uri', 'video_id' ]
         assert stash['video_id'] == '_OBlgSz8sSM'
-        // XXX assert doesn't like GStrings
-        def want_uri = "$youtube/get_video?fmt=18&video_id=${stash['video_id']}&t=${stash['t']}"
-        assert stash['uri'] == want_uri.toString()
+	assert stash['uri'] ==~ /.+\.youtube\.com\/videoplayback\?.+/
         assert args == []
     }
 

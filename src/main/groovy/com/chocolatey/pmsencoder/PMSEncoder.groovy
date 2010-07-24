@@ -3,36 +3,42 @@ package com.chocolatey.pmsencoder
 
 // class PMSEncoderException extends RuntimeException { }
 
-interface ActionClosure {
-    void call(Stash stash, List<String> args, ActionsState state)
+interface SubAction {
+    void call(Stash stash, List<String> args, ActionState state)
 }
 
-interface MatchClosure {
+interface SubPattern {
     boolean call(Stash stash, List<String> args)
 }
 
-class Stash extends LinkedHashMap<String, String> {
-    Stash() {
+// all this so that we can populate it withs strings from Java
+// and GStrings in Groovy
+public class Stash extends LinkedHashMap<java.lang.String, java.lang.String> {
+    public Stash() { 
         super()
     }
 
-    Stash(Stash old) {
-        super(old)
+    public Stash(Stash old) {
+        super()
+        old.each { key, value -> this.put(key.toString(), value.toString()) }
     }
 
-    Stash(Map<Object, Object> old) {
-        super()
-        old.each { name, value -> put(name.toString(), value.toString()) }
+    public java.lang.String put(Object key, Object value) {
+        super.put(key.toString(), value.toString())
+    }
+
+    public java.lang.String get(Object key) {
+        super.get(key.toString())
     }
 }
 
-// common state shared across a block of actions
-class ActionsState {
-    Map<String, String> cache = [:]
+// common state shared across a sequence of subactions
+class ActionState {
+    public final Map<String, String> cache = [:]
 }
 
 class Matcher extends Logger {
-    Config config
+    private final Config config
 
     Matcher() {
         this.config = new Config()
@@ -69,22 +75,26 @@ class Matcher extends Logger {
         if (useDefault) {
             config.args.each { args << it }
         }
+
         config.match(stash, args) // we could use the @Delegate annotation, but this is cleaner/clearer
     }
 }
 
 class Config extends Logger {
-    private Map<String, Profile> profiles = [:] // defaults to LinkedHashMap
-    public List<String> args = [] // DSL field
+    private final Map<String, Profile> profiles = [:] // defaults to LinkedHashMap
+
+    // DSL fields (mutable)
+    public List<String> args = []
+    public List<Integer> ytaccept = []
 
     List<String> match(Stash stash, List<String> args) {
         List<String> matched = []
         log.info("matching URI: ${stash['uri']}")
         profiles.values().each { profile ->
-            Closure actions
+            Closure subactions
 
-            if ((actions = profile.match(stash, args))) {
-                actions()
+            if ((subactions = profile.match(stash, args))) {
+                subactions()
                 matched << profile.name
             }
         }
@@ -93,41 +103,39 @@ class Config extends Logger {
     }
 
     // DSL method
-    @Typed(TypePolicy.DYNAMIC) // Groovy++ doesn't support delegation
+    @Typed(TypePolicy.MIXED) // Groovy++ doesn't support delegation
     void config(Closure closure) {
         this.with(closure)
     }
 
     // DSL method
-    @Typed(TypePolicy.DYNAMIC) // Groovy++ doesn't support delegation
+    @Typed(TypePolicy.MIXED) // Groovy++ doesn't support delegation
     void profile (String name, Closure closure) {
-        Profile profile = new Profile(name)
+        Profile profile = new Profile(name, this)
         profile.with(closure)
         profiles[name] = profile
-    }
-
-    // DSL method
-    @Typed(TypePolicy.DYNAMIC) // Groovy++ doesn't support delegation
-    void defaultArgs (List<String> args) {
-        this.defaultArgs = args
     }
 }
 
 class Profile extends Logger {
-    private Match match
-    private Actions actions
-    public String name
+    private final Config config
+    private Pattern pattern
+    private Action action
 
-    Profile(String name) {
+    public final String name
+
+    Profile(String name, Config config) {
         this.name = name
+        this.config = config
     }
 
     Closure match(Stash stash, List<String> args) {
         // make sure this uses LinkedHashMap (the Groovy default Map implementation)
         // to ensure predictable iteration ordering (e.g. for tests)
         Stash new_stash = new Stash(stash) // clone() doesn't work with Groovy++
+        assert new_stash != null
 
-        if (match.match(new_stash, args)) {
+        if (pattern.match(new_stash, args)) {
             /*
                 return a closure that encapsulates all the side-effects of a successful
                 match e.g.
@@ -135,13 +143,13 @@ class Profile extends Logger {
                 1) log the name of the matched profile
                 2) perform any side effects of the match (e.g. bind any variables
                    that were extracted by calls to the DSL's match method)
-                3) execute the profile's corresponding actions
+                3) execute the profile's corresponding action
             */
             return {
                 log.info("matched $name")
                 // merge all the name/value bindings resulting from the match
-                new_stash.each { name, value -> actions.let(stash, name, value) }
-                actions.executeActions(stash, args)
+                new_stash.each { name, value -> action.let(stash, name, value) }
+                action.execute(stash, args)
                 return name
             }
         } else {
@@ -150,64 +158,83 @@ class Profile extends Logger {
     }
 
     // DSL method
-    @Typed(TypePolicy.DYNAMIC) // Groovy++ doesn't support delegation
-    void match(Closure closure) {
-        Match match = new Match()
-        match.with(closure)
-        this.match = match
+    @Typed(TypePolicy.MIXED) // Groovy++ doesn't support delegation
+    void pattern(Closure closure) {
+        Pattern pattern = new Pattern(config)
+        pattern.with(closure)
+        this.pattern = pattern
     }
 
     // DSL method
-    @Typed(TypePolicy.DYNAMIC) // Groovy++ doesn't support delegation
+    @Typed(TypePolicy.MIXED) // Groovy++ doesn't support delegation
     void action (Closure closure) {
-        Actions actions = new Actions()
-        actions.with(closure)
-        this.actions = actions
+        Action action = new Action(config)
+        action.with(closure)
+        this.action = action
     }
 }
 
 // TODO: add isGreaterThan (gt?), isLessThan (lt?), and equals (eq?) matchers?
-class Match {
-    private List<MatchClosure> matchers = []
+class Pattern {
+    private final Config config
+    private final List<SubPattern> subpatterns = []
 
-    // DSL method
-    void matches(Map<String, String> map) {
-        map.each { name, value -> matches(name, value) }
+    Pattern(Config config) {
+        this.config = config
     }
 
     // DSL method
-    void matches(String name, String value) {
-        matchers << { stash, args ->
+    void match(Map<String, String> map) {
+        map.each { name, value -> match(name, value) }
+    }
+
+    // DSL method
+    void match(String name, String value) {
+        subpatterns << { stash, args ->
+            assert stash != null
             RegexHelper.match(stash[name], value, stash)
         }
     }
 
     boolean match(Stash stash, List<String> args) {
-        /*
-            XXX groovy++ can't infer the matcher type here, but
-            can infer the action type below (actions.each ...),
-            and it compiles fine if every is replaced by each,
-            so it's a method-specific bug
-        */
-        matchers.every { MatchClosure matcher -> matcher(stash, args) }
+        subpatterns.every { pattern -> pattern(stash, args) }
     }
 }
 
-class Actions extends Logger {
-    /* TODO: add configurable proxy support */
-    private List<ActionClosure> actions = []
+/* XXX: add configurable HTTP proxy support? */
+class Action extends Logger {
+    private final Config config
+    private final List<SubAction> subactions = []
+
+    @Lazy private URLDecoder decoder = new URLDecoder() 
     @Lazy private HTTPClient http = new HTTPClient()
 
-    void executeActions(Stash stash, List<String> args) {
-        ActionsState state = new ActionsState()
-        actions.each { action -> action(stash, args, state) }
+    Action(Config config) {
+        this.config = config
+    }
+
+    // DSL properties
+
+    // args
+    protected final List<String> getArgs() {
+        config.args
+    }
+
+    // ytaccept
+    protected final List<String> getYtaccept() {
+        config.ytaccept
+    }
+
+    void execute(Stash stash, List<String> args) {
+        ActionState state = new ActionState()
+        subactions.each { subaction -> subaction(stash, args, state) }
     }
 
     // not a DSL method: do the heavy-lifting of stash assignment.
     // public because Profile needs to call it
     void let(Stash stash, String name, String value) {
         if ((stash[name] == null) || (stash[name] != value)) {
-            String[] new_value = [ value ] // FIXME can't get Reference to work transparently
+            String[] new_value = [ value ] // FIXME can't get Reference to work transparently here
             log.info("setting \$$name to $value")
          
             stash.each { stash_key, stash_value ->
@@ -217,8 +244,8 @@ class Actions extends Logger {
                     interpolation manually. this would also allow the string to contain
                     arbitrary groovy expressions e.g.
 
-                        match {
-                            matches uri: '^http://www\\.example\\.com/(?<id>\\d+)\\.html'
+                        pattern {
+                            match uri: '^http://www\\.example\\.com/(?<id>\\d+)\\.html'
                         }
 
                         action {
@@ -246,18 +273,20 @@ class Actions extends Logger {
         3) update the stash with any named captures
     */
     // DSL method
-    void get(String regex) {
-        actions << { stash, args, state ->
-            String uri = stash['uri']
-            String document = state.cache[uri]
+    void scrape(String regex) {
+        subactions << { stash, args, state ->
+            def uri = stash['uri']
+            def document = state.cache[uri]
+            // Stash new_stash = new Stash([:])
             Stash new_stash = new Stash()
+            assert new_stash != null
 
             if (!document) {
                 log.info("getting $uri")
                 document = state.cache[uri] = http.get(uri)
             }
 
-            assert document
+            assert document != null
 
             log.info("matching content of $uri against $regex")
 
@@ -274,14 +303,14 @@ class Actions extends Logger {
     // DSL method
     void let(Map<String, String> map) {
         map.each { key, value ->
-            actions << { stash, args, state -> let(stash, key, value) }
+            subactions << { stash, args, state -> let(stash, key, value) }
         }
     }
 
     // set an mencoder option - create it if it doesn't exist
     // DSL method
     void set(Map<String, String> map) {
-        actions << { stash, args, state ->
+        subactions << { stash, args, state ->
             // the sort order is predictable (for tests) as long as we (and Groovy) use LinkedHashMap
             map.each { name, value ->
                 log.info("inside set: $name => $value")
@@ -322,7 +351,7 @@ class Actions extends Logger {
     */
     // DSL method
     void replace(Map<String, Map<String, String>> replace_map) {
-        actions << { stash, args, state ->
+        subactions << { stash, args, state ->
             // the sort order is predictable (for tests) as long as we (and Groovy) use LinkedHashMap
             replace_map.each { name, map ->
                 name = "-$name"
@@ -346,61 +375,69 @@ class Actions extends Logger {
     }
 
     /*
-        given (in the stash) the $video_id and $t values of a YouTube media URI (i.e. the URI of an .flv, .mp4 &c.),
-        construct the full URI with various $fmt values in succession and set the stash $uri value to the first one
-        that's valid (based on a HEAD request)
+        given (in the stash) the $video_id of a YouTube video:
 
-        see http://stackoverflow.com/questions/1883737/getting-an-flv-from-youtube-in-net
+            1) grab the video's metadata via the get_video_info API
+            2) parse this metadata to extract the available streaming URIs 
+            3) iterate over the list of acceptable formats and select the first streaming URI
+               with that format
+
+        the only fiddly part is parsing/extracting data from the get_video_info output
+        as it's a blob of URL-encoded text rather than structured XML/JSON
     */
 
     // DSL method
-    void youtube(String[] formats) {
-        actions << { stash, args, state ->
-            String uri = stash['uri']
-            String video_id = stash['video_id']
-            String t = stash['t']
-            assert video_id
-            assert t
-            boolean found = false
-         
-            /*
-                via http://www.longtailvideo.com/support/forum/General-Chat/16851/Youtube-blocked-http-youtube-com-get-video
+    void youtube(List<String> formats = config.ytaccept) {
 
-                No &fmt = FLV (very low)
-                &fmt=5 = FLV (very low)
-                &fmt=6 = FLV (doesn't always work)
-                &fmt=13 = 3GP (mobile phone)
-                &fmt=18 = MP4 (normal)
-                &fmt=22 = MP4 (hd)
+        subactions << { stash, args, state ->
+            def uri = stash['uri']
+            def video_id = stash['video_id']
+            def found = false
 
-                see also:
-
-                http://tinyurl.com/y8rdcoy
-                http://userscripts.org/topics/18274
-            */
+            assert video_id != null
          
             if (formats.size() > 0) {
+                def video_info_uri = "http://www.youtube.com/get_video_info?video_id=$video_id"
+
+                log.info("querying $video_info_uri")
+
+                def video_info = http.get(video_info_uri)
+                assert video_info != null
+
+                // squashed megabug - Groovy's regexen must match *the whole string*
+                // or the match will fail :-/
+                def raw_fmt_stream_map = video_info.split('&').find({ it ==~ /^fmt_stream_map=.+$/ }).substring(15)
+                assert raw_fmt_stream_map != null
+
+                Map<String, String> fmt_stream_map =
+                    decoder.decode(raw_fmt_stream_map, 'UTF-8').          // url-decode
+                    tokenize(',').                                        // split along the comma into k=v strings
+                    collect { String kv -> kv.tokenize('|') }.            // map into [ fmt, uri, ... ] arrays
+                    inject([:]) { Map map, List arr -> map[arr[0]] = arr[1]; map } // map into [ fmt, uri, ... ] arrays
+
+                assert fmt_stream_map
+
+                log.info("checking preferred formats against available formats")
+
                 found = formats.any { fmt ->
-                    String media_uri = "http://www.youtube.com/get_video?fmt=$fmt&video_id=$video_id&t=$t"
+                    def streaming_uri = fmt_stream_map[fmt]
 
-                    log.info("trying $media_uri")
-
-                    if (http.head(media_uri)) {
-                        log.info("success")
+                    if (streaming_uri) {
+                        log.info("preferred: $fmt; available: yes")
                         // set the new URI - note: use the low-level interface NOT the (deferred) DSL interface!
-                        let(stash, 'uri', media_uri)
+                        let(stash, 'uri', streaming_uri)
                         return true
                     } else {
-                        log.info("failure")
+                        log.info("preferred: $fmt; available: no")
                         return false
                     }
                 }
             } else {
-                log.fatal("no formats defined for $uri")
+                log.fatal("no preferred formats defined for $uri")
             }
          
             if (!found) {
-                log.fatal("can't retrieve YouTube video from $uri")
+                log.fatal("can't retrieve streaming URI for $uri")
             }
         }
     }

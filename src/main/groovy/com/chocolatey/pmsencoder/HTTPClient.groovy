@@ -1,3 +1,4 @@
+@Typed(TypePolicy.MIXED)
 package com.chocolatey.pmsencoder
 
 import groovyx.net.http.HTTPBuilder

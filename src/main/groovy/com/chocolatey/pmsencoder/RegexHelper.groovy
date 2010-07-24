@@ -14,6 +14,7 @@ class RegexHelper {
         boolean matchFound = matcher.find()
 
         if (matchFound) {
+        // if (stash && matchFound) {
             /*
                 store named groups as name => match pairs in stash
                 XXX 0 is the index of the entire matched string, so group indices start at 1 
