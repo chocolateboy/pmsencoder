@@ -92,7 +92,7 @@ class MatcherTest extends PMSEncoderTestCase {
         def video_id = stash['video_id']
         assert video_id == '_OBlgSz8sSM'
         def t = stash['t']
-	// the mysterious $t token changes frequently, but always seems to end in a URL-encoded "="
+        // the mysterious $t token changes frequently, but always seems to end in a URL-encoded "="
         assert t ==~ /.*%3D$/
         def want_uri = "$youtube/get_video?fmt=35&video_id=$video_id&t=$t&eurl=&el=&ps=&asv="
         assert stash['uri'] == want_uri

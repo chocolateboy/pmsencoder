@@ -50,7 +50,7 @@ config {
             scrape '&t=(?<t>[^&]+)'
 
             // Now, with $video_id and $t defined, call the custom YouTube handler.
-	    // Note: the parentheses are required for a no-arg action
+            // Note: the parentheses are required for a no-arg action
             youtube()
         }
     }
