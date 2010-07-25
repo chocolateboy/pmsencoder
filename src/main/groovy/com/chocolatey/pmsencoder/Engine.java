@@ -85,7 +85,7 @@ public class Engine extends MEncoderWebVideo {
 
         try {
             // Thread.sleep(50);
-            Thread.sleep(500);
+            Thread.sleep(200);
         } catch (InterruptedException e) { }
 
         pipe.deleteLater();

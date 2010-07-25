@@ -27,7 +27,7 @@ config {
 
             youtube [ 38 ] + ytaccept
 
-	For the full list of formats, see: https://secure.wikimedia.org/wikipedia/en/wiki/YouTube#Quality_and_codecs
+        For the full list of formats, see: https://secure.wikimedia.org/wikipedia/en/wiki/YouTube#Quality_and_codecs
     */
 
     ytaccept = [
@@ -35,7 +35,7 @@ config {
         '22',  // 720p
         '35',  // 480p
         '34',  // 360p
-	'18',  // Medium
+        '18',  // Medium
         '5'    // 240p
     ]
 
@@ -46,18 +46,12 @@ config {
         }
 
         action {
+            // extract the resource's sekrit identifier ($t) from the HTML
+            scrape '&t=(?<t>[^&]+)'
 
-              /*
-                  Now, with $video_id defined, call the custom YouTube handler.
-
-                  For now, call it with no arguments and leave it to select the
-                  highest available resolution. But in future this can be
-                  refined to allow the user to limit/default the resolution
-                  (e.g. to save bandwidth/reduce download time) in a custom config file.
-                  See above.
-               */
-
-	      youtube()
+            // Now, with $video_id and $t defined, call the custom YouTube handler.
+	    // Note: the parentheses are required for a no-arg action
+            youtube()
         }
     }
                   

@@ -11,10 +11,9 @@ interface SubPattern {
     boolean call(Stash stash, List<String> args)
 }
 
-// all this so that we can populate it withs strings from Java
-// and GStrings in Groovy
+// a long-winded way of getting Java Strings and Groovy GStrings to play nice
 public class Stash extends LinkedHashMap<java.lang.String, java.lang.String> {
-    public Stash() { 
+    public Stash() {
         super()
     }
 
@@ -277,8 +276,8 @@ class Action extends Logger {
         subactions << { stash, args, state ->
             def uri = stash['uri']
             def document = state.cache[uri]
-            // Stash new_stash = new Stash([:])
-            Stash new_stash = new Stash()
+            def new_stash = new Stash()
+
             assert new_stash != null
 
             if (!document) {
@@ -307,40 +306,42 @@ class Action extends Logger {
         }
     }
 
+    void set(Map<String, String> map) {
+        // the sort order is predictable (for tests) as long as we (and Groovy) use LinkedHashMap
+        map.each { name, value -> set(name, value) }
+    }
+
     // set an mencoder option - create it if it doesn't exist
     // DSL method
-    void set(Map<String, String> map) {
+    void set(String name, String value = null) {
         subactions << { stash, args, state ->
-            // the sort order is predictable (for tests) as long as we (and Groovy) use LinkedHashMap
-            map.each { name, value ->
-                log.info("inside set: $name => $value")
-                name = "-$name"
-                int index = args.findIndexOf { it == name }
-             
-                if (index == -1) {
-                    if (value) {
-                        log.info("adding $name $value")
-                        /*
-                            XXX squashed bug - we need to modify stash and args in-place,
-                            which means we can't use:
-                            
-                                args += ...
+            log.info("inside set: $name => $value")
+            def qname = "-$name"
+            def index = args.findIndexOf { it == qname }
+         
+            if (index == -1) {
+                if (value) {
+                    log.info("adding $qname $value")
+                    /*
+                        XXX squashed bug - we need to modify stash and args in-place,
+                        which means we can't use:
+                        
+                            args += ...
 
-                            - or indeeed anything that returns a new value of args/stash
+                        - or indeeed anything that returns a new value of args/stash
 
-                            that's mildly inconvenient, but nowhere near as inconvenient as having to
-                            thread args/stash through every call/return from Match and Action
-                            closures
-                        */
-                        args << name << value
-                    } else {
-                        log.info("adding $name")
-                        args << name // FIXME: encapsulate @args handling
-                    }
-                } else if (value) {
-                    log.info("setting $name to $value")
-                    args[ index + 1 ] = value // FIXME: encapsulate @args handling
+                        that's mildly inconvenient, but nowhere near as inconvenient as having to
+                        thread args/stash through every call/return from Match and Action
+                        closures
+                    */
+                    args << qname << value
+                } else {
+                    log.info("adding $qname")
+                    args << qname // FIXME: encapsulate @args handling
                 }
+            } else if (value) {
+                log.info("setting $qname to $value")
+                args[ index + 1 ] = value // FIXME: encapsulate @args handling
             }
         }
     }
@@ -355,14 +356,14 @@ class Action extends Logger {
             // the sort order is predictable (for tests) as long as we (and Groovy) use LinkedHashMap
             replace_map.each { name, map ->
                 name = "-$name"
-                int index = args.findIndexOf { it == name }
+                def index = args.findIndexOf { it == name }
              
                 if (index != -1) {
                     map.each { search, replace ->
                         log.info("replacing $search with $replace")
                         // TODO support named captures
                         // FIXME: encapsulate args handling
-                        String value = args[ index + 1 ]
+                        def value = args[ index + 1 ]
 
                         if (value) {
                             // XXX bugfix: strings are immutable!
@@ -375,69 +376,43 @@ class Action extends Logger {
     }
 
     /*
-        given (in the stash) the $video_id of a YouTube video:
-
-            1) grab the video's metadata via the get_video_info API
-            2) parse this metadata to extract the available streaming URIs 
-            3) iterate over the list of acceptable formats and select the first streaming URI
-               with that format
-
-        the only fiddly part is parsing/extracting data from the get_video_info output
-        as it's a blob of URL-encoded text rather than structured XML/JSON
+        given (in the stash) the $video_id and $t values of a YouTube stream URI (i.e. the direct link to a video),
+        construct the full URI with various $fmt values in succession and set the stash $uri value to the first one
+        that's valid (based on a HEAD request)
     */
 
     // DSL method
     void youtube(List<String> formats = config.ytaccept) {
-
         subactions << { stash, args, state ->
             def uri = stash['uri']
             def video_id = stash['video_id']
+            def t = stash['t']
             def found = false
 
             assert video_id != null
-         
+            assert t != null
+
             if (formats.size() > 0) {
-                def video_info_uri = "http://www.youtube.com/get_video_info?video_id=$video_id"
-
-                log.info("querying $video_info_uri")
-
-                def video_info = http.get(video_info_uri)
-                assert video_info != null
-
-                // squashed megabug - Groovy's regexen must match *the whole string*
-                // or the match will fail :-/
-                def raw_fmt_stream_map = video_info.split('&').find({ it ==~ /^fmt_stream_map=.+$/ }).substring(15)
-                assert raw_fmt_stream_map != null
-
-                Map<String, String> fmt_stream_map =
-                    decoder.decode(raw_fmt_stream_map, 'UTF-8').          // url-decode
-                    tokenize(',').                                        // split along the comma into k=v strings
-                    collect { String kv -> kv.tokenize('|') }.            // map into [ fmt, uri, ... ] arrays
-                    inject([:]) { Map map, List arr -> map[arr[0]] = arr[1]; map } // map into [ fmt, uri, ... ] arrays
-
-                assert fmt_stream_map
-
-                log.info("checking preferred formats against available formats")
-
                 found = formats.any { fmt ->
-                    def streaming_uri = fmt_stream_map[fmt]
+                    def stream_uri = "http://www.youtube.com/get_video?fmt=$fmt&video_id=$video_id&t=$t&eurl=&el=&ps=&asv="
+                    log.info("trying fmt $fmt: $stream_uri")
 
-                    if (streaming_uri) {
-                        log.info("preferred: $fmt; available: yes")
+                    if (http.head(stream_uri)) {
+                        log.info("success")
                         // set the new URI - note: use the low-level interface NOT the (deferred) DSL interface!
-                        let(stash, 'uri', streaming_uri)
+                        let(stash, 'uri', stream_uri)
                         return true
                     } else {
-                        log.info("preferred: $fmt; available: no")
+                        log.info("failure")
                         return false
                     }
                 }
             } else {
-                log.fatal("no preferred formats defined for $uri")
+                log.fatal("no formats defined for $uri")
             }
-         
+
             if (!found) {
-                log.fatal("can't retrieve streaming URI for $uri")
+                log.fatal("can't retrieve stream URI for $uri")
             }
         }
     }
