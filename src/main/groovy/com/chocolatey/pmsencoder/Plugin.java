@@ -72,15 +72,23 @@ public class Plugin implements StartStopListener {
     private boolean loadConfig(Object config) {
         boolean loaded = true;
 
+        PMS.minimal("trying to load PMSEncoder config file: " + config);
+
         try {
-            PMS.minimal("loading PMSEncoder config file: " + config);
             if (config instanceof URL) {
                 matcher.load((URL)config);
             } else {
-                matcher.load((String)config);
+                File configFile = new File((String)config);
+
+                if (configFile.exists()) {
+                    matcher.load(configFile);
+                } else {
+                    loaded = false;
+                    PMS.minimal("custom config file doesn't exist: " + config);
+                }
             }
         } catch (Throwable e) {
-            PMS.minimal("Can't load PMSEncoder config file: " + config + ": " + e);
+            PMS.error("can't load PMSEncoder config file: " + config, e);
             loaded = false;
         }
 
@@ -96,7 +104,7 @@ public class Plugin implements StartStopListener {
             PMS.minimal("custom PMSEncoder config path defined: " + customConfigPath);
             loadConfig(customConfigPath);
         } else {
-            PMS.minimal("checking for a custom PMSEncoder file in " + currentDirectory);
+            PMS.minimal("checking for a custom PMSEncoder config file in " + currentDirectory);
 
             if (!loadConfig("pmsencoder.groovy")) {
                loadConfig("pmsencoder.conf");

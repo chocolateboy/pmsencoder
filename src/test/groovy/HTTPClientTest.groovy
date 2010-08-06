@@ -3,15 +3,15 @@ package com.chocolatey.pmsencoder
 
 /*
     for some reason, HTTPBuilder (via HTTPClient) is acting flaky under
-    DYNAMIC typing. try to pin it down
+    MIXED typing. try to pin it down
 */
 
 class HTTPClientTest extends PMSEncoderTestCase {
     private HTTPClient http = new HTTPClient()
 
     void testHead() {
-        assert http.head('http://www.example.com/nosuchfile.com') == false
-        assert http.head('http://www.example.com/') == true
+        assert http.head('http://www.example.com/nosuchfile.com') == false // this fails under MIXED
+        assert http.head('http://www.example.com') == true
     }
 
     void testGet() {

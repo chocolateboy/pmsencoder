@@ -76,8 +76,8 @@ class MatcherTest extends PMSEncoderTestCase {
     }
 
     /*
-        we can't use assertMatch here due to the dynamic nature of YouTube's result.
-        instead, do a basic sanity-check that the URI contains youtube.com/videoplayback?
+        we can't use assertMatch here due to the volatility of the token (and possibly)
+        the highest available resolution.
     */
     void testYouTube() {
         def youtube = 'http://www.youtube.com'
@@ -94,7 +94,9 @@ class MatcherTest extends PMSEncoderTestCase {
         def t = stash['t']
         // the mysterious $t token changes frequently, but always seems to end in a URL-encoded "="
         assert t ==~ /.*%3D$/
-        def want_uri = "$youtube/get_video?fmt=35&video_id=$video_id&t=$t&eurl=&el=&ps=&asv="
+        def want_uri = "$youtube/get_video?fmt=35&video_id=$video_id&t=$t&asv="
+        // println("wanted URI: $want_uri")
+        // println("got URI: ${stash['uri']}")
         assert stash['uri'] == want_uri
         assert args == []
     }

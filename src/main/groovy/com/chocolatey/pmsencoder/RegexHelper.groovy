@@ -19,13 +19,13 @@ class RegexHelper {
                 XXX 0 is the index of the entire matched string, so group indices start at 1 
                 XXX groupCount is the number of explicit groups
             */
-            /*
-                we have to kick this old-school because groovy ranges
-                are bidirectional (i.e. (1 .. 0) works)
-            */
 
             int groupCount = matcher.groupCount()
 
+            /*
+                we have to kick this for-loop old-school because groovy ranges
+                are bidirectional (i.e. (1 .. 0) works)
+            */
             for (int i = 1; i <= groupCount; ++i) {
                 String name = matcher.getGroupName(i)
                 if (name) {

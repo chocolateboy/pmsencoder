@@ -16,8 +16,8 @@ config {
         this is the default list of YouTube format/resolution IDs we should accept/select - in descending
         order of preference.
 
-        it can be modified here to add/remove a format, or can be overridden on a per-video basis
-        by supplying a new list to the youtube method (see below) e.g.
+        it can be modified globally (in a custom config file) to add/remove a format, or can be overridden on
+        a per-video basis by supplying a new list to the youtube method (see below) e.g.
         
         exclude '1080p':
 
