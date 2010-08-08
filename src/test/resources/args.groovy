@@ -1,3 +1,3 @@
 config {
-    args = [ '-foo', '-bar', '-baz', '-quux' ]
+    MENCODER_ARGS = [ '-foo', '-bar', '-baz', '-quux' ]
 }

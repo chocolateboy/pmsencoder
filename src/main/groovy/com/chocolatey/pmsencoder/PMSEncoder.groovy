@@ -72,7 +72,7 @@ class Matcher extends Logger {
 
     List<String> match(Stash stash, List<String> args, boolean useDefault = true) {
         if (useDefault) {
-            config.args.each { args << it }
+            config.MENCODER_ARGS.each { args << it }
         }
 
         config.match(stash, args) // we could use the @Delegate annotation, but this is cleaner/clearer
@@ -83,8 +83,8 @@ class Config extends Logger {
     private final Map<String, Profile> profiles = [:] // defaults to LinkedHashMap
 
     // DSL fields (mutable)
-    public List<String> args = []
-    public List<Integer> ytaccept = []
+    public List<String> MENCODER_ARGS = []
+    public List<Integer> YOUTUBE_ACCEPT = []
 
     List<String> match(Stash stash, List<String> args) {
         List<String> matched = []
@@ -215,13 +215,13 @@ class Action extends Logger {
     // DSL properties
 
     // args
-    protected final List<String> getArgs() {
-        config.args
+    protected final List<String> getMENCODER_ARGS() {
+        config.MENCODER_ARGS
     }
 
-    // ytaccept
-    protected final List<String> getYtaccept() {
-        config.ytaccept
+    // YOUTUBE_ACCEPT
+    protected final List<String> getYOUTUBE_ACCEPT() {
+        config.YOUTUBE_ACCEPT
     }
 
     void execute(Stash stash, List<String> args) {
@@ -337,11 +337,11 @@ class Action extends Logger {
                     args << qname << value
                 } else {
                     log.info("adding $qname")
-                    args << qname // FIXME: encapsulate @args handling
+                    args << qname // FIXME: encapsulate args handling
                 }
             } else if (value) {
                 log.info("setting $qname to $value")
-                args[ index + 1 ] = value // FIXME: encapsulate @args handling
+                args[ index + 1 ] = value // FIXME: encapsulate args handling
             }
         }
     }
@@ -382,7 +382,7 @@ class Action extends Logger {
     */
 
     // DSL method
-    void youtube(List<String> formats = config.ytaccept) {
+    void youtube(List<String> formats = config.YOUTUBE_ACCEPT) {
         subactions << { stash, args, state ->
             def uri = stash['uri']
             def video_id = stash['video_id']

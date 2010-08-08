@@ -1,6 +1,6 @@
 config {
     // the default MEncoder args - these can be redefined in a custom config file
-    args = [
+    MENCODER_ARGS = [
         '-prefer-ipv4',
         '-oac', 'lavc',
         '-of', 'lavf',
@@ -21,16 +21,16 @@ config {
         
         exclude '1080p':
 
-            youtube ytaccept - [ 37 ]
+            youtube YOUTUBE_ACCEPT - [ 37 ]
 
         add '2304p':
 
-            youtube [ 38 ] + ytaccept
+            youtube [ 38 ] + YOUTUBE_ACCEPT
 
         For the full list of formats, see: https://secure.wikimedia.org/wikipedia/en/wiki/YouTube#Quality_and_codecs
     */
 
-    ytaccept = [
+    YOUTUBE_ACCEPT = [
         '37',  // 1080p
         '22',  // 720p
         '35',  // 480p
