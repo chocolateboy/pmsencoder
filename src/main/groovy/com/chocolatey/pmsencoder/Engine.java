@@ -17,6 +17,7 @@ import net.pms.io.OutputParams;
 import net.pms.io.PipeProcess;
 import net.pms.io.ProcessWrapper;
 import net.pms.io.ProcessWrapperImpl;
+import net.pms.PMS;
 
 import org.apache.log4j.Logger;
 
@@ -64,13 +65,14 @@ public class Engine extends MEncoderWebVideo {
             }
         } catch (Throwable e) {
             log.error("match error: " + e);
+            PMS.error("match error", e);
         }
 
         List<String> args = command.getArgs();
         args.add(0, stash.get("EXECUTABLE"));
 
         /*
-         * if it's still an MEncoder command, add "-o /tmp/psmesencoder1234";
+         * if it's still an MEncoder command, add "-o /tmp/javaps3media/psmesencoder1234";
          * otherwise assume the matching action has defined the whole command,
          * including the output file option
          */

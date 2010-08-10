@@ -88,7 +88,7 @@ public class Command {
     }
 
     public java.lang.String toString() {
-	"{ stash: $stash, args: $args }".toString()
+        "{ stash: $stash, args: $args }".toString()
     }
 }
 
@@ -235,7 +235,7 @@ class Profile extends Logger {
 }
 
 // TODO: add isGreaterThan (gt?), isLessThan (lt?), and equals (eq?) matchers?
-class Pattern {
+class Pattern extends Logger {
     private final Config config
     private final List<SubPattern> subpatterns = []
 
@@ -250,9 +250,15 @@ class Pattern {
 
     // DSL method
     void match(String name, String value) {
+        assert name && value
+
         subpatterns << { command ->
-            assert command != null
-            RegexHelper.match(command.stash[name], value, command.stash)
+            if (command.stash[name] == null) { // this will happen for old custom configs that use let uri: ...
+                log.warn("invalid match: $name is not defined")
+                return false
+            } else {
+                return RegexHelper.match(command.stash[name], value, command.stash)
+            }
         }
     }
 
