@@ -72,11 +72,12 @@ public class Engine extends MEncoderWebVideo {
         args.add(0, stash.get("EXECUTABLE"));
 
         /*
-         * if it's still an MEncoder command, add "-o /tmp/javaps3media/psmesencoder1234";
+         * if it's still an MEncoder command, add "-o /tmp/javaps3media/psmesencoder1234 http://URI";
          * otherwise assume the matching action has defined the whole command,
          * including the output file option
          */
         if (args.get(0).equals(executable()) && !(args.contains("-o"))) {
+            args.add(1, stash.get("URI"));
             args.add("-o");
             args.add(outfile);
         }
@@ -84,7 +85,7 @@ public class Engine extends MEncoderWebVideo {
         params.input_pipes[0] = pipe;
         params.minBufferSize = params.minFileSize;
         params.secondread_minsize = 100000;
-        params.log = true;
+        params.log = true; // XXX doesn't seem to work (i.e. send the command's stdout/stderr to debug.log)
 
         String cmdArray[] = new String[ args.size() ];
         args.toArray(cmdArray);
@@ -95,8 +96,7 @@ public class Engine extends MEncoderWebVideo {
         mkfifo_process.runInNewThread();
 
         try {
-            // Thread.sleep(50);
-            Thread.sleep(200);
+            Thread.sleep(300);
         } catch (InterruptedException e) { }
 
         pipe.deleteLater();
