@@ -2,11 +2,11 @@
 config {
     profile ('Example') {
         pattern {
-            match uri: '^http://www\\.example\\.com\\b'
+            match URI: '^http://www\\.example\\.com\\b'
         }
 
         action {
-            set an: 'example'
+            set '-an': 'example'
         }
     }
 }

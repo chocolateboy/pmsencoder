@@ -7,7 +7,7 @@ import info.codesaway.util.regex.Matcher
 // XXX could be a singleton if we implement caching
 // @Singleton(lazy=true)
 class RegexHelper {
-    static boolean match(String string, String regex, Map<String, String> stash) {
+    static boolean match(String string, String regex, Map<String, String> map) {
         // Compile and use regular expression
         Pattern pattern = Pattern.compile(regex)
         Matcher matcher = pattern.matcher(string)
@@ -15,7 +15,7 @@ class RegexHelper {
 
         if (matchFound) {
             /*
-                store named groups as name => match pairs in stash
+                store named groups as name => match pairs in map
                 XXX 0 is the index of the entire matched string, so group indices start at 1 
                 XXX groupCount is the number of explicit groups
             */
@@ -30,7 +30,7 @@ class RegexHelper {
                 String name = matcher.getGroupName(i)
                 if (name) {
                     String value = matcher.group(i, "") /* default to an empty string */
-                    stash[name] = value
+                    map[name] = value
                 }
             }
         }

@@ -4,11 +4,11 @@ package com.chocolatey.pmsencoder
 // class PMSEncoderException extends RuntimeException { }
 
 interface SubAction {
-    void call(Stash stash, List<String> args, ActionState state)
+    void call(Command command, ActionState state)
 }
 
 interface SubPattern {
-    boolean call(Stash stash, List<String> args)
+    boolean call(Command command)
 }
 
 // a long-winded way of getting Java Strings and Groovy GStrings to play nice
@@ -22,12 +22,73 @@ public class Stash extends LinkedHashMap<java.lang.String, java.lang.String> {
         old.each { key, value -> this.put(key.toString(), value.toString()) }
     }
 
+    public Stash(Map<String, String> map) {
+        map.each { key, value -> this.put(key.toString(), value.toString()) }
+    }
+
     public java.lang.String put(Object key, Object value) {
         super.put(key.toString(), value.toString())
     }
 
     public java.lang.String get(Object key) {
         super.get(key.toString())
+    }
+}
+
+/*
+ * this object encapsulates the input/output parameters passed from/to the PMS transcode launcher (Engine.java).
+ * Input parameters are stored in the Stash object's key/value pairs, specifically the EXECUTABLE, URI and OUTPUT
+ * fields; and the output (a command) is returned via the same stash (i.e. the executable and URI can be overridden)
+ * as well as in a list of strings accessible via the args field
+ */
+public class Command {
+    Stash stash
+    List<String> args
+
+    public Command() {
+        this.stash = new Stash()
+        this.args = []
+    }
+
+    // copy constructor (clone doesn't work in Groovy++)
+    public Command(Command old) {
+        this.stash = new Stash(old.stash)
+        this.args = new ArrayList<String>(old.args)
+    }
+
+    public void assign(Command other) {
+        this.stash = other.stash
+        this.args = other.args
+    }
+
+    public boolean equals(Command other) {
+        this.stash == other.stash && this.args == other.args
+    }
+
+    public Command(Stash stash) {
+        this.stash = stash
+        this.args = []
+    }
+
+    // convenience constructor: allow the stash to be supplied as a Map<String, String>
+    // e.g. new Command([ URI: uri ])
+    public Command(Map<String, String> map) {
+        this.stash = new Stash(map)
+        this.args = []
+    }
+
+    public Command(List<String> args) {
+        this.stash = new Stash()
+        this.args = args
+    }
+
+    public Command(Stash stash, List<String> args) {
+        this.stash = stash
+        this.args = args
+    }
+
+    public java.lang.String toString() {
+	"{ stash: $stash, args: $args }".toString()
     }
 }
 
@@ -70,12 +131,12 @@ class Matcher extends Logger {
         script.run()
     }
 
-    List<String> match(Stash stash, List<String> args, boolean useDefault = true) {
+    List<String> match(Command command, boolean useDefault = true) {
         if (useDefault) {
-            config.MENCODER_ARGS.each { args << it }
+            config.MENCODER_ARGS.each { command.args << it }
         }
 
-        config.match(stash, args) // we could use the @Delegate annotation, but this is cleaner/clearer
+        config.match(command) // we could use the @Delegate annotation, but this is cleaner/clearer
     }
 }
 
@@ -86,13 +147,13 @@ class Config extends Logger {
     public List<String> MENCODER_ARGS = []
     public List<Integer> YOUTUBE_ACCEPT = []
 
-    List<String> match(Stash stash, List<String> args) {
+    List<String> match(Command command) {
         List<String> matched = []
-        log.info("matching URI: ${stash['uri']}")
+        log.info("matching URI: ${command.stash['URI']}")
         profiles.values().each { profile ->
             Closure subactions
 
-            if ((subactions = profile.match(stash, args))) {
+            if ((subactions = profile.match(command))) {
                 subactions()
                 matched << profile.name
             }
@@ -128,27 +189,27 @@ class Profile extends Logger {
         this.config = config
     }
 
-    Closure match(Stash stash, List<String> args) {
+    Closure match(Command command) {
         // make sure this uses LinkedHashMap (the Groovy default Map implementation)
         // to ensure predictable iteration ordering (e.g. for tests)
-        Stash new_stash = new Stash(stash) // clone() doesn't work with Groovy++
-        assert new_stash != null
+        Command newCommand = new Command(command) // clone() doesn't work with Groovy++
+        assert newCommand != null
 
-        if (pattern.match(new_stash, args)) {
+        if (pattern.match(newCommand)) {
             /*
                 return a closure that encapsulates all the side-effects of a successful
                 match e.g.
                 
                 1) log the name of the matched profile
-                2) perform any side effects of the match (e.g. bind any variables
-                   that were extracted by calls to the DSL's match method)
+                2) perform any side effects of the match (e.g. merge any bindings that were created/modified
+                   by calls to the DSL's match method)
                 3) execute the profile's corresponding action
             */
             return {
                 log.info("matched $name")
                 // merge all the name/value bindings resulting from the match
-                new_stash.each { name, value -> action.let(stash, name, value) }
-                action.execute(stash, args)
+                command.assign(newCommand)
+                action.execute(command)
                 return name
             }
         } else {
@@ -189,14 +250,14 @@ class Pattern {
 
     // DSL method
     void match(String name, String value) {
-        subpatterns << { stash, args ->
-            assert stash != null
-            RegexHelper.match(stash[name], value, stash)
+        subpatterns << { command ->
+            assert command != null
+            RegexHelper.match(command.stash[name], value, command.stash)
         }
     }
 
-    boolean match(Stash stash, List<String> args) {
-        subpatterns.every { pattern -> pattern(stash, args) }
+    boolean match(Command command) {
+        subpatterns.every { subpattern -> subpattern(command) }
     }
 }
 
@@ -224,9 +285,9 @@ class Action extends Logger {
         config.YOUTUBE_ACCEPT
     }
 
-    void execute(Stash stash, List<String> args) {
+    void execute(Command command) {
         ActionState state = new ActionState()
-        subactions.each { subaction -> subaction(stash, args, state) }
+        subactions.each { subaction -> subaction(command, state) }
     }
 
     // not a DSL method: do the heavy-lifting of stash assignment.
@@ -273,12 +334,13 @@ class Action extends Logger {
     */
     // DSL method
     void scrape(String regex) {
-        subactions << { stash, args, state ->
-            def uri = stash['uri']
+        subactions << { command, state ->
+            def stash = command.stash
+            def uri = stash['URI']
             def document = state.cache[uri]
-            def new_stash = new Stash()
+            def newStash = new Stash()
 
-            assert new_stash != null
+            assert newStash != null
 
             if (!document) {
                 log.info("getting $uri")
@@ -289,9 +351,9 @@ class Action extends Logger {
 
             log.info("matching content of $uri against $regex")
 
-            if (RegexHelper.match(document, regex, new_stash)) {
+            if (RegexHelper.match(document, regex, newStash)) {
                 log.info("success")
-                new_stash.each { name, value -> let(stash, name, value) }
+                newStash.each { name, value -> let(stash, name, value) }
             } else {
                 log.info("failure")
             }
@@ -302,7 +364,7 @@ class Action extends Logger {
     // DSL method
     void let(Map<String, String> map) {
         map.each { key, value ->
-            subactions << { stash, args, state -> let(stash, key, value) }
+            subactions << { command, state -> let(command.stash, key, value) }
         }
     }
 
@@ -311,17 +373,17 @@ class Action extends Logger {
         map.each { name, value -> set(name, value) }
     }
 
-    // set an mencoder option - create it if it doesn't exist
+    // set an MEncoder option - create it if it doesn't exist
     // DSL method
     void set(String name, String value = null) {
-        subactions << { stash, args, state ->
+        subactions << { command, state ->
             log.info("inside set: $name => $value")
-            def qname = "-$name"
-            def index = args.findIndexOf { it == qname }
+            def args = command.args
+            def index = args.findIndexOf { it == name }
          
             if (index == -1) {
-                if (value) {
-                    log.info("adding $qname $value")
+                if (value != null) {
+                    log.info("adding $name $value")
                     /*
                         XXX squashed bug - we need to modify stash and args in-place,
                         which means we can't use:
@@ -334,28 +396,28 @@ class Action extends Logger {
                         thread args/stash through every call/return from Match and Action
                         closures
                     */
-                    args << qname << value
+                    args << name << value
                 } else {
-                    log.info("adding $qname")
-                    args << qname // FIXME: encapsulate args handling
+                    log.info("adding $name")
+                    args << name // FIXME: encapsulate args handling
                 }
-            } else if (value) {
-                log.info("setting $qname to $value")
+            } else if (value != null) {
+                log.info("setting $name to $value")
                 args[ index + 1 ] = value // FIXME: encapsulate args handling
             }
         }
     }
 
     /*
-        perform a search-and-replace in the value of an mencoder option
+        perform a search-and-replace in the value of an MEncoder option
         TODO: signature: handle null, a single map and an array of maps
     */
     // DSL method
-    void replace(Map<String, Map<String, String>> replace_map) {
-        subactions << { stash, args, state ->
+    void tr(Map<String, Map<String, String>> replaceMap) {
+        subactions << { command, state ->
             // the sort order is predictable (for tests) as long as we (and Groovy) use LinkedHashMap
-            replace_map.each { name, map ->
-                name = "-$name"
+            replaceMap.each { name, map ->
+                def args = command.args
                 def index = args.findIndexOf { it == name }
              
                 if (index != -1) {
@@ -383,8 +445,9 @@ class Action extends Logger {
 
     // DSL method
     void youtube(List<String> formats = config.YOUTUBE_ACCEPT) {
-        subactions << { stash, args, state ->
-            def uri = stash['uri']
+        subactions << { command, state ->
+            def stash = command.stash
+            def uri = stash['URI']
             def video_id = stash['video_id']
             def t = stash['t']
             def found = false
@@ -400,7 +463,7 @@ class Action extends Logger {
                     if (http.head(stream_uri)) {
                         log.info("success")
                         // set the new URI - note: use the low-level interface NOT the (deferred) DSL interface!
-                        let(stash, 'uri', stream_uri)
+                        let(stash, 'URI', stream_uri)
                         return true
                     } else {
                         log.info("failure")
@@ -414,6 +477,48 @@ class Action extends Logger {
             if (!found) {
                 log.fatal("can't retrieve stream URI for $uri")
             }
+        }
+    }
+
+    // DSL method: append a list of options to thge command's args list
+    void append(List<String> args) {
+        subactions << { command, state ->
+            command.args += args
+        }
+    }
+
+    // DSL method: prepend a list of options to thge command's args list
+    void prepend(List<String> args) {
+        subactions << { command, state ->
+            command.args = args + command.args
+        }
+    }
+
+    // private helper method containing code common to replace and remove
+    private boolean splice(List<String> args, String optionName, List<String> replaceList, int andFollowing = 0) {
+        def index = args.indexOf(optionName)
+
+        if (index == -1) {
+            log.warn("invalid splice: can't find $optionName in $args")
+            return false
+        } else {
+            log.info("setting args [ $index .. ${index + andFollowing} ] to $replaceList")
+            args[ index .. (index + andFollowing) ] = replaceList
+            return true
+        }
+    }
+
+    // DSL method: remove an option (and optionally the following n arguments) from the command's arg list
+    void remove(String optionName, int andFollowing = 0) {
+        subactions << { command, state ->
+            splice(command.args, optionName, [], andFollowing)
+        }
+    }
+
+    // DSL method: replace an option (and optionally the following n arguments) with the supplied arg list
+    void replace(String optionName, List<String> replaceList, int andFollowing = 0) {
+        subactions << { command, state ->
+            splice(command.args, optionName, replaceList, andFollowing)
         }
     }
 }

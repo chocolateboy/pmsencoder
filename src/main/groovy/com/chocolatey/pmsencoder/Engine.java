@@ -7,7 +7,7 @@ import java.util.List;
 import javax.swing.JComponent;
 
 import com.chocolatey.pmsencoder.Matcher;
-import com.chocolatey.pmsencoder.Stash;
+import com.chocolatey.pmsencoder.Command;
 
 import net.pms.configuration.PmsConfiguration;
 import net.pms.dlna.DLNAMediaInfo;
@@ -40,15 +40,21 @@ public class Engine extends MEncoderWebVideo {
 
     @Override
     public ProcessWrapper launchTranscode(String uri, DLNAMediaInfo media, OutputParams params) throws IOException {
-        Stash stash = new Stash();
-        stash.put("uri", uri);
-        List<String> args = new ArrayList<String>();
+        PipeProcess pipe = new PipeProcess("pmsencoder" + System.currentTimeMillis());
+	String outfile = pipe.getInputPipe();
+        Command command = new Command();
+	Stash stash = command.getStash();
+
+        stash.put("URI", uri);
+        stash.put("EXECUTABLE", executable());
+        stash.put("OUTPUT", outfile);
+
         List<String> matches;
 
         log.info("invoking matcher for: " + uri);
 
         try {
-            matches = matcher.match(stash, args);
+            matches = matcher.match(command);
             int nMatches = matches.size();
 
             if (nMatches == 1) {
@@ -60,25 +66,28 @@ public class Engine extends MEncoderWebVideo {
             log.error("match error: " + e);
         }
 
+	List<String> args = command.getArgs();
+	args.add(0, stash.get("EXECUTABLE"));
+
+	/*
+	 * if it's still an MEncoder command, add "-o /tmp/psmesencoder1234";
+	 * otherwise assume the matching action has defined the whole command,
+	 * including the output file
+	 */
+	if (args.get(0).equals(executable()) && !(args.contains("-o"))) {
+	    args.add("-o");
+	    args.add(outfile);
+	}
+
+        params.input_pipes[0] = pipe;
         params.minBufferSize = params.minFileSize;
         params.secondread_minsize = 100000;
+        params.log = true;
 
-        PipeProcess pipe = new PipeProcess("pmsencoder" + System.currentTimeMillis());
-        params.input_pipes[0] = pipe;
-
-        String cmdArray[] = new String[ args.size() + 4 ];
-        cmdArray[0] = executable();
-        cmdArray[1] = stash.get("uri");
-
-        for (int i = 0; i < args.size(); ++i) {
-            cmdArray[ i + 2 ] = args.get(i);
-        }
-
-        cmdArray[ cmdArray.length - 2 ] = "-o";
-        cmdArray[ cmdArray.length - 1 ] = pipe.getInputPipe();
+        String cmdArray[] = new String[ args.size() ];
+	args.toArray(cmdArray);
 
         ProcessWrapper mkfifo_process = pipe.getPipeProcess();
-
         ProcessWrapperImpl pw = new ProcessWrapperImpl(cmdArray, params);
         pw.attachProcess(mkfifo_process);
         mkfifo_process.runInNewThread();

@@ -3,68 +3,48 @@ package com.chocolatey.pmsencoder
 
 class CustomConfigTest extends PMSEncoderTestCase {
     void testOverrideDefaultArgs() {
-        URL customConfig = this.getClass().getResource('/args.groovy')
+        def customConfig = this.getClass().getResource('/args.groovy')
+        def uri = 'http://www.example.com'
+        def command = new Command([ URI: uri ])
+        def wantCommand = new Command([ URI: uri ], [ '-foo', '-bar', '-baz', '-quux' ])
+
         matcher.load(customConfig)
 
-        def uri = 'http://www.example.com'
-        def stash = new Stash(uri: uri)
-        def want_stash = new Stash(uri: uri)
-
         assertMatch(
-            uri,          // URI
-            stash,        // stash
-            [],           // args
+            command,      // supplied command
+            wantCommand,  // expected command
             [],           // expected matches
-            want_stash,   // expected stash
-            [             // expected args
-                '-foo',
-                '-bar',
-                '-baz',
-                '-quux'
-            ],
-            true          // use default args
+            true          // use default MEncoder args
         )
     }
 
-    void testReplace() {
-        URL customConfig = this.getClass().getResource('/replace.groovy')
-        matcher.load(customConfig)
-
+    void testProfileReplace() {
+        def customConfig = this.getClass().getResource('/profile_replace.groovy')
         def uri = 'http://feedproxy.google.com/~r/TEDTalks_video'
-        def stash = new Stash(uri: uri)
-        def want_stash = new Stash(uri: uri + '/foo/bar.baz')
+        def command = new Command([ URI: uri ])
+        def wantCommand = new Command([ URI: uri + '/foo/bar.baz' ], [ '-foo', 'bar' ])
+
+        matcher.load(customConfig)
 
         assertMatch(
-            uri,          // URI
-            stash,        // stash
-            [],           // args
-            [ 'TED' ],    // expected matches
-            want_stash,   // expected stash
-            [             // expected args
-                '-foo',
-                'bar',
-            ]
+            command,      // supplied command
+            wantCommand,  // expected command
+            [ 'TED' ]     // expected matches
         )
     }
 
-    void testAppend() {
-        URL customConfig = this.getClass().getResource('/append.groovy')
+    void testProfileAppend() {
+        def customConfig = this.getClass().getResource('/profile_append.groovy')
+        def uri = 'http://www.example.com'
+        def command = new Command([ URI: uri ])
+        def wantCommand = new Command([ URI: uri ], [ '-an', 'example' ])
+
         matcher.load(customConfig)
 
-        def uri = 'http://www.example.com'
-        def stash = new Stash(uri: uri)
-        def want_stash = new Stash(uri: uri)
-
         assertMatch(
-            uri,           // URI
-            stash,         // stash
-            [],            // args
+            command,       // supplied command
+            wantCommand,   // expected command
             [ 'Example' ], // expected matches
-            want_stash,    // expected stash
-            [              // expected args
-                '-an',
-                'example'
-            ]
         )
     }
 }

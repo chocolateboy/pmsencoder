@@ -42,7 +42,7 @@ config {
     profile ('YouTube') {
         // extract the resource's video_id from the URI of the standard YouTube page
         pattern {
-            match uri: '^http://(?:\\w+\\.)?youtube\\.com/watch\\?v=(?<video_id>[^&]+)'
+            match URI: '^http://(?:\\w+\\.)?youtube\\.com/watch\\?v=(?<video_id>[^&]+)'
         }
 
         action {
@@ -57,32 +57,32 @@ config {
                   
     profile ('Apple Trailers') {
         pattern {
-            match uri: '^http://(?:(?:movies|www|trailers)\\.)?apple\\.com/.+$'
+            match URI: '^http://(?:(?:movies|www|trailers)\\.)?apple\\.com/.+$'
         }
 
         // FIXME: 4096 is a needlessly high video bitrate; they typically weigh in at ~1200 Kbps
         action {
-            set ofps: '24', 'user-agent': 'QuickTime/7.6.2'
+            set '-ofps': '24', '-user-agent': 'QuickTime/7.6.2'
         }
     }
 
     profile ('Apple Trailers HD') {
         pattern {
-            match uri: '^http://(?:(?:movies|www|trailers)\\.)?apple\\.com/.+\\.m4v$'
+            match URI: '^http://(?:(?:movies|www|trailers)\\.)?apple\\.com/.+\\.m4v$'
         }
         
         action {
-            replace lavcopts: [ '4096': '5086' ] // increase the bitrate
+            tr '-lavcopts': [ '4096': '5086' ] // increase the bitrate
         }
     }
 
     profile ('TED') {
         pattern {
-            match uri: '^http://feedproxy\\.google\\.com/~r/TEDTalks_video\\b'
+            match URI: '^http://feedproxy\\.google\\.com/~r/TEDTalks_video\\b'
         }
         
         action {
-            set ofps: '24'
+            set '-ofps': '24'
         }
     }
 
@@ -99,18 +99,18 @@ config {
 
         // 1) extract the page ID
         pattern {
-            match uri: '^http://(www\\.)?gametrailers\\.com/download/(?<page_id>\\d+)/[^.]+\\.flv$'
+            match URI: '^http://(www\\.)?gametrailers\\.com/download/(?<page_id>\\d+)/[^.]+\\.flv$'
         }
         
         // 2) and use it to restore the correct webpage URI
         action {
-            let uri: 'http://www.gametrailers.com/player/$page_id.html'
+            let URI: 'http://www.gametrailers.com/player/$page_id.html'
         }
     }
 
     profile ('GameTrailers') {
         pattern {
-            match uri: '^http://(www\\.)?gametrailers\\.com/'
+            match URI: '^http://(www\\.)?gametrailers\\.com/'
         }
         
         action {
@@ -122,7 +122,7 @@ config {
             scrape '\\bhttp://www\\.gametrailers\\.com/download/\\d+/(?<filename>t_[^.]+)\\.wmv\\b'
 
             // now use them to rewrite the URI
-            let uri: 'http://trailers-ak.gametrailers.com/gt_vault/$movie_id/$filename.flv'
+            let URI: 'http://trailers-ak.gametrailers.com/gt_vault/$movie_id/$filename.flv'
         }
     }
 }
