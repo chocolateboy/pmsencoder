@@ -133,7 +133,7 @@ class Matcher extends Logger {
 
     List<String> match(Command command, boolean useDefault = true) {
         if (useDefault) {
-            config.MENCODER_ARGS.each { command.args << it }
+            config.DEFAULT_MENCODER_ARGS.each { command.args << it }
         }
 
         config.match(command) // we could use the @Delegate annotation, but this is cleaner/clearer
@@ -144,7 +144,7 @@ class Config extends Logger {
     private final Map<String, Profile> profiles = [:] // defaults to LinkedHashMap
 
     // DSL fields (mutable)
-    public List<String> MENCODER_ARGS = []
+    public List<String> DEFAULT_MENCODER_ARGS = []
     public List<Integer> YOUTUBE_ACCEPT = []
 
     List<String> match(Command command) {
@@ -275,9 +275,9 @@ class Action extends Logger {
 
     // DSL properties
 
-    // args
-    protected final List<String> getMENCODER_ARGS() {
-        config.MENCODER_ARGS
+    // DEFAULT_MENCODER_ARGS
+    protected final List<String> getDEFAULT_MENCODER_ARGS() {
+        config.DEFAULT_MENCODER_ARGS
     }
 
     // YOUTUBE_ACCEPT

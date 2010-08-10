@@ -41,9 +41,9 @@ public class Engine extends MEncoderWebVideo {
     @Override
     public ProcessWrapper launchTranscode(String uri, DLNAMediaInfo media, OutputParams params) throws IOException {
         PipeProcess pipe = new PipeProcess("pmsencoder" + System.currentTimeMillis());
-	String outfile = pipe.getInputPipe();
+        String outfile = pipe.getInputPipe();
         Command command = new Command();
-	Stash stash = command.getStash();
+        Stash stash = command.getStash();
 
         stash.put("URI", uri);
         stash.put("EXECUTABLE", executable());
@@ -66,18 +66,18 @@ public class Engine extends MEncoderWebVideo {
             log.error("match error: " + e);
         }
 
-	List<String> args = command.getArgs();
-	args.add(0, stash.get("EXECUTABLE"));
+        List<String> args = command.getArgs();
+        args.add(0, stash.get("EXECUTABLE"));
 
-	/*
-	 * if it's still an MEncoder command, add "-o /tmp/psmesencoder1234";
-	 * otherwise assume the matching action has defined the whole command,
-	 * including the output file
-	 */
-	if (args.get(0).equals(executable()) && !(args.contains("-o"))) {
-	    args.add("-o");
-	    args.add(outfile);
-	}
+        /*
+         * if it's still an MEncoder command, add "-o /tmp/psmesencoder1234";
+         * otherwise assume the matching action has defined the whole command,
+         * including the output file option
+         */
+        if (args.get(0).equals(executable()) && !(args.contains("-o"))) {
+            args.add("-o");
+            args.add(outfile);
+        }
 
         params.input_pipes[0] = pipe;
         params.minBufferSize = params.minFileSize;
@@ -85,7 +85,7 @@ public class Engine extends MEncoderWebVideo {
         params.log = true;
 
         String cmdArray[] = new String[ args.size() ];
-	args.toArray(cmdArray);
+        args.toArray(cmdArray);
 
         ProcessWrapper mkfifo_process = pipe.getPipeProcess();
         ProcessWrapperImpl pw = new ProcessWrapperImpl(cmdArray, params);

@@ -1,6 +1,6 @@
 config {
     // the default MEncoder args - these can be redefined in a custom config file
-    MENCODER_ARGS = [
+    DEFAULT_MENCODER_ARGS = [
         '-prefer-ipv4',
         '-oac', 'lavc',
         '-of', 'lavf',

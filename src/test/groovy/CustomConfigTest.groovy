@@ -3,7 +3,7 @@ package com.chocolatey.pmsencoder
 
 class CustomConfigTest extends PMSEncoderTestCase {
     void testOverrideDefaultArgs() {
-        def customConfig = this.getClass().getResource('/args.groovy')
+        def customConfig = this.getClass().getResource('/default_mencoder_args.groovy')
         def uri = 'http://www.example.com'
         def command = new Command([ URI: uri ])
         def wantCommand = new Command([ URI: uri ], [ '-foo', '-bar', '-baz', '-quux' ])
