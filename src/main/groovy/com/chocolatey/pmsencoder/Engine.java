@@ -44,11 +44,11 @@ public class Engine extends MEncoderWebVideo {
         PipeProcess pipe = new PipeProcess("pmsencoder" + System.currentTimeMillis());
         String outfile = pipe.getInputPipe();
         Command command = new Command();
-        Stash stash = command.getStash();
+        Stash origStash = command.getStash();
 
-        stash.put("URI", uri);
-        stash.put("EXECUTABLE", executable());
-        stash.put("OUTPUT", outfile);
+        origStash.put("URI", uri);
+        origStash.put("EXECUTABLE", executable());
+        origStash.put("OUTPUT", outfile);
 
         List<String> matches;
 
@@ -68,8 +68,12 @@ public class Engine extends MEncoderWebVideo {
             PMS.error("match error", e);
         }
 
+        // the whole point of the command abstraction is that the stash Map/args List can be changed by the matcher;
+        // so make sure to refresh
+        Stash newStash = command.getStash();
         List<String> args = command.getArgs();
-        args.add(0, stash.get("EXECUTABLE"));
+
+        args.add(0, newStash.get("EXECUTABLE"));
 
         /*
          * if it's still an MEncoder command, add "-o /tmp/javaps3media/psmesencoder1234 http://URI";
@@ -77,7 +81,7 @@ public class Engine extends MEncoderWebVideo {
          * including the output file option
          */
         if (args.get(0).equals(executable()) && !(args.contains("-o"))) {
-            args.add(1, stash.get("URI"));
+            args.add(1, newStash.get("URI"));
             args.add("-o");
             args.add(outfile);
         }
