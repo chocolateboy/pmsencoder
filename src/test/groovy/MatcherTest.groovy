@@ -5,8 +5,8 @@ class MatcherTest extends PMSEncoderTestCase {
     // no match - change nothing
     private void noMatch() {
         def uri = 'http://www.example.com'
-        def command = new Command([ URI: uri ])
-        def wantCommand = new Command([ URI: uri ])
+        def command = new Command([ uri: uri ])
+        def wantCommand = new Command([ uri: uri ])
 
         assertMatch(
             command,      // supplied command
@@ -23,9 +23,9 @@ class MatcherTest extends PMSEncoderTestCase {
 
     void testApple() {
         def uri = 'http://www.apple.com/foobar.mov'
-        def command = new Command([ URI: uri ], [ '-lavcopts', 'vbitrate=4096' ])
+        def command = new Command([ uri: uri ], [ '-lavcopts', 'vbitrate=4096' ])
         def wantCommand = new Command(
-            [ URI: uri ],
+            [ uri: uri ],
             [
                 '-lavcopts', 'vbitrate=4096',
                 '-ofps', '24',
@@ -42,9 +42,9 @@ class MatcherTest extends PMSEncoderTestCase {
 
     void testAppleHD() {
         def uri = 'http://www.apple.com/foobar.m4v'
-        def command = new Command([ URI: uri ], [ '-lavcopts', 'vbitrate=4096' ])
+        def command = new Command([ uri: uri ], [ '-lavcopts', 'vbitrate=4096' ])
         def wantCommand = new Command(
-            [ URI: uri ],
+            [ uri: uri ],
             [
                 '-lavcopts', 'vbitrate=5086',
                 '-ofps', '24',
@@ -79,7 +79,7 @@ class MatcherTest extends PMSEncoderTestCase {
     void testYouTube() {
         def youtube = 'http://www.youtube.com'
         def uri = "$youtube/watch?v=_OBlgSz8sSM"
-        def command = new Command([ URI: uri ])
+        def command = new Command([ uri: uri ])
 
         List<String> matches = matcher.match(command, false) // false: don't ue default MEncoder args
 
@@ -87,23 +87,21 @@ class MatcherTest extends PMSEncoderTestCase {
         def args = command.args
 
         assert matches == [ 'YouTube' ]
-        assert stash.keySet().toList() == [ 'URI', 'video_id', 't' ]
+        assert stash.keySet().toList() == [ 'uri', 'video_id', 't' ]
         def video_id = stash['video_id']
         assert video_id == '_OBlgSz8sSM'
         def t = stash['t']
         // the mysterious $t token changes frequently, but always seems to end in a URL-encoded "="
         assert t ==~ /.*%3D$/
         def want_uri = "$youtube/get_video?fmt=35&video_id=$video_id&t=$t&asv="
-        // println("wanted URI: $want_uri")
-        // println("got URI: ${stash['uri']}")
-        assert stash['URI'] == want_uri
+        assert stash['uri'] == want_uri : "stash[uri] (${stash['uri']}) != expected URI ($want_uri)"
         assert args == []
     }
 
     void testTED() {
         def uri = 'http://feedproxy.google.com/~r/TEDTalks_video/~3/EOXWNNyoC3E/843'
-        def command = new Command([ URI: uri ])
-        def wantCommand = new Command([ URI: uri ], [ '-ofps', '24' ])
+        def command = new Command([ uri: uri ])
+        def wantCommand = new Command([ uri: uri ], [ '-ofps', '24' ])
 
         assertMatch(
             command,
@@ -118,10 +116,10 @@ class MatcherTest extends PMSEncoderTestCase {
         def uri = "http://www.gametrailers.com/download/$page_id/${filename}.flv"
         def movie_id = '5162'
         def want_uri = "http://trailers-ak.gametrailers.com/gt_vault/$movie_id/${filename}.flv"
-        def command = new Command([ URI: uri ])
+        def command = new Command([ uri: uri ])
         def wantCommand = new Command(
             [
-                URI:      want_uri,
+                uri:      want_uri,
                 movie_id: movie_id,
                 page_id:  page_id,
                 filename: filename

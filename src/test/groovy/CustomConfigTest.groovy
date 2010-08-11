@@ -5,8 +5,8 @@ class CustomConfigTest extends PMSEncoderTestCase {
     void testOverrideDefaultArgs() {
         def customConfig = this.getClass().getResource('/default_mencoder_args.groovy')
         def uri = 'http://www.example.com'
-        def command = new Command([ URI: uri ])
-        def wantCommand = new Command([ URI: uri ], [ '-foo', '-bar', '-baz', '-quux' ])
+        def command = new Command([ uri: uri ])
+        def wantCommand = new Command([ uri: uri ], [ '-foo', '-bar', '-baz', '-quux' ])
 
         matcher.load(customConfig)
 
@@ -21,8 +21,8 @@ class CustomConfigTest extends PMSEncoderTestCase {
     void testProfileReplace() {
         def customConfig = this.getClass().getResource('/profile_replace.groovy')
         def uri = 'http://feedproxy.google.com/~r/TEDTalks_video'
-        def command = new Command([ URI: uri ])
-        def wantCommand = new Command([ URI: uri + '/foo/bar.baz' ], [ '-foo', 'bar' ])
+        def command = new Command([ uri: uri ])
+        def wantCommand = new Command([ uri: uri + '/foo/bar.baz' ], [ '-foo', 'bar' ])
 
         matcher.load(customConfig)
 
@@ -36,8 +36,8 @@ class CustomConfigTest extends PMSEncoderTestCase {
     void testProfileAppend() {
         def customConfig = this.getClass().getResource('/profile_append.groovy')
         def uri = 'http://www.example.com'
-        def command = new Command([ URI: uri ])
-        def wantCommand = new Command([ URI: uri ], [ '-an', 'example' ])
+        def command = new Command([ uri: uri ])
+        def wantCommand = new Command([ uri: uri ], [ '-an', 'example' ])
 
         matcher.load(customConfig)
 
@@ -45,6 +45,32 @@ class CustomConfigTest extends PMSEncoderTestCase {
             command,       // supplied command
             wantCommand,   // expected command
             [ 'Example' ], // expected matches
+        )
+    }
+
+    void testRichConfigFile() {
+        def customConfig = this.getClass().getResource('/rich.groovy')
+        def uri = 'http://www.example.com'
+        def command = new Command([ uri: uri ])
+        def wantCommand = new Command(
+            [
+                action:  'Hello, world!',
+                domain:  'example',
+                key:     'key',
+                n:       '41',
+                pattern: 'Hello, world!',
+                uri:     'http://www.example.com/example/key/value/42',
+                value:   'value'
+            ],
+            [ '-key', 'key', '-value', 'value' ]
+        )
+
+        matcher.load(customConfig)
+
+        assertMatch(
+            command,       // supplied command
+            wantCommand,   // expected command
+            [ 'GString' ], // expected matches
         )
     }
 }

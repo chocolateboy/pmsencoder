@@ -25,7 +25,7 @@ class PMSEncoderTest extends PMSEncoderTestCase {
         assert newStash == [ foo: "bar" ]
     }
 
-    void testProfileBlockDelegateInit() {
+    void testProfileBlockDelegateInitalState() {
         def delegate = new ProfileBlockDelegate("Test Profile")
 
         assert delegate != null

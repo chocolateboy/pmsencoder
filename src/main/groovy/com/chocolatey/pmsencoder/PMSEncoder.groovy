@@ -40,7 +40,7 @@ public class Stash extends LinkedHashMap<java.lang.String, java.lang.String> {
 
 /*
  * this object encapsulates the input/output parameters passed from/to the PMS transcode launcher (Engine.java).
- * Input parameters are stored in the Stash object's key/value pairs, specifically the EXECUTABLE, URI and OUTPUT
+ * Input parameters are stored in the Stash object's key/value pairs, specifically the executable, uri and output
  * fields; and the output (a command) is returned via the same stash (i.e. the executable and URI can be overridden)
  * as well as in a list of strings accessible via the args field
  */
@@ -69,7 +69,7 @@ public class Command {
     }
 
     // convenience constructor: allow the stash to be supplied as a Map<String, String>
-    // e.g. new Command([ URI: uri ])
+    // e.g. new Command([ uri: uri ])
     public Command(Map<String, String> map) {
         this.stash = new Stash(map)
         this.args = []
@@ -142,7 +142,7 @@ class Config extends Logger {
 
     List<String> match(Command command) {
         List<String> matched = []
-        log.info("matching URI: ${command.stash['URI']}")
+        log.info("matching URI: ${command.stash['uri']}")
 
         profiles.each { name, profile ->
             if (profile.match(command)) {
@@ -202,10 +202,10 @@ class Profile extends Logger {
     }
 
     // pulled out of the match method below so that type-softening is isolated
-    // note: keep it here rather than making it a method in PatternBlockDelegate: trying to keep the delegates
+    // note: keep it here rather than making it a method in Pattern: trying to keep the delegates
     // clean (cf. Ruby's BlankSlate)
     @Typed(TypePolicy.MIXED) // Groovy++ doesn't support delegation
-    boolean runPatternBlock(PatternBlockDelegate delegate) {
+    boolean runPatternBlock(Pattern delegate) {
         // pattern methods short-circuit matching on failure by throwing a MatchFailureException,
         // so we need to wrap this in a try/catch block
 
@@ -224,29 +224,34 @@ class Profile extends Logger {
     }
 
     // pulled out of the match method below so that type-softening is isolated
-    // note: keep it here rather than making it a method in ActionBlockDelegate: trying to keep the delegates
+    // note: keep it here rather than making it a method in Action: trying to keep the delegates
     // clean (cf. Ruby's BlankSlate)
     @Typed(TypePolicy.MIXED) // Groovy++ doesn't support delegation
-    boolean runActionBlock(ActionBlockDelegate delegate) {
+    boolean runActionBlock(Action delegate) {
         delegate.with(actionBlock)
     }
 
     boolean match(Command command) {
         def newCommand = new Command(command) // clone() doesn't work with Groovy++
-        def patternBlockDelegate = new PatternBlockDelegate(config, command)
+        // the pattern block has its own command object (which is initially the same as the action block's).
+        // if the match succeeds, then the pattern block's stash is merged into the action block's stash.
+        // this ensures that a partial match (i.e. a failed match) with side-effects/bindings doesn't contaminate
+        // the action, and, more importantly, it deres logging until the whole pattern block has
+        // completed successfully
+        def pattern = new Pattern(config, newCommand)
 
         log.info("matching $name")
 
         // returns true if all matches in the block succeed, false otherwise 
-        if (runPatternBlock(patternBlockDelegate)) {
+        if (runPatternBlock(pattern)) {
             // we can now merge any side-effects (currently only modifications to the stash).
-            // first instantiate the ActionBlockDelegate so that we can call its let() helper method
+            // first instantiate the Action so that we can call its let() helper method
             // to perform and log stash merges
-            def actionBlockDelegate = new ActionBlockDelegate(config, command)
+            def action = new Action(config, command)
             // now merge
-            newCommand.stash.each { name, value -> actionBlockDelegate.let(command.stash, name, value) }
+            newCommand.stash.each { name, value -> action.let(command.stash, name, value) }
             // now run the actions
-            runActionBlock(actionBlockDelegate)
+            runActionBlock(action)
             return true
         } else {
             return false
@@ -262,9 +267,13 @@ public class BaseDelegate extends Logger {
         this.config = config
         this.command = command
     }
-
-    private getArgs() {
+        
+    protected List<String> getArgs() {
         command.args
+    }
+
+    protected List<String> setArgs(List<String> args) {
+        command.args = args
     }
 
     // DSL properties
@@ -280,13 +289,8 @@ public class BaseDelegate extends Logger {
     }
 
     // DSL getter
-    private propertyMissing(String name) {
+    protected String propertyMissing(String name) {
         command.stash[name]
-    }
-
-    // DSL setter
-    private propertyMissing(String name, String value) {
-        command.stash[name] = value
     }
 }
 
@@ -332,19 +336,28 @@ class ProfileBlockDelegate {
 }
 
 // TODO: add isGreaterThan (gt?), isLessThan (lt?), and equals (eq?) matchers?
-class PatternBlockDelegate extends BaseDelegate {
+class Pattern extends BaseDelegate {
     private static final MatchFailureException STOP_MATCHING = new MatchFailureException()
 
-    PatternBlockDelegate(Config config, Command command) {
+    Pattern(Config config, Command command) {
         super(config, command)
     }
 
+    // DSL setter - overrides the BaseDelegate method to avoid logging,
+    // which is handled later (if the match succeeds) by merging the pattern
+    // block's temporary stash
+    protected String propertyMissing(String name, Object value) {
+        command.stash[name] = value
+    }
+
     // DSL method
+    @Typed(TypePolicy.DYNAMIC) // XXX try to handle GStrings
     void match(Map<String, String> map) {
         map.each { name, value -> match(name, value) }
     }
 
     // DSL method
+    @Typed(TypePolicy.MIXED) // XXX try to handle GStrings
     void match(String name, String value) {
         assert name && value
 
@@ -367,61 +380,42 @@ class PatternBlockDelegate extends BaseDelegate {
 }
 
 /* XXX: add configurable HTTP proxy support? */
-class ActionBlockDelegate extends BaseDelegate {
+class Action extends BaseDelegate {
     private final Map<String, String> cache = [:]
 
     @Lazy private HTTPClient http = new HTTPClient()
 
-    ActionBlockDelegate(Config config, Command command) {
+    Action(Config config, Command command) {
         super(config, command)
     }
 
-    // not a DSL method: do the heavy-lifting of stash assignment.
-    // public because Profile needs to call it (after a successful match)
-    void let(Stash stash, String name, String value) {
-        if ((stash[name] == null) || (stash[name] != value)) {
-            String[] new_value = [ value ] // FIXME can't get Reference to work transparently here
-            log.info("setting \$$name to $value")
-         
-            stash.each { stash_key, stash_value ->
-                /*
-                    TODO do this natively i.e. interpret the string
-                    as a GString (with bindings in "stash") rather than performing the
-                    interpolation manually. this would also allow the string to contain
-                    arbitrary groovy expressions e.g.
-
-                        pattern {
-                            match uri: '^http://www\\.example\\.com/(?<id>\\d+)\\.html'
-                        }
-
-                        action {
-                            let uri: 'http://www.example.com/${id + 1}.html'
-                        }
-                */
-
-                def var_name_regex = ~/(?:(?:\$$stash_key\b)|(?:\$\{$stash_key\}))/
-         
-                if (new_value[0] =~ var_name_regex) {
-                    log.info("replacing \$$stash_key with '${stash_value.replaceAll("'", "\\'")}' in ${new_value[0]}")
-                    // XXX squashed bug: strings are immutable!
-                    new_value[0] = new_value[0].replaceAll(var_name_regex, stash_value)
-                }
-            }
-
-            stash[name] = new_value[0]
-            log.info("set \$$name to ${new_value[0]}")
-        }
+    // DSL setter
+    protected String propertyMissing(String name, Object value) {
+        let(command.stash, name, value.toString())
     }
 
+    // log stash assignments
+    // public because Profile needs to call it (after a successful match)
+    @Typed(TypePolicy.MIXED) // XXX try to handle GStrings
+    public String let(Stash stash, String name, String value) {
+        if ((stash[name] == null) || (stash[name] != value.toString())) {
+            log.info("setting \$$name to $value")
+            stash[name] = value
+        }
+
+        return value
+    }
+ 
     /*
         1) get the URI pointed to by stash[uri] (if it hasn't already been retrieved)
         2) perform a regex match against the document
         3) update the stash with any named captures
     */
     // DSL method
+    @Typed(TypePolicy.MIXED) // XXX try to handle GStrings
     void scrape(String regex) {
         def stash = command.stash
-        def uri = stash['URI']
+        def uri = stash['uri']
         def document = cache[uri]
         def newStash = new Stash()
 
@@ -444,20 +438,26 @@ class ActionBlockDelegate extends BaseDelegate {
 
     // define a variable in the stash, performing any variable substitutions
     // DSL method
+    @Typed(TypePolicy.DYNAMIC) // XXX try to handle GStrings
     void let(Map<String, String> map) {
         map.each { key, value ->
             let(command.stash, key, value)
         }
     }
 
+    // DSL method
+    @Typed(TypePolicy.DYNAMIC) // XXX try to handle GStrings
     void set(Map<String, String> map) {
         // the sort order is predictable (for tests) as long as we (and Groovy) use LinkedHashMap
-        map.each { name, value -> set(name, value) }
+        map.each { name, value -> setArg(name, value) }
     }
 
     // set an MEncoder option - create it if it doesn't exist
     // DSL method
-    void set(String name, String value = null) {
+    @Typed(TypePolicy.MIXED) // XXX try to handle GStrings
+    void setArg(String name, String value = null) {
+        assert name != null
+
         def args = command.args
         def index = args.findIndexOf { it == name }
      
@@ -490,7 +490,9 @@ class ActionBlockDelegate extends BaseDelegate {
         perform a search-and-replace in the value of an MEncoder option
         TODO: signature: handle null, a single map and an array of maps
     */
+
     // DSL method
+    @Typed(TypePolicy.MIXED) // XXX try to handle GStrings
     void tr(Map<String, Map<String, String>> replaceMap) {
         // the sort order is predictable (for tests) as long as we (and Groovy) use LinkedHashMap
         replaceMap.each { name, map ->
@@ -520,9 +522,10 @@ class ActionBlockDelegate extends BaseDelegate {
     */
 
     // DSL method
-    void youtube(List<String> formats = config.YOUTUBE_ACCEPT) {
+    @Typed(TypePolicy.MIXED) // XXX try to handle GStrings
+    void youtube(List<Integer> formats = config.YOUTUBE_ACCEPT) {
         def stash = command.stash
-        def uri = stash['URI']
+        def uri = stash['uri']
         def video_id = stash['video_id']
         def t = stash['t']
         def found = false
@@ -538,7 +541,7 @@ class ActionBlockDelegate extends BaseDelegate {
                 if (http.head(stream_uri)) {
                     log.info("success")
                     // set the new URI - note: use the low-level interface NOT the (deferred) DSL interface!
-                    let(stash, 'URI', stream_uri)
+                    let(stash, 'uri', stream_uri)
                     return true
                 } else {
                     log.info("failure")

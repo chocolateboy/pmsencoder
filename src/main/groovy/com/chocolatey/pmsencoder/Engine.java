@@ -46,9 +46,9 @@ public class Engine extends MEncoderWebVideo {
         Command command = new Command();
         Stash origStash = command.getStash();
 
-        origStash.put("URI", uri);
-        origStash.put("EXECUTABLE", executable());
-        origStash.put("OUTPUT", outfile);
+        origStash.put("uri", uri);
+        origStash.put("executable", executable());
+        origStash.put("outfile", outfile);
 
         List<String> matches;
 
@@ -73,7 +73,7 @@ public class Engine extends MEncoderWebVideo {
         Stash newStash = command.getStash();
         List<String> args = command.getArgs();
 
-        args.add(0, newStash.get("EXECUTABLE"));
+        args.add(0, newStash.get("executable"));
 
         /*
          * if it's still an MEncoder command, add "-o /tmp/javaps3media/psmesencoder1234 http://URI";
@@ -81,7 +81,7 @@ public class Engine extends MEncoderWebVideo {
          * including the output file option
          */
         if (args.get(0).equals(executable()) && !(args.contains("-o"))) {
-            args.add(1, newStash.get("URI"));
+            args.add(1, newStash.get("uri"));
             args.add("-o");
             args.add(outfile);
         }
