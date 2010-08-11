@@ -48,7 +48,7 @@ public class Engine extends MEncoderWebVideo {
 
         origStash.put("uri", uri);
         origStash.put("executable", executable());
-        origStash.put("outfile", outfile);
+        origStash.put("output", outfile);
 
         List<String> matches;
 
