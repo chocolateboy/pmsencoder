@@ -276,7 +276,7 @@ class Profile extends Logger {
         def newCommand = new Command(command) // clone() doesn't work with Groovy++
         def patternBlockDelegate = new PatternBlockDelegate(command)
 
-	log.info("matching $name")
+        log.info("matching $name")
 
         // returns true if all matches in the block succeed, false otherwise 
         if (runPatternBlock(patternBlockDelegate)) {
