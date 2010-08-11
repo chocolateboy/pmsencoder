@@ -5,10 +5,10 @@ package com.chocolatey.pmsencoder
 // InvokerInvocationException, which causes all kinds of tedium.
 // For the time being: extend RuntimeException - even though they're both checked
 
-public class StopMatchingException extends RuntimeException { }
+public class MatchFailureException extends RuntimeException { }
 
 public class PMSEncoderConfigException extends RuntimeException {
-    // what's with the "cannot find constructor" errors? A GString thing? (again?!)
+    // grrr: get "cannot find constructor" errors without this (another GString issue?)
     PMSEncoderConfigException(String msg) {
         super(msg)
     }
@@ -145,13 +145,8 @@ class Config extends Logger {
         log.info("matching URI: ${command.stash['URI']}")
 
         profiles.each { name, profile ->
-            log.info("trying profile: $name");
-
             if (profile.match(command)) {
-                log.info("success")
                 matched << name
-            } else {
-                log.info("failure")
             }
         }
 
@@ -169,8 +164,8 @@ class Config extends Logger {
     // a Profile consists of a name, a pattern block and an action block - all
     // determined when the config file is loaded/compiled
     void profile (String name, Closure closure) {
-        // run the profile block at compile-time but store its pattern and action blocks
-        // for execution at runtime
+        // run the profile block at compile-time to extract its pattern and action blocks,
+        // but invoke those at runtime
         log.info("registering profile: $name")
         Profile profile = new Profile(name, this)
 
@@ -186,12 +181,10 @@ class Config extends Logger {
 class ProfileBlockDelegate {
     public Closure patternBlock = null
     public Closure actionBlock = null
-    private String name
+    public String name
 
     ProfileBlockDelegate(String name) {
         this.name = name
-        assert this.actionBlock == null
-        assert this.patternBlock == null
     }
 
     // DSL method
@@ -230,6 +223,7 @@ class Profile extends Logger {
     private final Config config
     private Closure patternBlock
     private Closure actionBlock
+
     public final String name
 
     Profile(String name, Config config) {
@@ -243,24 +237,24 @@ class Profile extends Logger {
         // wrapper method: runs the closure then validates the result, raising an exception if anything is amiss
         delegate.runProfileBlock(closure)
 
-        // we made it without triggering an exception, so the two fields are sane: extract them
+        // we made it without triggering an exception, so the two fields are sane: save them
         this.patternBlock = delegate.patternBlock
         this.actionBlock = delegate.actionBlock
     }
 
     // pulled out of the match method below so that type-softening is isolated
-    // note keep it here rather than making it a method in PatternBlockDelegate: trying to keep the delegates
+    // note: keep it here rather than making it a method in PatternBlockDelegate: trying to keep the delegates
     // clean (cf. Ruby's BlankSlate)
     @Typed(TypePolicy.MIXED) // Groovy++ doesn't support delegation
     boolean runPatternBlock(PatternBlockDelegate delegate) {
-        // match methods short-circuit matching on failure by throwing a StopMatchingException,
-        // so we need to wrap this in a try catch block
+        // pattern methods short-circuit matching on failure by throwing a MatchFailureException,
+        // so we need to wrap this in a try/catch block
 
         try {
             delegate.with(patternBlock)
-        } catch (StopMatchingException e) {
+        } catch (MatchFailureException e) {
             log.debug("pattern block: caught match exception")
-            // one of the match methods failed, so the whole match failed
+            // one of the match methods failed, so the whole block failed
             return false
         }
 
@@ -271,7 +265,7 @@ class Profile extends Logger {
     }
 
     // pulled out of the match method below so that type-softening is isolated
-    // note keep it here rather than making it a method in ActionBlockDelegate: trying to keep the delegates
+    // note: keep it here rather than making it a method in ActionBlockDelegate: trying to keep the delegates
     // clean (cf. Ruby's BlankSlate)
     @Typed(TypePolicy.MIXED) // Groovy++ doesn't support delegation
     boolean runActionBlock(ActionBlockDelegate delegate) {
@@ -282,15 +276,16 @@ class Profile extends Logger {
         def newCommand = new Command(command) // clone() doesn't work with Groovy++
         def patternBlockDelegate = new PatternBlockDelegate(command)
 
+	log.info("matching $name")
+
         // returns true if all matches in the block succeed, false otherwise 
         if (runPatternBlock(patternBlockDelegate)) {
-            log.info("matched $name")
-            // we can now merge any side-effects (currently only modifications to the stash)
-            // first instantiate the ActionBlockDelegate so that we can call its let helper method
-            // to log stash merges
+            // we can now merge any side-effects (currently only modifications to the stash).
+            // first instantiate the ActionBlockDelegate so that we can call its let() helper method
+            // to perform and log stash merges
             def actionBlockDelegate = new ActionBlockDelegate(command, config)
             // now merge
-            newCommand.stash.each { name, value -> actionBlockDelegate.let(newCommand.stash, name, value) }
+            newCommand.stash.each { name, value -> actionBlockDelegate.let(command.stash, name, value) }
             // now run the actions
             runActionBlock(actionBlockDelegate)
             return true
@@ -302,7 +297,7 @@ class Profile extends Logger {
 
 // TODO: add isGreaterThan (gt?), isLessThan (lt?), and equals (eq?) matchers?
 class PatternBlockDelegate extends Logger {
-    private static final StopMatchingException STOP_MATCHING = new StopMatchingException()
+    private static final MatchFailureException STOP_MATCHING = new MatchFailureException()
     private final Command command
 
     PatternBlockDelegate(Command command) {
@@ -323,6 +318,7 @@ class PatternBlockDelegate extends Logger {
             // fall through
         } else {
             log.info("matching $name against $value")
+
             if (RegexHelper.match(command.stash[name], value, command.stash)) {
                 log.info("success")
                 return // abort default failure exception below
@@ -408,8 +404,6 @@ class ActionBlockDelegate extends Logger {
         def uri = stash['URI']
         def document = cache[uri]
         def newStash = new Stash()
-
-        assert newStash != null
 
         if (document == null) {
             log.info("getting $uri")
