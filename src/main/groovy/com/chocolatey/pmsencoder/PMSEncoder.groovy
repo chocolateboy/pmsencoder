@@ -178,47 +178,6 @@ class Config extends Logger {
     }
 }
 
-class ProfileBlockDelegate {
-    public Closure patternBlock = null
-    public Closure actionBlock = null
-    public String name
-
-    ProfileBlockDelegate(String name) {
-        this.name = name
-    }
-
-    // DSL method
-    private void pattern(Closure closure) throws PMSEncoderConfigException {
-        if (this.patternBlock == null) {
-            this.patternBlock = closure
-        } else {
-            throw new PMSEncoderConfigException("invalid profile ($name): multiple pattern blocks defined")
-        }
-    }
-
-    // DSL method
-    private void action(Closure closure) throws PMSEncoderConfigException {
-        if (this.actionBlock == null) {
-            this.actionBlock = closure
-        } else {
-            throw new PMSEncoderConfigException("invalid profile ($name): multiple action blocks defined")
-        }
-    }
-
-    @Typed(TypePolicy.MIXED) // Groovy++ doesn't support delegation
-    private runProfileBlock(Closure closure) throws PMSEncoderConfigException {
-        this.with(closure)
-
-        if (patternBlock == null) {
-            throw new PMSEncoderConfigException("invalid profile ($name): no pattern block defined")
-        }
-
-        if (actionBlock == null) {
-            throw new PMSEncoderConfigException("invalid profile ($name): no action block defined")
-        }
-    }
-}
-
 class Profile extends Logger {
     private final Config config
     private Closure patternBlock
@@ -274,7 +233,7 @@ class Profile extends Logger {
 
     boolean match(Command command) {
         def newCommand = new Command(command) // clone() doesn't work with Groovy++
-        def patternBlockDelegate = new PatternBlockDelegate(command)
+        def patternBlockDelegate = new PatternBlockDelegate(config, command)
 
         log.info("matching $name")
 
@@ -283,7 +242,7 @@ class Profile extends Logger {
             // we can now merge any side-effects (currently only modifications to the stash).
             // first instantiate the ActionBlockDelegate so that we can call its let() helper method
             // to perform and log stash merges
-            def actionBlockDelegate = new ActionBlockDelegate(command, config)
+            def actionBlockDelegate = new ActionBlockDelegate(config, command)
             // now merge
             newCommand.stash.each { name, value -> actionBlockDelegate.let(command.stash, name, value) }
             // now run the actions
@@ -295,13 +254,89 @@ class Profile extends Logger {
     }
 }
 
-// TODO: add isGreaterThan (gt?), isLessThan (lt?), and equals (eq?) matchers?
-class PatternBlockDelegate extends Logger {
-    private static final MatchFailureException STOP_MATCHING = new MatchFailureException()
-    private final Command command
+public class BaseDelegate extends Logger {
+    public Config config
+    public Command command
 
-    PatternBlockDelegate(Command command) {
+    public BaseDelegate(Config config, Command command) {
+        this.config = config
         this.command = command
+    }
+
+    private getArgs() {
+        command.args
+    }
+
+    // DSL properties
+
+    // DEFAULT_MENCODER_ARGS
+    protected final List<String> getDEFAULT_MENCODER_ARGS() {
+        config.DEFAULT_MENCODER_ARGS
+    }
+
+    // YOUTUBE_ACCEPT
+    protected final List<String> getYOUTUBE_ACCEPT() {
+        config.YOUTUBE_ACCEPT
+    }
+
+    // DSL getter
+    private propertyMissing(String name) {
+        command.stash[name]
+    }
+
+    // DSL setter
+    private propertyMissing(String name, String value) {
+        command.stash[name] = value
+    }
+}
+
+class ProfileBlockDelegate {
+    public Closure patternBlock = null
+    public Closure actionBlock = null
+    public String name
+
+    ProfileBlockDelegate(String name) {
+        this.name = name
+    }
+
+    // DSL method
+    private void pattern(Closure closure) throws PMSEncoderConfigException {
+        if (this.patternBlock == null) {
+            this.patternBlock = closure
+        } else {
+            throw new PMSEncoderConfigException("invalid profile ($name): multiple pattern blocks defined")
+        }
+    }
+
+    // DSL method
+    private void action(Closure closure) throws PMSEncoderConfigException {
+        if (this.actionBlock == null) {
+            this.actionBlock = closure
+        } else {
+            throw new PMSEncoderConfigException("invalid profile ($name): multiple action blocks defined")
+        }
+    }
+
+    @Typed(TypePolicy.MIXED) // Groovy++ doesn't support delegation
+    private runProfileBlock(Closure closure) throws PMSEncoderConfigException {
+        this.with(closure)
+
+        if (patternBlock == null) {
+            throw new PMSEncoderConfigException("invalid profile ($name): no pattern block defined")
+        }
+
+        if (actionBlock == null) {
+            throw new PMSEncoderConfigException("invalid profile ($name): no action block defined")
+        }
+    }
+}
+
+// TODO: add isGreaterThan (gt?), isLessThan (lt?), and equals (eq?) matchers?
+class PatternBlockDelegate extends BaseDelegate {
+    private static final MatchFailureException STOP_MATCHING = new MatchFailureException()
+
+    PatternBlockDelegate(Config config, Command command) {
+        super(config, command)
     }
 
     // DSL method
@@ -332,28 +367,13 @@ class PatternBlockDelegate extends Logger {
 }
 
 /* XXX: add configurable HTTP proxy support? */
-class ActionBlockDelegate extends Logger {
-    private final Config config
-    private final Command command
+class ActionBlockDelegate extends BaseDelegate {
     private final Map<String, String> cache = [:]
 
     @Lazy private HTTPClient http = new HTTPClient()
 
-    ActionBlockDelegate(Command command, Config config) {
-        this.command = command
-        this.config = config
-    }
-
-    // DSL properties
-
-    // DEFAULT_MENCODER_ARGS
-    protected final List<String> getDEFAULT_MENCODER_ARGS() {
-        config.DEFAULT_MENCODER_ARGS
-    }
-
-    // YOUTUBE_ACCEPT
-    protected final List<String> getYOUTUBE_ACCEPT() {
-        config.YOUTUBE_ACCEPT
+    ActionBlockDelegate(Config config, Command command) {
+        super(config, command)
     }
 
     // not a DSL method: do the heavy-lifting of stash assignment.
