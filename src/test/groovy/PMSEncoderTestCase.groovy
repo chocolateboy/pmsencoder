@@ -9,7 +9,7 @@ abstract class PMSEncoderTestCase extends GroovyTestCase {
     protected Matcher matcher
 
     void setUp() {
-        def log4jConfig = this.getClass().getResource('/log4j.xml')
+        def log4jConfig = this.getClass().getResource('/log4j_test.xml')
         def pmsencoderConfig = this.getClass().getResource('/pmsencoder.groovy')
 
         DOMConfigurator.configure(log4jConfig)

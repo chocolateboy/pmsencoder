@@ -1,14 +1,17 @@
 @Typed
 package com.chocolatey.pmsencoder
 
-// class PMSEncoderException extends RuntimeException { }
+// if these extend Exception (rather than RuntimeException) Groovy(++?) wraps them in
+// InvokerInvocationException, which causes all kinds of tedium.
+// For the time being: extend RuntimeException - even though they're both checked
 
-interface SubAction {
-    void call(Command command, ActionState state)
-}
+public class StopMatchingException extends RuntimeException { }
 
-interface SubPattern {
-    boolean call(Command command)
+public class PMSEncoderConfigException extends RuntimeException {
+    // what's with the "cannot find constructor" errors? A GString thing? (again?!)
+    PMSEncoderConfigException(String msg) {
+        super(msg)
+    }
 }
 
 // a long-winded way of getting Java Strings and Groovy GStrings to play nice
@@ -56,11 +59,6 @@ public class Command {
         this.args = new ArrayList<String>(old.args)
     }
 
-    public void assign(Command other) {
-        this.stash = other.stash
-        this.args = other.args
-    }
-
     public boolean equals(Command other) {
         this.stash == other.stash && this.args == other.args
     }
@@ -90,11 +88,6 @@ public class Command {
     public java.lang.String toString() {
         "{ stash: $stash, args: $args }".toString()
     }
-}
-
-// common state shared across a sequence of subactions
-class ActionState {
-    public final Map<String, String> cache = [:]
 }
 
 class Matcher extends Logger {
@@ -150,12 +143,15 @@ class Config extends Logger {
     List<String> match(Command command) {
         List<String> matched = []
         log.info("matching URI: ${command.stash['URI']}")
-        profiles.values().each { profile ->
-            Closure subactions
 
-            if ((subactions = profile.match(command))) {
-                subactions()
-                matched << profile.name
+        profiles.each { name, profile ->
+            log.info("trying profile: $name");
+
+            if (profile.match(command)) {
+                log.info("success")
+                matched << name
+            } else {
+                log.info("failure")
             }
         }
 
@@ -165,23 +161,75 @@ class Config extends Logger {
     // DSL method
     @Typed(TypePolicy.MIXED) // Groovy++ doesn't support delegation
     void config(Closure closure) {
-        this.with(closure)
+        this.with(closure) // run at (config file) compile-time
     }
 
     // DSL method
     @Typed(TypePolicy.MIXED) // Groovy++ doesn't support delegation
+    // a Profile consists of a name, a pattern block and an action block - all
+    // determined when the config file is loaded/compiled
     void profile (String name, Closure closure) {
+        // run the profile block at compile-time but store its pattern and action blocks
+        // for execution at runtime
+        log.info("registering profile: $name")
         Profile profile = new Profile(name, this)
-        profile.with(closure)
-        profiles[name] = profile
+
+        try {
+            profile.extractBlocks(closure)
+            profiles[name] = profile
+        } catch (Throwable e) {
+            log.error("invalid profile ($name): " + e.getMessage());
+        }
+    }
+}
+
+class ProfileBlockDelegate {
+    public Closure patternBlock = null
+    public Closure actionBlock = null
+    private String name
+
+    ProfileBlockDelegate(String name) {
+        this.name = name
+        assert this.actionBlock == null
+        assert this.patternBlock == null
+    }
+
+    // DSL method
+    private void pattern(Closure closure) throws PMSEncoderConfigException {
+        if (this.patternBlock == null) {
+            this.patternBlock = closure
+        } else {
+            throw new PMSEncoderConfigException("invalid profile ($name): multiple pattern blocks defined")
+        }
+    }
+
+    // DSL method
+    private void action(Closure closure) throws PMSEncoderConfigException {
+        if (this.actionBlock == null) {
+            this.actionBlock = closure
+        } else {
+            throw new PMSEncoderConfigException("invalid profile ($name): multiple action blocks defined")
+        }
+    }
+
+    @Typed(TypePolicy.MIXED) // Groovy++ doesn't support delegation
+    private runProfileBlock(Closure closure) throws PMSEncoderConfigException {
+        this.with(closure)
+
+        if (patternBlock == null) {
+            throw new PMSEncoderConfigException("invalid profile ($name): no pattern block defined")
+        }
+
+        if (actionBlock == null) {
+            throw new PMSEncoderConfigException("invalid profile ($name): no action block defined")
+        }
     }
 }
 
 class Profile extends Logger {
     private final Config config
-    private Pattern pattern
-    private Action action
-
+    private Closure patternBlock
+    private Closure actionBlock
     public final String name
 
     Profile(String name, Config config) {
@@ -189,58 +237,76 @@ class Profile extends Logger {
         this.config = config
     }
 
-    Closure match(Command command) {
-        // make sure this uses LinkedHashMap (the Groovy default Map implementation)
-        // to ensure predictable iteration ordering (e.g. for tests)
-        Command newCommand = new Command(command) // clone() doesn't work with Groovy++
-        assert newCommand != null
+    @Typed(TypePolicy.MIXED) // Groovy++ doesn't support delegation
+    void extractBlocks(Closure closure) {
+        def delegate = new ProfileBlockDelegate(name)
+        // wrapper method: runs the closure then validates the result, raising an exception if anything is amiss
+        delegate.runProfileBlock(closure)
 
-        if (pattern.match(newCommand)) {
-            /*
-                return a closure that encapsulates all the side-effects of a successful
-                match e.g.
-                
-                1) log the name of the matched profile
-                2) perform any side effects of the match (e.g. merge any bindings that were created/modified
-                   by calls to the DSL's match method)
-                3) execute the profile's corresponding action
-            */
-            return {
-                log.info("matched $name")
-                // merge all the name/value bindings resulting from the match
-                command.assign(newCommand)
-                action.execute(command)
-                return name
-            }
-        } else {
-            return null
+        // we made it without triggering an exception, so the two fields are sane: extract them
+        this.patternBlock = delegate.patternBlock
+        this.actionBlock = delegate.actionBlock
+    }
+
+    // pulled out of the match method below so that type-softening is isolated
+    // note keep it here rather than making it a method in PatternBlockDelegate: trying to keep the delegates
+    // clean (cf. Ruby's BlankSlate)
+    @Typed(TypePolicy.MIXED) // Groovy++ doesn't support delegation
+    boolean runPatternBlock(PatternBlockDelegate delegate) {
+        // match methods short-circuit matching on failure by throwing a StopMatchingException,
+        // so we need to wrap this in a try catch block
+
+        try {
+            delegate.with(patternBlock)
+        } catch (StopMatchingException e) {
+            log.debug("pattern block: caught match exception")
+            // one of the match methods failed, so the whole match failed
+            return false
         }
+
+        // success simply means "no match failure exception was thrown" - this also handles cases where the
+        // pattern block is empty.
+        log.debug("pattern block: matched OK")
+        return true
     }
 
-    // DSL method
+    // pulled out of the match method below so that type-softening is isolated
+    // note keep it here rather than making it a method in ActionBlockDelegate: trying to keep the delegates
+    // clean (cf. Ruby's BlankSlate)
     @Typed(TypePolicy.MIXED) // Groovy++ doesn't support delegation
-    void pattern(Closure closure) {
-        Pattern pattern = new Pattern(config)
-        pattern.with(closure)
-        this.pattern = pattern
+    boolean runActionBlock(ActionBlockDelegate delegate) {
+        delegate.with(actionBlock)
     }
 
-    // DSL method
-    @Typed(TypePolicy.MIXED) // Groovy++ doesn't support delegation
-    void action (Closure closure) {
-        Action action = new Action(config)
-        action.with(closure)
-        this.action = action
+    boolean match(Command command) {
+        def newCommand = new Command(command) // clone() doesn't work with Groovy++
+        def patternBlockDelegate = new PatternBlockDelegate(command)
+
+        // returns true if all matches in the block succeed, false otherwise 
+        if (runPatternBlock(patternBlockDelegate)) {
+            log.info("matched $name")
+            // we can now merge any side-effects (currently only modifications to the stash)
+            // first instantiate the ActionBlockDelegate so that we can call its let helper method
+            // to log stash merges
+            def actionBlockDelegate = new ActionBlockDelegate(command, config)
+            // now merge
+            newCommand.stash.each { name, value -> actionBlockDelegate.let(newCommand.stash, name, value) }
+            // now run the actions
+            runActionBlock(actionBlockDelegate)
+            return true
+        } else {
+            return false
+        }
     }
 }
 
 // TODO: add isGreaterThan (gt?), isLessThan (lt?), and equals (eq?) matchers?
-class Pattern extends Logger {
-    private final Config config
-    private final List<SubPattern> subpatterns = []
+class PatternBlockDelegate extends Logger {
+    private static final StopMatchingException STOP_MATCHING = new StopMatchingException()
+    private final Command command
 
-    Pattern(Config config) {
-        this.config = config
+    PatternBlockDelegate(Command command) {
+        this.command = command
     }
 
     // DSL method
@@ -252,30 +318,33 @@ class Pattern extends Logger {
     void match(String name, String value) {
         assert name && value
 
-        subpatterns << { command ->
-            if (command.stash[name] == null) { // this will happen for old custom configs that use let uri: ...
-                log.warn("invalid match: $name is not defined")
-                return false
+        if (command.stash[name] == null) { // this will happen for old custom configs that use let uri: ...
+            log.warn("invalid match: $name is not defined")
+            // fall through
+        } else {
+            log.info("matching $name against $value")
+            if (RegexHelper.match(command.stash[name], value, command.stash)) {
+                log.info("success")
+                return // abort default failure exception below
             } else {
-                return RegexHelper.match(command.stash[name], value, command.stash)
+                log.info("failure")
             }
         }
-    }
 
-    boolean match(Command command) {
-        subpatterns.every { subpattern -> subpattern(command) }
+        throw STOP_MATCHING
     }
 }
 
 /* XXX: add configurable HTTP proxy support? */
-class Action extends Logger {
+class ActionBlockDelegate extends Logger {
     private final Config config
-    private final List<SubAction> subactions = []
+    private final Command command
+    private final Map<String, String> cache = [:]
 
-    @Lazy private URLDecoder decoder = new URLDecoder() 
     @Lazy private HTTPClient http = new HTTPClient()
 
-    Action(Config config) {
+    ActionBlockDelegate(Command command, Config config) {
+        this.command = command
         this.config = config
     }
 
@@ -291,13 +360,8 @@ class Action extends Logger {
         config.YOUTUBE_ACCEPT
     }
 
-    void execute(Command command) {
-        ActionState state = new ActionState()
-        subactions.each { subaction -> subaction(command, state) }
-    }
-
     // not a DSL method: do the heavy-lifting of stash assignment.
-    // public because Profile needs to call it
+    // public because Profile needs to call it (after a successful match)
     void let(Stash stash, String name, String value) {
         if ((stash[name] == null) || (stash[name] != value)) {
             String[] new_value = [ value ] // FIXME can't get Reference to work transparently here
@@ -340,29 +404,27 @@ class Action extends Logger {
     */
     // DSL method
     void scrape(String regex) {
-        subactions << { command, state ->
-            def stash = command.stash
-            def uri = stash['URI']
-            def document = state.cache[uri]
-            def newStash = new Stash()
+        def stash = command.stash
+        def uri = stash['URI']
+        def document = cache[uri]
+        def newStash = new Stash()
 
-            assert newStash != null
+        assert newStash != null
 
-            if (!document) {
-                log.info("getting $uri")
-                document = state.cache[uri] = http.get(uri)
-            }
+        if (document == null) {
+            log.info("getting $uri")
+            document = cache[uri] = http.get(uri)
+        }
 
-            assert document != null
+        assert document != null
 
-            log.info("matching content of $uri against $regex")
+        log.info("matching content of $uri against $regex")
 
-            if (RegexHelper.match(document, regex, newStash)) {
-                log.info("success")
-                newStash.each { name, value -> let(stash, name, value) }
-            } else {
-                log.info("failure")
-            }
+        if (RegexHelper.match(document, regex, newStash)) {
+            log.info("success")
+            newStash.each { name, value -> let(stash, name, value) }
+        } else {
+            log.info("failure")
         }
     }
 
@@ -370,7 +432,7 @@ class Action extends Logger {
     // DSL method
     void let(Map<String, String> map) {
         map.each { key, value ->
-            subactions << { command, state -> let(command.stash, key, value) }
+            let(command.stash, key, value)
         }
     }
 
@@ -382,35 +444,31 @@ class Action extends Logger {
     // set an MEncoder option - create it if it doesn't exist
     // DSL method
     void set(String name, String value = null) {
-        subactions << { command, state ->
-            log.info("inside set: $name => $value")
-            def args = command.args
-            def index = args.findIndexOf { it == name }
-         
-            if (index == -1) {
-                if (value != null) {
-                    log.info("adding $name $value")
-                    /*
-                        XXX squashed bug - we need to modify stash and args in-place,
-                        which means we can't use:
-                        
-                            args += ...
+        def args = command.args
+        def index = args.findIndexOf { it == name }
+     
+        if (index == -1) {
+            if (value != null) {
+                log.info("adding $name $value")
+                /*
+                    XXX squashed bug:
+                    
+                    unless we want to fully qualify command members each time (command.args = ...)
+                    or reassign them at the end of the method (command.stash = newStash),
+                    we need to modify stash and args in-place, i.e. we can't use:
+                    
+                        args += ...
 
-                        - or indeeed anything that returns a new value of args/stash
-
-                        that's mildly inconvenient, but nowhere near as inconvenient as having to
-                        thread args/stash through every call/return from Match and Action
-                        closures
-                    */
-                    args << name << value
-                } else {
-                    log.info("adding $name")
-                    args << name // FIXME: encapsulate args handling
-                }
-            } else if (value != null) {
-                log.info("setting $name to $value")
-                args[ index + 1 ] = value // FIXME: encapsulate args handling
+                    - or indeeed anything that returns a new value of args/stash
+                */
+                args << name << value
+            } else {
+                log.info("adding $name")
+                args << name // FIXME: encapsulate args handling
             }
+        } else if (value != null) {
+            log.info("setting $name to $value")
+            args[ index + 1 ] = value // FIXME: encapsulate args handling
         }
     }
 
@@ -420,23 +478,21 @@ class Action extends Logger {
     */
     // DSL method
     void tr(Map<String, Map<String, String>> replaceMap) {
-        subactions << { command, state ->
-            // the sort order is predictable (for tests) as long as we (and Groovy) use LinkedHashMap
-            replaceMap.each { name, map ->
-                def args = command.args
-                def index = args.findIndexOf { it == name }
-             
-                if (index != -1) {
-                    map.each { search, replace ->
-                        log.info("replacing $search with $replace")
-                        // TODO support named captures
-                        // FIXME: encapsulate args handling
-                        def value = args[ index + 1 ]
+        // the sort order is predictable (for tests) as long as we (and Groovy) use LinkedHashMap
+        replaceMap.each { name, map ->
+            def args = command.args
+            def index = args.findIndexOf { it == name }
+         
+            if (index != -1) {
+                map.each { search, replace ->
+                    log.info("replacing $search with $replace in $name")
+                    // TODO support named captures
+                    // FIXME: encapsulate args handling
+                    def value = args[ index + 1 ]
 
-                        if (value) {
-                            // XXX bugfix: strings are immutable!
-                            args[ index + 1 ] = value.replaceAll(search, replace)
-                        }
+                    if (value) {
+                        // XXX bugfix: strings are immutable!
+                        args[ index + 1 ] = value.replaceAll(search, replace)
                     }
                 }
             }
@@ -451,53 +507,47 @@ class Action extends Logger {
 
     // DSL method
     void youtube(List<String> formats = config.YOUTUBE_ACCEPT) {
-        subactions << { command, state ->
-            def stash = command.stash
-            def uri = stash['URI']
-            def video_id = stash['video_id']
-            def t = stash['t']
-            def found = false
+        def stash = command.stash
+        def uri = stash['URI']
+        def video_id = stash['video_id']
+        def t = stash['t']
+        def found = false
 
-            assert video_id != null
-            assert t != null
+        assert video_id != null
+        assert t != null
 
-            if (formats.size() > 0) {
-                found = formats.any { fmt ->
-                    def stream_uri = "http://www.youtube.com/get_video?fmt=$fmt&video_id=$video_id&t=$t&asv="
-                    log.info("trying fmt $fmt: $stream_uri")
+        if (formats.size() > 0) {
+            found = formats.any { fmt ->
+                def stream_uri = "http://www.youtube.com/get_video?fmt=$fmt&video_id=$video_id&t=$t&asv="
+                log.info("trying fmt $fmt: $stream_uri")
 
-                    if (http.head(stream_uri)) {
-                        log.info("success")
-                        // set the new URI - note: use the low-level interface NOT the (deferred) DSL interface!
-                        let(stash, 'URI', stream_uri)
-                        return true
-                    } else {
-                        log.info("failure")
-                        return false
-                    }
+                if (http.head(stream_uri)) {
+                    log.info("success")
+                    // set the new URI - note: use the low-level interface NOT the (deferred) DSL interface!
+                    let(stash, 'URI', stream_uri)
+                    return true
+                } else {
+                    log.info("failure")
+                    return false
                 }
-            } else {
-                log.fatal("no formats defined for $uri")
             }
+        } else {
+            log.fatal("no formats defined for $uri")
+        }
 
-            if (!found) {
-                log.fatal("can't retrieve stream URI for $uri")
-            }
+        if (!found) {
+            log.fatal("can't retrieve stream URI for $uri")
         }
     }
 
-    // DSL method: append a list of options to thge command's args list
+    // DSL method: append a list of options to the command's args list
     void append(List<String> args) {
-        subactions << { command, state ->
-            command.args += args
-        }
+        command.args += args
     }
 
-    // DSL method: prepend a list of options to thge command's args list
+    // DSL method: prepend a list of options to the command's args list
     void prepend(List<String> args) {
-        subactions << { command, state ->
-            command.args = args + command.args
-        }
+        command.args = args + command.args
     }
 
     // private helper method containing code common to replace and remove
@@ -516,15 +566,11 @@ class Action extends Logger {
 
     // DSL method: remove an option (and optionally the following n arguments) from the command's arg list
     void remove(String optionName, int andFollowing = 0) {
-        subactions << { command, state ->
-            splice(command.args, optionName, [], andFollowing)
-        }
+        splice(command.args, optionName, [], andFollowing)
     }
 
     // DSL method: replace an option (and optionally the following n arguments) with the supplied arg list
     void replace(String optionName, List<String> replaceList, int andFollowing = 0) {
-        subactions << { command, state ->
-            splice(command.args, optionName, replaceList, andFollowing)
-        }
+        splice(command.args, optionName, replaceList, andFollowing)
     }
 }
