@@ -436,7 +436,7 @@ class Action extends BaseDelegate {
         }
     }
 
-    // define a variable in the stash, performing any variable substitutions
+    // define a variable in the stash
     // DSL method
     @Typed(TypePolicy.DYNAMIC) // XXX try to handle GStrings
     void let(Map<String, String> map) {

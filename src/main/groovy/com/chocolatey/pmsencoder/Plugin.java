@@ -72,19 +72,19 @@ public class Plugin implements StartStopListener {
     private boolean loadConfig(Object config) {
         boolean loaded = true;
 
-        PMS.minimal("trying to load PMSEncoder config file: " + config);
 
         try {
             if (config instanceof URL) {
+                PMS.minimal("loading built-in PMSEncoder config file: " + config);
                 matcher.load((URL)config);
             } else {
                 File configFile = new File((String)config);
 
                 if (configFile.exists()) {
+                    PMS.minimal("loading custom PMSEncoder config file: " + config);
                     matcher.load(configFile);
                 } else {
                     loaded = false;
-                    PMS.minimal("custom config file doesn't exist: " + config);
                 }
             }
         } catch (Throwable e) {
