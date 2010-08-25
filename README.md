@@ -1,10 +1,10 @@
 # Synopsis <a name="Synopsis"></a>
 
-This is a plugin for [PS3 Media Server](http://code.google.com/p/ps3mediaserver/) (PMS) that adds configurable support for Web video streaming via MEncoder.
+This is a plugin for [PS3 Media Server](http://code.google.com/p/ps3mediaserver/) (PMS) that adds configurable support for web video streaming via MEncoder.
 
 # Prerequisites <a name="Prerequisites"></a>
 
-Due to a [bug](http://code.google.com/p/ps3mediaserver/issues/detail?id=766) in the Mac OS X build of PMS, PMSEncoder doesn't currently work on Macs. In addition, PMS doesn't support web streams for Xbox renderers. PMSEncoder should work on all other platforms supported by PS3 Media Server.
+Due to a [bug](http://code.google.com/p/ps3mediaserver/issues/detail?id=766) in the Mac OS X build of PMS, PMSEncoder doesn't currently work on Macs. In addition, PMS doesn't support web streams for the Xbox 360. PMSEncoder should work on all other platforms supported by PS3 Media Server.
 
 These instructions assume you have the [latest version](http://ps3mediaserver.org/forum/viewtopic.php?f=2&t=3217) of PS3 Media Server, the [latest version](http://www.java.com/en/download/index.jsp) of Java, and a recent MEncoder.
 
