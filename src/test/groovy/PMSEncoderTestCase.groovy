@@ -25,6 +25,12 @@ abstract class PMSEncoderTestCase extends GroovyTestCase {
     ) {
         List<String> matches = matcher.match(command, useDefaultArgs)
 
+        /*
+            println("COMMAND: " + command)
+            println("WANT COMMAND: " + expectedCommand)
+            println("MATCHES: " + matches)
+            println("WANT MATCHES: " + expectedMatches)
+        */
         assert command == expectedCommand : "$command != $expectedCommand"
         assert matches == expectedMatches : "$matches != $expectedMatches"
     }

@@ -236,7 +236,7 @@ class Profile extends Logger {
         // the pattern block has its own command object (which is initially the same as the action block's).
         // if the match succeeds, then the pattern block's stash is merged into the action block's stash.
         // this ensures that a partial match (i.e. a failed match) with side-effects/bindings doesn't contaminate
-        // the action, and, more importantly, it deres logging until the whole pattern block has
+        // the action, and, more importantly, it defers logging until the whole pattern block has
         // completed successfully
         def pattern = new Pattern(config, newCommand)
 
@@ -357,6 +357,12 @@ class Pattern extends BaseDelegate {
     }
 
     // DSL method
+    @Typed(TypePolicy.DYNAMIC) // XXX try to handle GStrings
+    void eq(Map<String, String> map) {
+        map.each { name, value -> eq(name, value) }
+    }
+
+    // DSL method
     @Typed(TypePolicy.MIXED) // XXX try to handle GStrings
     void match(String name, String value) {
         assert name && value
@@ -376,6 +382,16 @@ class Pattern extends BaseDelegate {
         }
 
         throw STOP_MATCHING
+    }
+
+    // DSL method
+    @Typed(TypePolicy.MIXED) // XXX try to handle GStrings
+    void eq(String name, String value) {
+        assert name
+
+        if (command.stash[name] != value.toString()) {
+            throw STOP_MATCHING
+        }
     }
 }
 
@@ -526,12 +542,14 @@ class Action extends BaseDelegate {
     void youtube(List<Integer> formats = config.YOUTUBE_ACCEPT) {
         def stash = command.stash
         def uri = stash['uri']
-        def video_id = stash['video_id']
-        def t = stash['t']
+        def video_id = stash['youtube_video_id']
+        def t = stash['youtube_t']
         def found = false
 
         assert video_id != null
         assert t != null
+
+        let(stash, 'youtube_uri', uri)
 
         if (formats.size() > 0) {
             found = formats.any { fmt ->
@@ -542,6 +560,7 @@ class Action extends BaseDelegate {
                     log.info("success")
                     // set the new URI - note: use the low-level interface NOT the (deferred) DSL interface!
                     let(stash, 'uri', stream_uri)
+                    let(stash, 'youtube_fmt', fmt)
                     return true
                 } else {
                     log.info("failure")

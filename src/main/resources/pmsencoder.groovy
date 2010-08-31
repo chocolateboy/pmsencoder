@@ -42,12 +42,15 @@ config {
     profile ('YouTube') {
         // extract the resource's video_id from the URI of the standard YouTube page
         pattern {
-            match uri: '^http://(?:\\w+\\.)?youtube\\.com/watch\\?v=(?<video_id>[^&]+)'
+            match uri: '^http://(?:\\w+\\.)?youtube\\.com/watch\\?v=(?<youtube_video_id>[^&]+)'
         }
 
         action {
             // extract the resource's sekrit identifier ($t) from the HTML
-            scrape '&t=(?<t>[^&]+)'
+            scrape '&t=(?<youtube_t>[^&]+)'
+
+            // extract the uploader ("author") so that custom configs can use it
+            scrape '\\.author=(?<youtube_author>[^&]+)'
 
             // Now, with $video_id and $t defined, call the custom YouTube handler.
             // Note: the parentheses are required for a no-arg action
