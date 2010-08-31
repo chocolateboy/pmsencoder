@@ -17,7 +17,7 @@
 
     <properties>
         <repo>http://groovypp.artifactoryonline.com/groovypp</repo>
-        <groovypp-version>0.2.21</groovypp-version>
+        <groovypp-version>0.2.22</groovypp-version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
 
