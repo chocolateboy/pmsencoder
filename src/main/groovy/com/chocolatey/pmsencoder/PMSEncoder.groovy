@@ -335,7 +335,7 @@ class ProfileBlockDelegate {
     }
 }
 
-// TODO: add isGreaterThan (gt?), isLessThan (lt?), and equals (eq?) matchers?
+// TODO: add gt (greater than) and lt (less than)?
 class Pattern extends BaseDelegate {
     private static final MatchFailureException STOP_MATCHING = new MatchFailureException()
 
@@ -387,11 +387,20 @@ class Pattern extends BaseDelegate {
     // DSL method
     @Typed(TypePolicy.MIXED) // XXX try to handle GStrings
     void eq(String name, String value) {
-        assert name
+        if (command.stash[name] == null) { // this will happen for old custom configs that use let uri: ...
+            log.warn("invalid eq: $name is not defined")
+            // fall through
+        } else {
+            log.info("eq: checking $name (${command.stash[name]}) against $value")
 
-        if (command.stash[name] != value.toString()) {
-            throw STOP_MATCHING
+            if (command.stash[name] == value.toString()) {
+                log.info("success")
+                return
+            }
         }
+
+        log.info("failure")
+        throw STOP_MATCHING
     }
 }
 
@@ -594,7 +603,7 @@ class Action extends BaseDelegate {
             log.warn("invalid splice: can't find $optionName in $args")
             return false
         } else {
-            log.info("setting args [ $index .. ${index + andFollowing} ] to $replaceList")
+            log.info("setting ${args[ index .. (index + andFollowing) ]} to $replaceList")
             args[ index .. (index + andFollowing) ] = replaceList
             return true
         }
