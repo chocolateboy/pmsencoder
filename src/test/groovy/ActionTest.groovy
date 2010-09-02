@@ -1,13 +1,13 @@
 @Typed
 package com.chocolatey.pmsencoder
 
-class PatternTest extends PMSEncoderTestCase {
-    void testPatternEq() {
-        def customConfig = this.getClass().getResource('/match_block.groovy')
-        def uri = 'http://foo.bar.baz'
+class ActionTest extends PMSEncoderTestCase {
+    void testScrapeURI() {
+        def customConfig = this.getClass().getResource('/action.groovy')
+        def uri = 'http://action.com'
         def command = new Command([ uri: uri ])
         def wantCommand = new Command(
-            [ uri: uri, eq: uri ], []
+            [ uri: uri, rfc: '2606' ], []
         )
 
         matcher.load(customConfig)
@@ -15,7 +15,7 @@ class PatternTest extends PMSEncoderTestCase {
         assertMatch(
             command,       // supplied command
             wantCommand,   // expected command
-            [ 'Eq' ],      // expected matches
+            [ 'Scrape' ],  // expected matches
         )
     }
 }

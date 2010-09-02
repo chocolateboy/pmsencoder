@@ -426,15 +426,15 @@ class Action extends BaseDelegate {
     }
  
     /*
-        1) get the URI pointed to by stash[uri] (if it hasn't already been retrieved)
+        1) get the URI pointed to by options['uri'] or stash['uri'] (if it hasn't already been retrieved)
         2) perform a regex match against the document
         3) update the stash with any named captures
     */
     // DSL method
     @Typed(TypePolicy.MIXED) // XXX try to handle GStrings
-    void scrape(String regex) {
+    void scrape(String regex, Map<String, String> options = [:]) {
         def stash = command.stash
-        def uri = stash['uri']
+        def uri = options['uri'] ?: stash['uri']
         def document = cache[uri]
         def newStash = new Stash()
 
