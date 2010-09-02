@@ -1,6 +1,9 @@
 @Typed
 package com.chocolatey.pmsencoder
 
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.*;
+
 /*
     for some reason, HTTPBuilder (via HTTPClient) is acting flaky under
     MIXED typing. try to pin it down
@@ -10,15 +13,15 @@ class HTTPClientTest extends PMSEncoderTestCase {
     private HTTPClient http = new HTTPClient()
 
     void testHead() {
-        assert http.head('http://www.example.com/nosuchfile.com') == false // this fails under MIXED
-        assert http.head('http://www.example.com') == true
+        assertFalse(http.head('http://www.example.com/nosuchfile.com')) // this fails under MIXED
+        assertTrue(http.head('http://www.example.com'))
     }
 
     void testGet() {
-        assert http.get('http://www.example.com/nosuchfile.com') == null
+        assertNull(http.get('http://www.example.com/nosuchfile.com'))
         def example = http.get('http://www.example.com')
-        assert example != null
-        assert example instanceof String
+        assertNotNull(example)
+        assertThat(example, instanceOf(String.class))
         assert example =~ 'RFC\\s+2606'
     }
 }

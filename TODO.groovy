@@ -1,15 +1,5 @@
 /* add mencoder.feature.level (bool) to stash based on MEncoder version */
 
-/* More patterns? */
-
-    greaterThan java.version: 1.5.0
-    gt pms.revision: 400
-
-/* Different pattern syntax? */
-
-    uri ~~ 'http://(?:\\w+\\.)?youtube\\.com/watch\\?v=(?<video_id>[^&]+)'
-    pms.revision > 400 
-
 /* XPath scraping? */
 
     scrape '//foo/bar/@baz', 'foo:(?<bar>bar):baz'
@@ -24,13 +14,11 @@
         format: 'html' // default if xpath is defined
     )
 
-/* restore missing actions e.g. add and remove */
-
 /* Add tests for ytaccept */
 
-/* add the list of matched profiles to the command object and add e.g. a matched method to query it */
+/* add the list of matched profiles to the command object so that it can be queried */
 
     pattern ('Custom Youtube') {
-        matched any: 'YouTube'
-        matched all: [ 'YouTube', 'YouTube HD' ]
+        match { 'YouTube' in matched }
+        match { [ 'YouTube', 'YouTube HD' ] in matched }
     }

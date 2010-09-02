@@ -86,26 +86,27 @@ class MatcherTest extends PMSEncoderTestCase {
         def stash = command.stash
         def args = command.args
 
-        assert matches == [ 'YouTube' ]
-        assert stash.keySet().toList().sort() == [
+        assertEquals([ 'YouTube' ], matches)
+        assertEquals([
             'uri',
             'youtube_author',
             'youtube_fmt',
             'youtube_t',
             'youtube_uri',
             'youtube_video_id'
-        ]
+        ], stash.keySet().toList().sort())
+
         def video_id = stash['youtube_video_id']
-        assert video_id == '_OBlgSz8sSM'
+        assertEquals('_OBlgSz8sSM', video_id)
         def t = stash['youtube_t']
         // the mysterious $t token changes frequently, but always seems to end in a URL-encoded "="
         assert t ==~ /.*%3D$/
-        assert stash['youtube_author'] == 'HDCYT'
-        assert stash['youtube_fmt'] == '35'
-        assert stash['youtube_uri'] == uri
+        assertEquals('HDCYT', stash['youtube_author'])
+        assertEquals('35', stash['youtube_fmt'])
+        assertEquals(uri, stash['youtube_uri'])
         def want_uri = "$youtube/get_video?fmt=35&video_id=$video_id&t=$t&asv="
-        assert stash['uri'] == want_uri : "stash[uri] (${stash['uri']}) != expected URI ($want_uri)"
-        assert args == []
+        assertEquals(want_uri, stash['uri'])
+        assertEquals([], args)
     }
 
     void testTED() {

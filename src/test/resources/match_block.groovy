@@ -1,7 +1,7 @@
 config {
     profile('Eq') {
         pattern {
-            eq uri: 'http://foo.bar.baz'
+            match { uri == 'http://foo.bar.baz' }
         }
 
         action {

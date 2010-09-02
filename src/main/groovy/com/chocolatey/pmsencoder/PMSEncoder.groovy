@@ -386,21 +386,15 @@ class Pattern extends BaseDelegate {
 
     // DSL method
     @Typed(TypePolicy.MIXED) // XXX try to handle GStrings
-    void eq(String name, String value) {
-        if (command.stash[name] == null) { // this will happen for old custom configs that use let uri: ...
-            log.warn("invalid eq: $name is not defined")
-            // fall through
+    void match(Closure closure) {
+        log.info("running match block")
+
+        if (closure()) {
+            log.info("success")
         } else {
-            log.info("eq: checking $name (${command.stash[name]}) against $value")
-
-            if (command.stash[name] == value.toString()) {
-                log.info("success")
-                return
-            }
+            log.info("failure")
+            throw STOP_MATCHING
         }
-
-        log.info("failure")
-        throw STOP_MATCHING
     }
 }
 

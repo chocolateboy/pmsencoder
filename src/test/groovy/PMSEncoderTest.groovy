@@ -4,33 +4,33 @@ package com.chocolatey.pmsencoder
 class PMSEncoderTest extends PMSEncoderTestCase {
     void testCommandClone() {
         def command = new Command([ foo: "bar" ], [ "baz", "quux" ])
-        assert command != null
+        assertNotNull(command)
         def newCommand = new Command(command)
-        assert newCommand != null
+        assertNotNull(newCommand)
 
-        assert !newCommand.stash.is(command.stash)
-        assert !newCommand.args.is(command.args)
-        assert !newCommand.is(command)
-        assert newCommand.stash == [ foo: "bar" ]
-        assert newCommand.args == [ "baz", "quux" ]
+        assertNotSame(command.stash, newCommand.stash)
+        assertNotSame(command.args, newCommand.args)
+        assertNotSame(command, newCommand)
+        assertEquals([ foo: "bar" ], newCommand.stash)
+        assertEquals([ "baz", "quux" ], newCommand.args)
     }
 
     void testStashClone() {
         def stash = new Stash([ foo: "bar" ])
-        assert stash != null
+        assertNotNull(stash)
         def newStash = new Stash(stash)
-        assert newStash != null
+        assertNotNull(newStash)
 
-        assert !newStash.is(stash)
-        assert newStash == [ foo: "bar" ]
+        assertNotSame(stash, newStash)
+        assertEquals([ foo: "bar" ], newStash)
     }
 
     void testProfileBlockDelegateInitalState() {
         def delegate = new ProfileBlockDelegate("Test Profile")
 
-        assert delegate != null
-        assert delegate.name == "Test Profile"
-        assert delegate.patternBlock == null
-        assert delegate.actionBlock == null
+        assertNotNull(delegate)
+        assertEquals("Test Profile", delegate.name)
+        assertNull(delegate.patternBlock)
+        assertNull(delegate.actionBlock)
     }
 }
