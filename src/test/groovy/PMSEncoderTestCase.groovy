@@ -23,9 +23,9 @@ abstract class PMSEncoderTestCase extends GroovyTestCase {
         List<String> expectedMatches,
         boolean useDefaultArgs = false
     ) {
-        List<String> matches = matcher.match(command, useDefaultArgs)
-
-        assertEquals(expectedCommand, command)
-        assertEquals(expectedMatches, matches)
+        matcher.match(command, useDefaultArgs)
+        assertEquals(expectedCommand.stash, command.stash)
+        assertEquals(expectedCommand.args, command.args)
+        assertEquals(expectedMatches, command.matches)
     }
 }

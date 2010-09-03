@@ -81,10 +81,12 @@ class MatcherTest extends PMSEncoderTestCase {
         def uri = "$youtube/watch?v=_OBlgSz8sSM"
         def command = new Command([ uri: uri ])
 
-        List<String> matches = matcher.match(command, false) // false: don't ue default MEncoder args
+        // bypass Groovy's annoyingly loose definition of true
+        assertSame(true, matcher.match(command, false)) // false: don't use default MEncoder args
 
         def stash = command.stash
         def args = command.args
+        def matches = command.matches
 
         assertEquals([ 'YouTube' ], matches)
         assertEquals([

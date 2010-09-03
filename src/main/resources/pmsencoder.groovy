@@ -71,7 +71,8 @@ config {
 
     profile ('Apple Trailers HD') {
         pattern {
-            match uri: '^http://(?:(?:movies|www|trailers)\\.)?apple\\.com/.+\\.m4v$'
+            match { 'Apple Trailers' in matches }
+            match uri: '(_h720p\\.mov|\\.m4v)$'
         }
         
         action {

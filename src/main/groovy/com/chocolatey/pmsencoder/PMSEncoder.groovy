@@ -47,46 +47,47 @@ public class Stash extends LinkedHashMap<java.lang.String, java.lang.String> {
 public class Command {
     Stash stash
     List<String> args
+    List<String> matches
+
+    private Command(Stash stash, List<String> args, List<String> matches) {
+        this.stash = stash
+        this.args = args
+        this.matches = matches
+    }
 
     public Command() {
-        this.stash = new Stash()
-        this.args = []
-    }
-
-    // copy constructor (clone doesn't work in Groovy++)
-    public Command(Command old) {
-        this.stash = new Stash(old.stash)
-        this.args = new ArrayList<String>(old.args)
-    }
-
-    public boolean equals(Command other) {
-        this.stash == other.stash && this.args == other.args
+        this(new Stash(), [], [])
     }
 
     public Command(Stash stash) {
-        this.stash = stash
-        this.args = []
+        this(stash, [])
+    }
+
+    public Command(List<String> args) {
+        this(new Stash(), args)
+    }
+
+    public Command(Stash stash, List<String> args) {
+        this(stash, args, [])
     }
 
     // convenience constructor: allow the stash to be supplied as a Map<String, String>
     // e.g. new Command([ uri: uri ])
     public Command(Map<String, String> map) {
-        this.stash = new Stash(map)
-        this.args = []
+        this(new Stash(map), [], [])
     }
 
-    public Command(List<String> args) {
-        this.stash = new Stash()
-        this.args = args
+    // copy constructor (clone doesn't work in Groovy++)
+    public Command(Command other) {
+        this(new Stash(other.stash), new ArrayList<String>(other.args), new ArrayList<String>(other.matches))
     }
 
-    public Command(Stash stash, List<String> args) {
-        this.stash = stash
-        this.args = args
+    public boolean equals(Command other) {
+        this.stash == other.stash && this.args == other.args && this.matches == other.matches
     }
 
     public java.lang.String toString() {
-        "{ stash: $stash, args: $args }".toString()
+        "{ stash: $stash, args: $args, matches: $matches }".toString()
     }
 }
 
@@ -124,7 +125,7 @@ class Matcher extends Logger {
         script.run()
     }
 
-    List<String> match(Command command, boolean useDefault = true) {
+    boolean match(Command command, boolean useDefault = true) {
         if (useDefault) {
             config.DEFAULT_MENCODER_ARGS.each { command.args << it }
         }
@@ -140,17 +141,16 @@ class Config extends Logger {
     public List<String> DEFAULT_MENCODER_ARGS = []
     public List<Integer> YOUTUBE_ACCEPT = []
 
-    List<String> match(Command command) {
-        List<String> matched = []
+    boolean match(Command command) {
         log.info("matching URI: ${command.stash['uri']}")
 
         profiles.each { name, profile ->
             if (profile.match(command)) {
-                matched << name
+                command.matches << name
             }
         }
 
-        return matched
+        return command.matches.size() > 0
     }
 
     // DSL method
@@ -238,7 +238,7 @@ class Profile extends Logger {
         // this ensures that a partial match (i.e. a failed match) with side-effects/bindings doesn't contaminate
         // the action, and, more importantly, it defers logging until the whole pattern block has
         // completed successfully
-        def pattern = new Pattern(config, newCommand)
+        def pattern = new Pattern(config, this, newCommand)
 
         log.info("matching $name")
 
@@ -247,7 +247,7 @@ class Profile extends Logger {
             // we can now merge any side-effects (currently only modifications to the stash).
             // first instantiate the Action so that we can call its let() helper method
             // to perform and log stash merges
-            def action = new Action(config, command)
+            def action = new Action(config, this, command)
             // now merge
             newCommand.stash.each { name, value -> action.let(command.stash, name, value) }
             // now run the actions
@@ -268,12 +268,18 @@ public class BaseDelegate extends Logger {
         this.command = command
     }
         
+    // DSL accessor (args): read-write
     protected List<String> getArgs() {
         command.args
     }
 
     protected List<String> setArgs(List<String> args) {
         command.args = args
+    }
+
+    // DSL accessor (matches): read only
+    public List<String> getMatches() {
+        command.matches
     }
 
     // DSL properties
@@ -335,12 +341,20 @@ class ProfileBlockDelegate {
     }
 }
 
-// TODO: add gt (greater than) and lt (less than)?
-class Pattern extends BaseDelegate {
+class PatternActionDelegate extends BaseDelegate {
+    public Profile profile
+
+    PatternActionDelegate(Config config, Profile profile, Command command) {
+        super(config, command)
+        this.profile = profile
+    }
+}
+
+class Pattern extends PatternActionDelegate {
     private static final MatchFailureException STOP_MATCHING = new MatchFailureException()
 
-    Pattern(Config config, Command command) {
-        super(config, command)
+    Pattern(Config config, Profile profile, Command command) {
+        super(config, profile, command)
     }
 
     // DSL setter - overrides the BaseDelegate method to avoid logging,
@@ -399,13 +413,13 @@ class Pattern extends BaseDelegate {
 }
 
 /* XXX: add configurable HTTP proxy support? */
-class Action extends BaseDelegate {
+class Action extends PatternActionDelegate {
     private final Map<String, String> cache = [:]
 
     @Lazy private HTTPClient http = new HTTPClient()
 
-    Action(Config config, Command command) {
-        super(config, command)
+    Action(Config config, Profile profile, Command command) {
+        super(config, profile, command)
     }
 
     // DSL setter
