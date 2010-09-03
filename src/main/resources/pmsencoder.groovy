@@ -6,7 +6,7 @@ config {
         '-of', 'lavf',
         '-lavfopts', 'format=dvd',
         '-ovc', 'lavc',
-        '-lavcopts', 'vcodec=mpeg2video:vbitrate=4096:threads=2:acodec=ac3:abitrate=128',
+        '-lavcopts', 'vcodec=mpeg2video:vbitrate=4096:threads=${nbcores}:acodec=ac3:abitrate=128',
         '-ofps', '25',
         '-cache', '16384', // default cache size; default minimum percentage is 20%
         '-vf', 'harddup'

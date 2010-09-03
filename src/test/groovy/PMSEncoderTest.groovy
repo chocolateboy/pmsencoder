@@ -26,7 +26,8 @@ class PMSEncoderTest extends PMSEncoderTestCase {
     }
 
     void testProfileBlockDelegateInitalState() {
-        def delegate = new ProfileBlockDelegate("Test Profile")
+        def config = new Config()
+        def delegate = new ProfileBlockDelegate(config, "Test Profile")
 
         assertNotNull(delegate)
         assertEquals("Test Profile", delegate.name)

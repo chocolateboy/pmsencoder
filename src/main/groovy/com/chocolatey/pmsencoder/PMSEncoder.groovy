@@ -1,6 +1,8 @@
 @Typed
 package com.chocolatey.pmsencoder
 
+import net.pms.PMS
+
 // if these extend Exception (rather than RuntimeException) Groovy(++?) wraps them in
 // InvokerInvocationException, which causes all kinds of tedium.
 // For the time being: extend RuntimeException - even though they're both checked
@@ -165,7 +167,7 @@ class Config extends Logger {
     // determined when the config file is loaded/compiled
     void profile (String name, Closure closure) {
         // run the profile block at compile-time to extract its pattern and action blocks,
-        // but invoke those at runtime
+        // but invoke them at runtime
         log.info("registering profile: $name")
         Profile profile = new Profile(name, this)
 
@@ -192,7 +194,7 @@ class Profile extends Logger {
 
     @Typed(TypePolicy.MIXED) // Groovy++ doesn't support delegation
     void extractBlocks(Closure closure) {
-        def delegate = new ProfileBlockDelegate(name)
+        def delegate = new ProfileBlockDelegate(config, name)
         // wrapper method: runs the closure then validates the result, raising an exception if anything is amiss
         delegate.runProfileBlock(closure)
 
@@ -259,12 +261,41 @@ class Profile extends Logger {
     }
 }
 
-public class BaseDelegate extends Logger {
-    public Config config
+public class ConfigDelegate extends Logger {
+    private Config config
+
+    public ConfigDelegate(Config config) {
+        this.config = config
+    }
+
+    // DSL properties
+
+    // nbcores
+    static protected final int getNbcores() {
+        PMS.getConfiguration().getNumberOfCpuCores()
+    }
+
+    // config
+    protected final Config getConfig() {
+        config
+    }
+
+    // DEFAULT_MENCODER_ARGS
+    protected final List<String> getDEFAULT_MENCODER_ARGS() {
+        config.DEFAULT_MENCODER_ARGS
+    }
+
+    // YOUTUBE_ACCEPT
+    protected final List<String> getYOUTUBE_ACCEPT() {
+        config.YOUTUBE_ACCEPT
+    }
+}
+
+public class CommandDelegate extends ConfigDelegate {
     public Command command
 
-    public BaseDelegate(Config config, Command command) {
-        this.config = config
+    public CommandDelegate(Config config, Command command) {
+        super(config)
         this.command = command
     }
         
@@ -282,30 +313,19 @@ public class BaseDelegate extends Logger {
         command.matches
     }
 
-    // DSL properties
-
-    // DEFAULT_MENCODER_ARGS
-    protected final List<String> getDEFAULT_MENCODER_ARGS() {
-        config.DEFAULT_MENCODER_ARGS
-    }
-
-    // YOUTUBE_ACCEPT
-    protected final List<String> getYOUTUBE_ACCEPT() {
-        config.YOUTUBE_ACCEPT
-    }
-
     // DSL getter
     protected String propertyMissing(String name) {
         command.stash[name]
     }
 }
 
-class ProfileBlockDelegate {
+class ProfileBlockDelegate extends ConfigDelegate {
     public Closure patternBlock = null
     public Closure actionBlock = null
     public String name
 
-    ProfileBlockDelegate(String name) {
+    ProfileBlockDelegate(Config config, String name) {
+        super(config)
         this.name = name
     }
 
@@ -341,23 +361,23 @@ class ProfileBlockDelegate {
     }
 }
 
-class PatternActionDelegate extends BaseDelegate {
+class ProfileDelegate extends CommandDelegate {
     public Profile profile
 
-    PatternActionDelegate(Config config, Profile profile, Command command) {
+    ProfileDelegate(Config config, Profile profile, Command command) {
         super(config, command)
         this.profile = profile
     }
 }
 
-class Pattern extends PatternActionDelegate {
+class Pattern extends ProfileDelegate {
     private static final MatchFailureException STOP_MATCHING = new MatchFailureException()
 
     Pattern(Config config, Profile profile, Command command) {
         super(config, profile, command)
     }
 
-    // DSL setter - overrides the BaseDelegate method to avoid logging,
+    // DSL setter - overrides the CommandDelegate method to avoid logging,
     // which is handled later (if the match succeeds) by merging the pattern
     // block's temporary stash
     protected String propertyMissing(String name, Object value) {
@@ -413,7 +433,7 @@ class Pattern extends PatternActionDelegate {
 }
 
 /* XXX: add configurable HTTP proxy support? */
-class Action extends PatternActionDelegate {
+class Action extends ProfileDelegate {
     private final Map<String, String> cache = [:]
 
     @Lazy private HTTPClient http = new HTTPClient()
