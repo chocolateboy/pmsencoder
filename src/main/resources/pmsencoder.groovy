@@ -103,12 +103,12 @@ config {
 
         // 1) extract the page ID
         pattern {
-            match uri: '^http://(www\\.)?gametrailers\\.com/download/(?<page_id>\\d+)/[^.]+\\.flv$'
+            match uri: '^http://(www\\.)?gametrailers\\.com/download/(?<gametrailers_page_id>\\d+)/[^.]+\\.flv$'
         }
         
         // 2) and use it to restore the correct webpage URI
         action {
-           let uri: "http://www.gametrailers.com/player/${page_id}.html"
+           let uri: "http://www.gametrailers.com/player/${gametrailers_page_id}.html"
         }
     }
 
@@ -122,11 +122,11 @@ config {
                 The order is important here! Make sure we scrape the variables before we set the URI.
                 extract some values from the HTML
             */
-            scrape '\\bmov_game_id\\s*=\\s*(?<movie_id>\\d+)'
-            scrape '\\bhttp://www\\.gametrailers\\.com/download/\\d+/(?<filename>t_[^.]+)\\.wmv\\b'
+            scrape '\\bmov_game_id\\s*=\\s*(?<gametrailers_movie_id>\\d+)'
+            scrape '\\bhttp://www\\.gametrailers\\.com/download/\\d+/(?<gametrailers_filename>t_[^.]+)\\.wmv\\b'
 
             // now use them to rewrite the URI
-            uri = "http://trailers-ak.gametrailers.com/gt_vault/$movie_id/${filename}.flv"
+            uri = "http://trailers-ak.gametrailers.com/gt_vault/$gametrailers_movie_id/${gametrailers_filename}.flv"
         }
     }
 }

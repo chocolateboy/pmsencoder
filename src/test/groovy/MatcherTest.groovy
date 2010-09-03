@@ -132,10 +132,10 @@ class MatcherTest extends PMSEncoderTestCase {
         def command = new Command([ uri: uri ])
         def wantCommand = new Command(
             [
-                uri:      want_uri,
-                movie_id: movie_id,
-                page_id:  page_id,
-                filename: filename
+                uri:                   want_uri,
+                gametrailers_movie_id: movie_id,
+                gametrailers_page_id:  page_id,
+                gametrailers_filename: filename
             ]
         )
 
