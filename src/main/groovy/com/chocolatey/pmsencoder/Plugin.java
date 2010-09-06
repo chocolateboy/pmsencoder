@@ -44,7 +44,7 @@ public class Plugin implements StartStopListener {
         configuration = PMS.getConfiguration();
 
         // load PMSEncoder config file(s)
-        matcher = new Matcher();
+        matcher = new Matcher(pms);
         loadConfig();
         pmsencoder = new Engine(configuration, matcher);
 
@@ -71,7 +71,6 @@ public class Plugin implements StartStopListener {
     // GMaven doesn't like generic methods, hence this egregious hack
     private boolean loadConfig(Object config) {
         boolean loaded = true;
-
 
         try {
             if (config instanceof URL) {

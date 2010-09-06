@@ -1,6 +1,8 @@
 @Typed
 package com.chocolatey.pmsencoder
 
+import net.pms.PMS
+
 class PMSEncoderTest extends PMSEncoderTestCase {
     void testCommandClone() {
         def command = new Command([ foo: "bar" ], [ "baz", "quux" ])
@@ -26,7 +28,7 @@ class PMSEncoderTest extends PMSEncoderTestCase {
     }
 
     void testProfileBlockDelegateInitalState() {
-        def config = new Config()
+        def config = new Config(pms)
         def delegate = new ProfileBlockDelegate(config, "Test Profile")
 
         assertNotNull(delegate)

@@ -96,8 +96,8 @@ public class Command {
 class Matcher extends Logger {
     private final Config config
 
-    Matcher() {
-        this.config = new Config()
+    Matcher(PMS pms) {
+        this.config = new Config(pms)
     }
 
     void load(String path) {
@@ -142,6 +142,11 @@ class Config extends Logger {
     // DSL fields (mutable)
     public List<String> DEFAULT_MENCODER_ARGS = []
     public List<Integer> YOUTUBE_ACCEPT = []
+    public int nbcores
+    
+    public Config(PMS pms) {
+        nbcores = pms.getConfiguration().getNumberOfCpuCores()
+    }
 
     boolean match(Command command) {
         log.info("matching URI: ${command.stash['uri']}")
@@ -271,8 +276,8 @@ public class ConfigDelegate extends Logger {
     // DSL properties
 
     // nbcores
-    static protected final int getNbcores() {
-        PMS.getConfiguration().getNumberOfCpuCores()
+    protected final int getNbcores() {
+        config.nbcores
     }
 
     // config
@@ -388,12 +393,6 @@ class Pattern extends ProfileDelegate {
     @Typed(TypePolicy.DYNAMIC) // XXX try to handle GStrings
     void match(Map<String, String> map) {
         map.each { name, value -> match(name, value) }
-    }
-
-    // DSL method
-    @Typed(TypePolicy.DYNAMIC) // XXX try to handle GStrings
-    void eq(Map<String, String> map) {
-        map.each { name, value -> eq(name, value) }
     }
 
     // DSL method
