@@ -131,7 +131,7 @@ class Matcher extends Logger {
     boolean match(Command command, boolean useDefault = true) {
         if (useDefault) {
             // watch out: there's a GString about
-            config.DEFAULT_MENCODER_ARGS.each { command.args << it.toString() }
+            config.$DEFAULT_MENCODER_ARGS.each { command.args << it.toString() }
         }
 
         config.match(command) // we could use the @Delegate annotation, but this is cleaner/clearer
@@ -142,16 +142,16 @@ class Config extends Logger {
     private final Map<String, Profile> profiles = [:] // defaults to LinkedHashMap
 
     // DSL fields (mutable)
-    public List<String> DEFAULT_MENCODER_ARGS = []
-    public List<Integer> YOUTUBE_ACCEPT = []
-    public int nbcores
+    public List<String> $DEFAULT_MENCODER_ARGS = []
+    public List<Integer> $YOUTUBE_ACCEPT = []
+    public PMS $PMS
     
     public Config(PMS pms) {
-        nbcores = pms.getConfiguration().getNumberOfCpuCores()
+        $PMS = pms
     }
 
     boolean match(Command command) {
-        log.info("matching URI: ${command.stash['uri']}")
+        log.info("matching URI: ${command.stash['$URI']}")
 
         profiles.each { name, profile ->
             if (profile.match(command)) {
@@ -277,24 +277,24 @@ public class ConfigDelegate extends Logger {
 
     // DSL properties
 
-    // nbcores
-    protected final int getNbcores() {
-        config.nbcores
-    }
-
     // config
     protected final Config getConfig() {
         config
     }
 
-    // DEFAULT_MENCODER_ARGS
-    protected final List<String> getDEFAULT_MENCODER_ARGS() {
-        config.DEFAULT_MENCODER_ARGS
+    // $PMS
+    protected final PMS get$PMS() {
+        config.$PMS
     }
 
-    // YOUTUBE_ACCEPT
-    protected final List<String> getYOUTUBE_ACCEPT() {
-        config.YOUTUBE_ACCEPT
+    // $DEFAULT_MENCODER_ARGS
+    protected final List<String> get$DEFAULT_MENCODER_ARGS() {
+        config.$DEFAULT_MENCODER_ARGS
+    }
+
+    // $YOUTUBE_ACCEPT
+    protected final List<String> get$YOUTUBE_ACCEPT() {
+        config.$YOUTUBE_ACCEPT
     }
 }
 
@@ -453,7 +453,7 @@ class Action extends ProfileDelegate {
     @Typed(TypePolicy.MIXED) // XXX try to handle GStrings
     public String let(Stash stash, String name, String value) {
         if ((stash[name] == null) || (stash[name] != value.toString())) {
-            log.info("setting \$$name to $value")
+            log.info("setting $name to $value")
             stash[name] = value
         }
 
@@ -461,7 +461,7 @@ class Action extends ProfileDelegate {
     }
  
     /*
-        1) get the URI pointed to by options['uri'] or stash['uri'] (if it hasn't already been retrieved)
+        1) get the URI pointed to by options['uri'] or stash['$URI'] (if it hasn't already been retrieved)
         2) perform a regex match against the document
         3) update the stash with any named captures
     */
@@ -469,7 +469,7 @@ class Action extends ProfileDelegate {
     @Typed(TypePolicy.MIXED) // XXX try to handle GStrings
     void scrape(String regex, Map<String, String> options = [:]) {
         def stash = command.stash
-        def uri = options['uri'] ?: stash['uri']
+        def uri = options['uri'] ?: stash['$URI']
         def document = cache[uri]
         def newStash = new Stash()
 
@@ -570,16 +570,16 @@ class Action extends ProfileDelegate {
     }
 
     /*
-        given (in the stash) the $video_id and $t values of a YouTube stream URI (i.e. the direct link to a video),
-        construct the full URI with various $fmt values in succession and set the stash $uri value to the first one
-        that's valid (based on a HEAD request)
+        given (in the stash) the $youtube_video_id and $youtube_t values of a YouTube stream URI
+        (i.e. the direct link to a video), construct the full URI with various $fmt values in
+        succession and set the stash $URI value to the first one that's valid (based on a HEAD request)
     */
 
     // DSL method
     @Typed(TypePolicy.MIXED) // XXX try to handle GStrings
-    void youtube(List<Integer> formats = config.YOUTUBE_ACCEPT) {
+    void youtube(List<Integer> formats = config.$YOUTUBE_ACCEPT) {
         def stash = command.stash
-        def uri = stash['uri']
+        def uri = stash['$URI']
         def video_id = stash['youtube_video_id']
         def t = stash['youtube_t']
         def found = false
@@ -597,7 +597,7 @@ class Action extends ProfileDelegate {
                 if (http.head(stream_uri)) {
                     log.info("success")
                     // set the new URI - note: use the low-level interface NOT the (deferred) DSL interface!
-                    let(stash, 'uri', stream_uri)
+                    let(stash, '$URI', stream_uri)
                     let(stash, 'youtube_fmt', fmt)
                     return true
                 } else {

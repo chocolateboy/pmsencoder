@@ -1,7 +1,8 @@
 config {
+    def nbcores = $PMS.getConfiguration().getNumberOfCpuCores()
     def var1 = "config$nbcores"
 
-    profile ('GString') {
+    profile ('GString Scope') {
         def var2 = "profile$nbcores"
         def var3
 

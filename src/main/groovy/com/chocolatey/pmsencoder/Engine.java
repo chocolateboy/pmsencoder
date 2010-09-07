@@ -46,9 +46,9 @@ public class Engine extends MEncoderWebVideo {
         Command command = new Command();
         Stash oldStash = command.getStash();
 
-        oldStash.put("uri", uri);
-        oldStash.put("executable", executable());
-        oldStash.put("output", outfile);
+        oldStash.put("$URI", uri);
+        oldStash.put("$EXECUTABLE", executable());
+        oldStash.put("$OUTPUT", outfile);
 
         log.info("invoking matcher for: " + uri);
 
@@ -72,15 +72,14 @@ public class Engine extends MEncoderWebVideo {
             log.info(nMatches + " matches for: " + uri);
         }
 
-        args.add(0, stash.get("executable"));
+        args.add(0, stash.get("$EXECUTABLE"));
 
         /*
-         * if it's still an MEncoder command, add "-o /tmp/javaps3media/psmesencoder1234 http://URI";
-         * otherwise assume the matching action has defined the whole command,
-         * including the output file option
+         * if it's still an MEncoder command, add "$URI -o /tmp/javaps3media/psmesencoder1234";
+         * otherwise assume the matching action has defined the URI and any output option(s)
          */
         if (args.get(0).equals(executable()) && !(args.contains("-o"))) {
-            args.add(1, stash.get("uri"));
+            args.add(1, stash.get("$URI"));
             args.add("-o");
             args.add(outfile);
         }

@@ -1,7 +1,7 @@
 config {
     profile('Scrape') {
         pattern {
-            match { uri == 'http://action.com' }
+            match { $URI == 'http://action.com' }
         }
 
         action {

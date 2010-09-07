@@ -1,6 +1,8 @@
 config {
+    def nbcores = $PMS.getConfiguration().getNumberOfCpuCores()
+
     // the default MEncoder args - these can be redefined in a custom config file
-    DEFAULT_MENCODER_ARGS = [
+    $DEFAULT_MENCODER_ARGS = [
         '-prefer-ipv4',
         '-oac', 'lavc',
         '-of', 'lavf',
@@ -21,16 +23,16 @@ config {
         
         exclude '1080p':
 
-            youtube YOUTUBE_ACCEPT - [ 37 ]
+            youtube $YOUTUBE_ACCEPT - [ 37 ]
 
         add '2304p':
 
-            youtube [ 38 ] + YOUTUBE_ACCEPT
+            youtube [ 38 ] + $YOUTUBE_ACCEPT
 
         For the full list of formats, see: https://secure.wikimedia.org/wikipedia/en/wiki/YouTube#Quality_and_codecs
     */
 
-    YOUTUBE_ACCEPT = [
+    $YOUTUBE_ACCEPT = [
         37,  // 1080p
         22,  // 720p
         35,  // 480p
@@ -42,7 +44,7 @@ config {
     profile ('YouTube') {
         // extract the resource's video_id from the URI of the standard YouTube page
         pattern {
-            match uri: '^http://(?:\\w+\\.)?youtube\\.com/watch\\?v=(?<youtube_video_id>[^&]+)'
+            match $URI: '^http://(?:\\w+\\.)?youtube\\.com/watch\\?v=(?<youtube_video_id>[^&]+)'
         }
 
         action {
@@ -60,7 +62,7 @@ config {
                   
     profile ('Apple Trailers') {
         pattern {
-            match uri: '^http://(?:(?:movies|www|trailers)\\.)?apple\\.com/.+$'
+            match $URI: '^http://(?:(?:movies|www|trailers)\\.)?apple\\.com/.+$'
         }
 
         // FIXME: 4096 is a needlessly high video bitrate; they typically weigh in at ~1200 Kbps
@@ -72,7 +74,7 @@ config {
     profile ('Apple Trailers HD') {
         pattern {
             match { 'Apple Trailers' in matches }
-            match uri: '(_h720p\\.mov|\\.m4v)$'
+            match $URI: '(_h720p\\.mov|\\.m4v)$'
         }
         
         action {
@@ -82,7 +84,7 @@ config {
 
     profile ('TED') {
         pattern {
-            match uri: '^http://feedproxy\\.google\\.com/~r/TEDTalks_video\\b'
+            match $URI: '^http://feedproxy\\.google\\.com/~r/TEDTalks_video\\b'
         }
         
         action {
@@ -103,18 +105,18 @@ config {
 
         // 1) extract the page ID
         pattern {
-            match uri: '^http://(www\\.)?gametrailers\\.com/download/(?<gametrailers_page_id>\\d+)/[^.]+\\.flv$'
+            match $URI: '^http://(www\\.)?gametrailers\\.com/download/(?<gametrailers_page_id>\\d+)/[^.]+\\.flv$'
         }
         
         // 2) and use it to restore the correct webpage URI
         action {
-           let uri: "http://www.gametrailers.com/player/${gametrailers_page_id}.html"
+           let $URI: "http://www.gametrailers.com/player/${gametrailers_page_id}.html"
         }
     }
 
     profile ('GameTrailers') {
         pattern {
-            match uri: '^http://(www\\.)?gametrailers\\.com/'
+            match $URI: '^http://(www\\.)?gametrailers\\.com/'
         }
         
         action {
@@ -126,7 +128,7 @@ config {
             scrape '\\bhttp://www\\.gametrailers\\.com/download/\\d+/(?<gametrailers_filename>t_[^.]+)\\.wmv\\b'
 
             // now use them to rewrite the URI
-            uri = "http://trailers-ak.gametrailers.com/gt_vault/$gametrailers_movie_id/${gametrailers_filename}.flv"
+            $URI = "http://trailers-ak.gametrailers.com/gt_vault/$gametrailers_movie_id/${gametrailers_filename}.flv"
         }
     }
 }
