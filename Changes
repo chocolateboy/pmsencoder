@@ -1,7 +1,7 @@
 1.2.0 TBC
     - overhaul the DSL implementation so that it's evaluated at runtime rather than compile-time
     - allow GStrings and arbitrary expressions to be used in the DSL
-    - allow the whole command to be set (e.g. allow VLC/youtube-dl &c.) to be used
+    - allow the whole command to be set e.g. allow VLC/youtube-dl &c. to be used
 
 1.1.0 2010-07-24
     - YouTube fix (change to the get_video API)
