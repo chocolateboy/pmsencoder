@@ -73,4 +73,46 @@ class CustomConfigTest extends PMSEncoderTestCase {
             [ 'GString' ], // expected matches
         )
     }
+
+    void testGString() {
+        def customConfig = this.getClass().getResource('/gstring.groovy')
+        def uri = 'http://www.example.com'
+        def command = new Command([ uri: uri ])
+        def wantCommand = new Command([ uri: uri ], [ 'config3', 'profile3', 'pattern3', 'action3' ])
+
+        matcher.load(customConfig)
+
+        assertMatch(
+            command,       // supplied command
+            wantCommand,   // expected command
+            [ 'GString' ], // expected matches
+        )
+    }
+
+    void testInterpolationInDefaultMEncoderArgs() {
+        def customConfig = this.getClass().getResource('/gstring.groovy')
+        def uri = 'http://www.example.com'
+        def command = new Command([ uri: uri ])
+        def wantArgs = [
+            '-prefer-ipv4',
+            '-oac', 'lavc',
+            '-of', 'lavf',
+            '-lavfopts', 'format=dvd',
+            '-ovc', 'lavc',
+            // make sure nbcores is interpolated here as 3 in threads=3
+            '-lavcopts', "vcodec=mpeg2video:vbitrate=4096:threads=3:acodec=ac3:abitrate=128",
+            '-ofps', '25',
+            '-cache', '16384',
+            '-vf', 'harddup'
+        ]
+
+        def wantCommand = new Command([ uri: uri ], wantArgs)
+
+        assertMatch(
+            command,       // supplied command
+            wantCommand,   // expected command
+            [],            // expected matches
+            true           // use default args
+        )
+    }
 }

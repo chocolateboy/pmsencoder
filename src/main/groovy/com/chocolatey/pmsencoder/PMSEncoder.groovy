@@ -127,9 +127,11 @@ class Matcher extends Logger {
         script.run()
     }
 
+    @Typed(TypePolicy.DYNAMIC) // XXX needed to handle GStrings
     boolean match(Command command, boolean useDefault = true) {
         if (useDefault) {
-            config.DEFAULT_MENCODER_ARGS.each { command.args << it }
+            // watch out: there's a GString about
+            config.DEFAULT_MENCODER_ARGS.each { command.args << it.toString() }
         }
 
         config.match(command) // we could use the @Delegate annotation, but this is cleaner/clearer
@@ -396,7 +398,7 @@ class Pattern extends ProfileDelegate {
     }
 
     // DSL method
-    @Typed(TypePolicy.MIXED) // XXX try to handle GStrings
+    @Typed(TypePolicy.DYNAMIC) // XXX try to handle GStrings
     void match(String name, String value) {
         assert name && value
 
@@ -418,7 +420,7 @@ class Pattern extends ProfileDelegate {
     }
 
     // DSL method
-    @Typed(TypePolicy.MIXED) // XXX try to handle GStrings
+    @Typed(TypePolicy.DYNAMIC) // XXX try to handle GStrings
     void match(Closure closure) {
         log.info("running match block")
 
