@@ -84,6 +84,8 @@ public class Engine extends MEncoderWebVideo {
             args.add(outfile);
         }
 
+        log.info("command: " + args);
+
         params.input_pipes[0] = pipe;
         params.minBufferSize = params.minFileSize;
         params.secondread_minsize = 100000;

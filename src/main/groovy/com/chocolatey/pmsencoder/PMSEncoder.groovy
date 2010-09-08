@@ -145,7 +145,13 @@ class Matcher extends Logger {
             config.$DEFAULT_MENCODER_ARGS.each { command.args << it.toString() }
         }
 
-        config.match(command) // we could use the @Delegate annotation, but this is cleaner/clearer
+        def matched = config.match(command) // we could use the @Delegate annotation, but this is cleaner/clearer
+
+        if (matched) {
+            log.debug("command: $command")
+        }
+
+        return matched
     }
 }
 
@@ -346,8 +352,10 @@ public class CommandDelegate extends ConfigDelegate {
     }
 
     // DSL accessor ($ARGS): read-write
+    @Typed(TypePolicy.DYNAMIC) // try to handle GStrings
+    // FIXME: test this!
     protected List<String> set$ARGS(List<String> args) {
-        command.args = args
+        command.args = args.collect { it.toString() } // handle GStrings
     }
 
     // DSL accessor ($MATCHES): read-only
@@ -523,7 +531,7 @@ class Action extends CommandDelegate {
     @Typed(TypePolicy.DYNAMIC) // XXX try to handle GStrings
     void set(Map<String, String> map) {
         // the sort order is predictable (for tests) as long as we (and Groovy) use LinkedHashMap
-        map.each { name, value -> setArg(name, value) }
+        map.each { name, value -> setArg(name.toString(), value.toString()) }
     }
 
     // set an MEncoder option - create it if it doesn't exist

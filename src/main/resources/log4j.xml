@@ -43,7 +43,7 @@
     -->
 
     <root> 
-        <priority value ="info" /> 
+        <priority value="INFO" /> 
         <appender-ref ref="logfile" /> 
     </root>
 </log4j:configuration>
