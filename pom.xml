@@ -16,19 +16,19 @@
     </description>
 
     <properties>
-        <repo>http://groovypp.artifactoryonline.com/groovypp</repo>
-        <groovypp-version>0.2.23</groovypp-version>
+        <groovypp-repo>http://groovypp.artifactoryonline.com/groovypp</groovypp-repo>
+        <groovypp-version>0.2.24</groovypp-version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
 
     <repositories>
         <repository>
             <id>libs-releases</id>
-            <url>${repo}/libs-releases</url>
+            <url>${groovypp-repo}/libs-releases</url>
         </repository>
         <repository>
             <id>libs-snapshots</id>
-            <url>${repo}/libs-snapshots</url>
+            <url>${groovypp-repo}/libs-snapshots</url>
         </repository>
         <repository>
             <id>java.net</id>
@@ -51,11 +51,11 @@
     <pluginRepositories>
         <pluginRepository>
             <id>plugins-releases</id>
-            <url>${repo}/plugins-releases</url>
+            <url>${groovypp-repo}/plugins-releases</url>
         </pluginRepository>
         <pluginRepository>
             <id>plugins-snapshots</id>
-            <url>${repo}/plugins-snapshots</url>
+            <url>${groovypp-repo}/plugins-snapshots</url>
         </pluginRepository>
     </pluginRepositories>
 
