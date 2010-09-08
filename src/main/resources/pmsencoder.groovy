@@ -1,7 +1,7 @@
 config {
     def nbcores = $PMS.getConfiguration().getNumberOfCpuCores()
 
-    // the default MEncoder args - these can be redefined in a custom config file
+    // the default MEncoder args - these can be redefined in a script
     $DEFAULT_MENCODER_ARGS = [
         '-prefer-ipv4',
         '-oac', 'lavc',
@@ -18,7 +18,7 @@ config {
         this is the default list of YouTube format/resolution IDs we should accept/select - in descending
         order of preference.
 
-        it can be modified globally (in a custom config file) to add/remove a format, or can be overridden on
+        it can be modified globally (in a script) to add/remove a format, or can be overridden on
         a per-video basis by supplying a new list to the youtube method (see below) e.g.
         
         exclude '1080p':
@@ -48,10 +48,13 @@ config {
         }
 
         action {
+            // fix the URI to bypass age verification
+            $URI = '${$URI}&has_verified=1'
+
             // extract the resource's sekrit identifier ($t) from the HTML
             scrape '&t=(?<youtube_t>[^&]+)'
 
-            // extract the uploader ("author") so that custom configs can use it
+            // extract the uploader ("author") so that scripts can use it
             scrape '\\.author=(?<youtube_author>[^&]+)'
 
             // Now, with $video_id and $t defined, call the custom YouTube handler.
