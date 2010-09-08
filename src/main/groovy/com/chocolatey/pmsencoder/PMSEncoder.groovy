@@ -259,7 +259,7 @@ class Profile extends Logger {
         // this ensures that a partial match (i.e. a failed match) with side-effects/bindings doesn't contaminate
         // the action, and, more importantly, it defers logging until the whole pattern block has
         // completed successfully
-        def pattern = new Pattern(config, this, newCommand)
+        def pattern = new Pattern(config, newCommand)
 
         log.info("matching $name")
 
@@ -269,7 +269,7 @@ class Profile extends Logger {
             // first merge (with logging)
             newCommand.stash.each { name, value -> command.let(name, value) }
             // now run the actions
-            def action = new Action(config, this, command)
+            def action = new Action(config, command)
             runActionBlock(action)
             return true
         } else {
@@ -415,37 +415,11 @@ class ProfileValidationDelegate extends ConfigDelegate {
     }
 }
 
-/*
-    This is a "pass-thru" delegate. As the name suggests, we hold onto the profile object,
-    but we currently have no use for it in the DSL.
-
-    There are two Profile delegates:
-
-      1) ProfileValidationDelegate (compile-time)
-      2) ProfileDelegate (runtime)
-
-    In order to be visible throughout a profile block (both outside and inside its pattern/action blocks)
-    a variable would need to be common to both these delegates (or the discrepancy would need to be documented).
-
-    The only thing that could be defined in both currently is the profile name,
-    but that's too trivial and redundant to waste a variable (and tests and documentation) on.
-*/
-
-// i.e. a delegate with access to a Profile
-class ProfileDelegate extends CommandDelegate {
-    private Profile profile
-
-    ProfileDelegate(Config config, Profile profile, Command command) {
-        super(config, command)
-        this.profile = profile
-    }
-}
-
-class Pattern extends ProfileDelegate {
+class Pattern extends CommandDelegate {
     private static final MatchFailureException STOP_MATCHING = new MatchFailureException()
 
-    Pattern(Config config, Profile profile, Command command) {
-        super(config, profile, command)
+    Pattern(Config config, Command command) {
+        super(config, command)
     }
 
     // DSL setter - overrides the CommandDelegate method to avoid logging,
@@ -498,13 +472,13 @@ class Pattern extends ProfileDelegate {
 }
 
 /* XXX: add configurable HTTP proxy support? */
-class Action extends ProfileDelegate {
+class Action extends CommandDelegate {
     private final Map<String, String> cache = [:]
 
     @Lazy private HTTPClient http = new HTTPClient()
 
-    Action(Config config, Profile profile, Command command) {
-        super(config, profile, command)
+    Action(Config config, Command command) {
+        super(config, command)
     }
 
    /*
