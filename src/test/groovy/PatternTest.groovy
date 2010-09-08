@@ -27,7 +27,7 @@ class PatternTest extends PMSEncoderTestCase {
         def uri = 'http://trailers.apple.com/movies/fox_searchlight/127hours/127hours-tlr1_h720p.mov'
         def command = new Command([ '$URI': uri ])
         def wantCommand = new Command(
-            [ '$URI': uri, id: 'Apple 3' ], [ '-ofps', '24', '-user-agent', 'QuickTime/7.6.2' ]
+            [ '$URI': uri, profile: 'Apple 3' ], [ '-ofps', '24', '-user-agent', 'QuickTime/7.6.2' ]
         )
 
         assertMatch(

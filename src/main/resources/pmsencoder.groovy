@@ -49,7 +49,7 @@ config {
 
         action {
             // fix the URI to bypass age verification
-            $URI = '${$URI}&has_verified=1'
+            $URI = "${$URI}&has_verified=1"
 
             // extract the resource's sekrit identifier ($t) from the HTML
             scrape '&t=(?<youtube_t>[^&]+)'
@@ -76,7 +76,7 @@ config {
 
     profile ('Apple Trailers HD') {
         pattern {
-            match { 'Apple Trailers' in matches }
+            match { 'Apple Trailers' in $MATCHES }
             match $URI: '(_h720p\\.mov|\\.m4v)$'
         }
         

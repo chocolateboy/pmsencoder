@@ -9,9 +9,9 @@ import net.pms.PMS
 
 public class MatchFailureException extends RuntimeException { }
 
-public class PMSEncoderConfigException extends RuntimeException {
+public class PMSEncoderException extends RuntimeException {
     // grrr: get "cannot find constructor" errors without this (another GString issue?)
-    PMSEncoderConfigException(String msg) {
+    PMSEncoderException(String msg) {
         super(msg)
     }
 }
@@ -46,7 +46,7 @@ public class Stash extends LinkedHashMap<java.lang.String, java.lang.String> {
  * fields; and the output (a command) is returned via the same stash (i.e. the executable and URI can be overridden)
  * as well as in a list of strings accessible via the args field
  */
-public class Command {
+public class Command extends Logger {
     Stash stash
     List<String> args
     List<String> matches
@@ -90,6 +90,17 @@ public class Command {
 
     public java.lang.String toString() {
         "{ stash: $stash, args: $args, matches: $matches }".toString()
+    }
+
+    // setter implementation with logged stash assignments
+    @Typed(TypePolicy.MIXED) // XXX try to handle GStrings
+    public String let(String name, String value) {
+        if ((stash[name] == null) || (stash[name] != value.toString())) {
+            log.info("setting $name to $value")
+            stash[name] = value
+        }
+
+        return value // for chaining: foo = bar = baz i.e. foo = (bar = baz)
     }
 }
 
@@ -187,6 +198,7 @@ class Config extends Logger {
     }
 }
 
+// this holds a reference to the pattern and action, and isn't delegated to at runtime
 class Profile extends Logger {
     private final Config config
     private Closure patternBlock
@@ -201,7 +213,7 @@ class Profile extends Logger {
 
     @Typed(TypePolicy.MIXED) // Groovy++ doesn't support delegation
     void extractBlocks(Closure closure) {
-        def delegate = new ProfileBlockDelegate(config, name)
+        def delegate = new ProfileValidationDelegate(config, name)
         // wrapper method: runs the closure then validates the result, raising an exception if anything is amiss
         delegate.runProfileBlock(closure)
 
@@ -254,12 +266,10 @@ class Profile extends Logger {
         // returns true if all matches in the block succeed, false otherwise 
         if (runPatternBlock(pattern)) {
             // we can now merge any side-effects (currently only modifications to the stash).
-            // first instantiate the Action so that we can call its let() helper method
-            // to perform and log stash merges
-            def action = new Action(config, this, command)
-            // now merge
-            newCommand.stash.each { name, value -> action.let(command.stash, name, value) }
+            // first merge (with logging)
+            newCommand.stash.each { name, value -> command.let(name, value) }
             // now run the actions
+            def action = new Action(config, this, command)
             runActionBlock(action)
             return true
         } else {
@@ -268,6 +278,7 @@ class Profile extends Logger {
     }
 }
 
+// i.e. a delegate with access to a Config
 public class ConfigDelegate extends Logger {
     private Config config
 
@@ -277,99 +288,152 @@ public class ConfigDelegate extends Logger {
 
     // DSL properties
 
-    // config
-    protected final Config getConfig() {
+    // $CONFIG: read-only
+    protected final Config get$CONFIG() {
         config
     }
 
-    // $PMS
+    // $PMS: read-only
     protected final PMS get$PMS() {
         config.$PMS
     }
 
-    // $DEFAULT_MENCODER_ARGS
-    protected final List<String> get$DEFAULT_MENCODER_ARGS() {
+    // DSL getter: $DEFAULT_MENCODER_ARGS
+    protected List<String> get$DEFAULT_MENCODER_ARGS() {
         config.$DEFAULT_MENCODER_ARGS
     }
 
-    // $YOUTUBE_ACCEPT
-    protected final List<String> get$YOUTUBE_ACCEPT() {
+    // DSL setter: $DEFAULT_MENCODER_ARGS
+    protected List<String> get$DEFAULT_MENCODER_ARGS(List<String> args) {
+        config.$DEFAULT_MENCODER_ARGS = args
+    }
+
+    // DSL getter: $YOUTUBE_ACCEPT
+    protected List<String> get$YOUTUBE_ACCEPT() {
         config.$YOUTUBE_ACCEPT
+    }
+
+    // DSL setter: $YOUTUBE_ACCEPT
+    protected List<String> get$YOUTUBE_ACCEPT(List<String> args) {
+        config.$YOUTUBE_ACCEPT = args
     }
 }
 
+// i.e. a delegate with access to a Command
 public class CommandDelegate extends ConfigDelegate {
-    public Command command
+    private Command command
 
     public CommandDelegate(Config config, Command command) {
         super(config)
         this.command = command
     }
         
-    // DSL accessor (args): read-write
-    protected List<String> getArgs() {
+    // DSL properties
+
+    // $command: read-only
+    protected Command get$command() {
+        command
+    }
+
+    // $stash: read-only
+    protected final Stash get$stash() {
+        command.stash
+    }
+
+    // DSL accessor ($ARGS): read-only
+    protected List<String> get$ARGS() {
         command.args
     }
 
-    protected List<String> setArgs(List<String> args) {
+    // DSL accessor ($ARGS): read-write
+    protected List<String> set$ARGS(List<String> args) {
         command.args = args
     }
 
-    // DSL accessor (matches): read only
-    public List<String> getMatches() {
+    // DSL accessor ($MATCHES): read-only
+    protected List<String> get$MATCHES() {
         command.matches
     }
 
     // DSL getter
-    protected String propertyMissing(String name) {
-        command.stash[name]
+    protected String propertyMissing(String name) throws PMSEncoderException {
+        def val = command.stash[name]
+
+        if (val == null) {
+            throw new PMSEncoderException("invalid property access: $name is not defined")
+        } else {
+            return val
+        }
+    }
+
+    // DSL setter
+    protected String propertyMissing(String name, Object value) {
+        command.let(name, value.toString())
     }
 }
 
-class ProfileBlockDelegate extends ConfigDelegate {
+class ProfileValidationDelegate extends ConfigDelegate {
     public Closure patternBlock = null
     public Closure actionBlock = null
     public String name
 
-    ProfileBlockDelegate(Config config, String name) {
+    ProfileValidationDelegate(Config config, String name) {
         super(config)
         this.name = name
     }
 
     // DSL method
-    private void pattern(Closure closure) throws PMSEncoderConfigException {
+
+    private void pattern(Closure closure) throws PMSEncoderException {
         if (this.patternBlock == null) {
             this.patternBlock = closure
         } else {
-            throw new PMSEncoderConfigException("invalid profile ($name): multiple pattern blocks defined")
+            throw new PMSEncoderException("invalid profile ($name): multiple pattern blocks defined")
         }
     }
 
     // DSL method
-    private void action(Closure closure) throws PMSEncoderConfigException {
+    private void action(Closure closure) throws PMSEncoderException {
         if (this.actionBlock == null) {
             this.actionBlock = closure
         } else {
-            throw new PMSEncoderConfigException("invalid profile ($name): multiple action blocks defined")
+            throw new PMSEncoderException("invalid profile ($name): multiple action blocks defined")
         }
     }
 
     @Typed(TypePolicy.MIXED) // Groovy++ doesn't support delegation
-    private runProfileBlock(Closure closure) throws PMSEncoderConfigException {
+    private runProfileBlock(Closure closure) throws PMSEncoderException {
         this.with(closure)
 
         if (patternBlock == null) {
-            throw new PMSEncoderConfigException("invalid profile ($name): no pattern block defined")
+            throw new PMSEncoderException("invalid profile ($name): no pattern block defined")
         }
 
         if (actionBlock == null) {
-            throw new PMSEncoderConfigException("invalid profile ($name): no action block defined")
+            throw new PMSEncoderException("invalid profile ($name): no action block defined")
         }
     }
 }
 
+/*
+    This is a "pass-thru" delegate. As the name suggests, we hold onto the profile object,
+    but we currently have no use for it in the DSL.
+
+    There are two Profile delegates:
+
+      1) ProfileValidationDelegate (compile-time)
+      2) ProfileDelegate (runtime)
+
+    In order to be visible throughout a profile block (both outside and inside its pattern/action blocks)
+    a variable would need to be common to both these delegates (or the discrepancy would need to be documented).
+
+    The only thing that could be defined in both currently is the profile name,
+    but that's too trivial and redundant to waste a variable (and tests and documentation) on.
+*/
+
+// i.e. a delegate with access to a Profile
 class ProfileDelegate extends CommandDelegate {
-    public Profile profile
+    private Profile profile
 
     ProfileDelegate(Config config, Profile profile, Command command) {
         super(config, command)
@@ -388,7 +452,7 @@ class Pattern extends ProfileDelegate {
     // which is handled later (if the match succeeds) by merging the pattern
     // block's temporary stash
     protected String propertyMissing(String name, Object value) {
-        command.stash[name] = value
+        $stash[name] = value
     }
 
     // DSL method
@@ -402,13 +466,13 @@ class Pattern extends ProfileDelegate {
     void match(String name, String value) {
         assert name && value
 
-        if (command.stash[name] == null) { // this will happen for old custom configs that use let uri: ...
+        if ($stash[name] == null) { // this will happen for old custom configs that use let $URI: ...
             log.warn("invalid match: $name is not defined")
             // fall through
         } else {
             log.info("matching $name against $value")
 
-            if (RegexHelper.match(command.stash[name], value, command.stash)) {
+            if (RegexHelper.match($stash[name], value, $stash)) {
                 log.info("success")
                 return // abort default failure exception below
             } else {
@@ -443,24 +507,7 @@ class Action extends ProfileDelegate {
         super(config, profile, command)
     }
 
-    // DSL setter
-    protected String propertyMissing(String name, Object value) {
-        let(command.stash, name, value.toString())
-    }
-
-    // log stash assignments
-    // public because Profile needs to call it (after a successful match)
-    @Typed(TypePolicy.MIXED) // XXX try to handle GStrings
-    public String let(Stash stash, String name, String value) {
-        if ((stash[name] == null) || (stash[name] != value.toString())) {
-            log.info("setting $name to $value")
-            stash[name] = value
-        }
-
-        return value
-    }
- 
-    /*
+   /*
         1) get the URI pointed to by options['uri'] or stash['$URI'] (if it hasn't already been retrieved)
         2) perform a regex match against the document
         3) update the stash with any named captures
@@ -468,8 +515,7 @@ class Action extends ProfileDelegate {
     // DSL method
     @Typed(TypePolicy.MIXED) // XXX try to handle GStrings
     void scrape(String regex, Map<String, String> options = [:]) {
-        def stash = command.stash
-        def uri = options['uri'] ?: stash['$URI']
+        def uri = options['uri'] ?: $stash['$URI']
         def document = cache[uri]
         def newStash = new Stash()
 
@@ -484,7 +530,7 @@ class Action extends ProfileDelegate {
 
         if (RegexHelper.match(document, regex, newStash)) {
             log.info("success")
-            newStash.each { name, value -> let(stash, name, value) }
+            newStash.each { name, value -> $command.let(name, value) }
         } else {
             log.info("failure")
         }
@@ -495,7 +541,7 @@ class Action extends ProfileDelegate {
     @Typed(TypePolicy.DYNAMIC) // XXX try to handle GStrings
     void let(Map<String, String> map) {
         map.each { key, value ->
-            let(command.stash, key, value)
+            $command.let(key, value)
         }
     }
 
@@ -512,31 +558,27 @@ class Action extends ProfileDelegate {
     void setArg(String name, String value = null) {
         assert name != null
 
-        def args = command.args
-        def index = args.findIndexOf { it == name }
+        def index = $ARGS.findIndexOf { it == name }
      
         if (index == -1) {
             if (value != null) {
                 log.info("adding $name $value")
                 /*
-                    XXX squashed bug:
+                    XXX squashed bug: careful not to perform operations on $stash or $command.args
+                    that return and subsequenly operate on a new value
+                    (i.e. make sure they're modified in place):
                     
-                    unless we want to fully qualify command members each time (command.args = ...)
-                    or reassign them at the end of the method (command.stash = newStash),
-                    we need to modify stash and args in-place, i.e. we can't use:
-                    
-                        args += ...
-
-                    - or indeeed anything that returns a new value of args/stash
+                        def args = $command.args
+                        args += ... // XXX doesn't modify $command.args
                 */
-                args << name << value
+                $ARGS << name << value
             } else {
                 log.info("adding $name")
-                args << name // FIXME: encapsulate args handling
+                $ARGS << name
             }
         } else if (value != null) {
             log.info("setting $name to $value")
-            args[ index + 1 ] = value // FIXME: encapsulate args handling
+            $ARGS[ index + 1 ] = value
         }
     }
 
@@ -550,19 +592,18 @@ class Action extends ProfileDelegate {
     void tr(Map<String, Map<String, String>> replaceMap) {
         // the sort order is predictable (for tests) as long as we (and Groovy) use LinkedHashMap
         replaceMap.each { name, map ->
-            def args = command.args
-            def index = args.findIndexOf { it == name }
+            // squashed bug (see  above): take care to $ARGS in-place
+            def index = $ARGS.findIndexOf { it == name }
          
             if (index != -1) {
                 map.each { search, replace ->
                     log.info("replacing $search with $replace in $name")
                     // TODO support named captures
-                    // FIXME: encapsulate args handling
-                    def value = args[ index + 1 ]
+                    def value = $ARGS[ index + 1 ]
 
                     if (value) {
                         // XXX bugfix: strings are immutable!
-                        args[ index + 1 ] = value.replaceAll(search, replace)
+                        $ARGS[ index + 1 ] = value.replaceAll(search, replace)
                     }
                 }
             }
@@ -577,17 +618,16 @@ class Action extends ProfileDelegate {
 
     // DSL method
     @Typed(TypePolicy.MIXED) // XXX try to handle GStrings
-    void youtube(List<Integer> formats = config.$YOUTUBE_ACCEPT) {
-        def stash = command.stash
-        def uri = stash['$URI']
-        def video_id = stash['youtube_video_id']
-        def t = stash['youtube_t']
+    void youtube(List<Integer> formats = $YOUTUBE_ACCEPT) {
+        def uri = $stash['$URI']
+        def video_id = $stash['youtube_video_id']
+        def t = $stash['youtube_t']
         def found = false
 
         assert video_id != null
         assert t != null
 
-        let(stash, 'youtube_uri', uri)
+        $command.let('youtube_uri', uri)
 
         if (formats.size() > 0) {
             found = formats.any { fmt ->
@@ -597,8 +637,8 @@ class Action extends ProfileDelegate {
                 if (http.head(stream_uri)) {
                     log.info("success")
                     // set the new URI - note: use the low-level interface NOT the (deferred) DSL interface!
-                    let(stash, '$URI', stream_uri)
-                    let(stash, 'youtube_fmt', fmt)
+                    $command.let('$URI', stream_uri)
+                    $command.let('youtube_fmt', fmt)
                     return true
                 } else {
                     log.info("failure")
@@ -616,12 +656,12 @@ class Action extends ProfileDelegate {
 
     // DSL method: append a list of options to the command's args list
     void append(List<String> args) {
-        command.args += args
+        $command.args += args
     }
 
     // DSL method: prepend a list of options to the command's args list
     void prepend(List<String> args) {
-        command.args = args + command.args
+        $command.args = args + $ARGS
     }
 
     // private helper method containing code common to replace and remove
@@ -640,11 +680,11 @@ class Action extends ProfileDelegate {
 
     // DSL method: remove an option (and optionally the following n arguments) from the command's arg list
     void remove(String optionName, int andFollowing = 0) {
-        splice(command.args, optionName, [], andFollowing)
+        splice($ARGS, optionName, [], andFollowing)
     }
 
     // DSL method: replace an option (and optionally the following n arguments) with the supplied arg list
     void replace(String optionName, List<String> replaceList, int andFollowing = 0) {
-        splice(command.args, optionName, replaceList, andFollowing)
+        splice($ARGS, optionName, replaceList, andFollowing)
     }
 }

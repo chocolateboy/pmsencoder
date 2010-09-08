@@ -79,6 +79,7 @@ class MatcherTest extends PMSEncoderTestCase {
     void testYouTube() {
         def youtube = 'http://www.youtube.com'
         def uri = "$youtube/watch?v=_OBlgSz8sSM"
+        def fixedURI = "$uri&has_verified=1".toString()
         def command = new Command([ '$URI': uri ])
 
         // bypass Groovy's annoyingly loose definition of true
@@ -105,7 +106,7 @@ class MatcherTest extends PMSEncoderTestCase {
         assert t ==~ /.*%3D$/
         assertEquals('HDCYT', stash['youtube_author'])
         assertEquals('35', stash['youtube_fmt'])
-        assertEquals(uri, stash['youtube_uri'])
+        assertEquals(fixedURI, stash['youtube_uri'])
         def wantURI = "$youtube/get_video?fmt=35&video_id=$video_id&t=$t&asv="
         assertEquals(wantURI, stash['$URI'])
         assertEquals([], args)

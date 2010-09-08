@@ -11,11 +11,11 @@ config {
 
     profile ('Apple 3') {
         pattern {
-            match { matches.containsAll([ 'Apple Trailers', 'Apple Trailers HD' ]) }
+            match { $MATCHES.containsAll([ 'Apple Trailers', 'Apple Trailers HD' ]) }
         }
 
         action {
-            id = profile.name
+            profile = 'Apple 3'
         }
     }
 }

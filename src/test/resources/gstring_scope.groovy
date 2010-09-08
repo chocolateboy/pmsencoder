@@ -13,7 +13,7 @@ config {
 
         action {
             def var4 = "action$nbcores"
-            args = [ var1, var2, var3, var4 ]
+            $ARGS = [ var1, var2, var3, var4 ]
         }
     }
 }
