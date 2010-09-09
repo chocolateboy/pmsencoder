@@ -47,7 +47,7 @@ Please do the following when reporting any issues:
 
 ## Support <a name="Support"></a>
 
-For more details, discussion and troubleshooting tips, see the [wiki](http://wiki.github.com/chocolateboy/pmsencoder/) and [this thread](http://ps3mediaserver.org/forum/viewtopic.php?f=6&t=5002).
+For more details, discussion and troubleshooting tips, see the [wiki](http://wiki.github.com/chocolateboy/pmsencoder/) and [this thread](http://ps3mediaserver.org/forum/viewtopic.php?f=6&t=5002) (start [here](http://ps3mediaserver.org/forum/viewtopic.php?f=6&t=5002#p22479)).
 
 # Version <a name="Version"></a>
 
