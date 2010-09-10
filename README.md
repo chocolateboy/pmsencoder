@@ -13,8 +13,6 @@ These instructions assume you have the [latest version](http://ps3mediaserver.or
 * download the [PMSEncoder jar file](http://github.com/downloads/chocolateboy/pmsencoder/pmsencoder-1.1.0.jar) and place it in the PMS `plugins` directory
 * shut down PMS and add `pmsencoder` to the front of the list of engines in PMS.conf e.g.
   * `engines = pmsencoder,mencoder,tsmuxer,mplayeraudio` &c.
-  * if the line doesn't exist, follow the instructions [here](http://ps3mediaserver.org/forum/viewtopic.php?f=6&t=7435&p=34674#p34674).
-* if you previously used the standalone version of PMSEncoder, disable it by removing the `mencoder_path = /path/to/pmsencoder` line.
 * restart PMS
 
 ## Upgrading <a name="Upgrading"></a>
@@ -29,10 +27,11 @@ To upgrade to a new version of the plugin, simply replace the old jar file with 
 
 * If PMS.conf doesn't exist, create it by clicking the "Save" icon in the PMS GUI.
 * Make sure PMS is not running when editing PMS.conf.
+* If the list of engines doesn't exist in PMS.conf, follow the instructions [here](http://ps3mediaserver.org/forum/viewtopic.php?f=6&t=7435&p=34674#p34674).
 * Make sure there's only one version of the plugin in the `plugins` directory.
 * Make sure the edited PMS.conf is the one PMS is using (search the filesystem for other copies).
 * Make sure `pmsencoder` is at the start of the list of engines in PMS.conf.
-* Make sure `mencoder_path` is not set (or is not pointing to the standalone PMSEncoder).
+* Make sure `mencoder_path` is not set (or is not pointing to the old, standalone version of PMSEncoder).
 * Check the PMS debug.log.
 * Check the pmsencoder.log, which should be in the same location as the debug.log.
 
