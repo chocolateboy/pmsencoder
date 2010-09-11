@@ -45,7 +45,7 @@ config {
        this is placed here (i.e. first) as a convenience so that scripts can create/override
        settings common to all other profiles without modifying $DEFAULT_MENCODER_ARGS e.g.
 
-       set the default audio bitrate to 348 Kbps (see default_profile.groovy test):
+       set the default audio bitrate to 348 Kbps (see profile_default.groovy test):
 
            profile ('Default') {
                pattern { match { true } }
