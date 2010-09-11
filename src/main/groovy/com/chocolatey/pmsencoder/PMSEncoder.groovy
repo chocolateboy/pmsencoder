@@ -79,7 +79,6 @@ public class Command extends Logger {
         this(new Stash(map), [], [])
     }
 
-    // copy constructor (clone doesn't work in Groovy++)
     public Command(Command other) {
         this(new Stash(other.stash), new ArrayList<String>(other.args), new ArrayList<String>(other.matches))
     }
@@ -105,7 +104,11 @@ public class Command extends Logger {
 }
 
 class Matcher extends Logger {
-    private final Config config
+    // FIXME: this is only public for a (single) test
+    // 1) Config has the same scope as Matcher so they could be merged,
+    // but we don't want to expose load
+    // 2) the config "globals" (e.g. $DEFAULT_MENCODER_PATH) could be moved here
+    public final Config config
 
     Matcher(PMS pms) {
         this.config = new Config(pms)
@@ -259,7 +262,7 @@ class Profile extends Logger {
     }
 
     boolean match(Command command) {
-        def newCommand = new Command(command) // clone() doesn't work with Groovy++
+        def newCommand = new Command(command)
         // the pattern block has its own command object (which is initially the same as the action block's).
         // if the match succeeds, then the pattern block's stash is merged into the action block's stash.
         // this ensures that a partial match (i.e. a failed match) with side-effects/bindings doesn't contaminate

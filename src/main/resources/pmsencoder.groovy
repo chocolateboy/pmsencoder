@@ -41,6 +41,25 @@ config {
         5    // 240p
     ]
 
+    /*
+       this is placed here (i.e. first) as a convenience so that scripts can create/override
+       settings common to all other profiles without modifying $DEFAULT_MENCODER_ARGS e.g.
+
+       set the default audio bitrate to 348 Kbps (see default_profile.groovy test):
+
+           profile ('Default') {
+               pattern { match { true } }
+               action {
+                   tr '-lavcopts': [ 'abitrate=\\d+': 'abitrate=384' ]
+               }
+           }
+    */
+
+    profile ('Default') {
+        pattern { match { false } }
+        action { }
+    }
+
     profile ('YouTube') {
         // extract the resource's video_id from the URI of the standard YouTube page
         pattern {

@@ -9,4 +9,8 @@
         format: 'html' // default if xpath is defined
     )
 
-/* add tests for ytaccept */
+/* add tests for $YOUTUBE_ACCEPT */
+
+/* make scripts hot-swappable */
+
+/* wrap profiles in a try/catch block? */
