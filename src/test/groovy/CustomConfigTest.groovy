@@ -145,18 +145,12 @@ class CustomConfigTest extends PMSEncoderTestCase {
         def customConfig = this.getClass().getResource('/profile_default.groovy')
         def uri = 'http://www.example.com'
         def command = new Command([ '$URI': uri ])
-        def wantArgs = [
-            '-prefer-ipv4',
-            '-oac', 'lavc',
-            '-of', 'lavf',
-            '-lavfopts', 'format=dvd',
-            '-ovc', 'lavc',
-            // make sure nbcores is interpolated here as 3 in threads=3
-            '-lavcopts', "vcodec=mpeg2video:vbitrate=4096:threads=3:acodec=ac3:abitrate=384",
-            '-ofps', '25',
-            '-cache', '16384',
-            '-vf', 'harddup'
-        ]
+        def wantArgs = new ArrayList<String>(matcher.config.$DEFAULT_MENCODER_ARGS)
+        def index = wantArgs.findIndexOf { it == '-lavcopts' }
+
+        assert index > -1 // power assert!
+        // make sure nbcores is interpolated here as 3 in threads=3
+        wantArgs[ index + 1 ] = 'vcodec=mpeg2video:vbitrate=4096:threads=3:acodec=ac3:abitrate=384'
 
         def wantCommand = new Command([ '$URI': uri ], wantArgs)
         matcher.load(customConfig)
