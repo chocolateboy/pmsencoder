@@ -1,3 +1,17 @@
+/*
+    this is the default/builtin PMSEncoder script (i.e. configuration file). PMSEncoder loads it from
+    src/main/resources/pmsencoder.groovy, but it's also symlinked, for reference, from
+    scripts/pmsencoder.groovy
+
+    see:
+
+       http://github.com/chocolateboy/pmsencoder/blob/plugin/src/main/resources/pmsencoder.groovy
+       http://github.com/chocolateboy/pmsencoder/blob/plugin/scripts/pmsencoder.groovy
+
+    XXX: Don't use this as a tutorial/documentation; see the wiki instead.
+    XXX: The scripting framework/DSL is constantly changing, so don't rely on anything here.
+*/
+
 config {
     def nbcores = $PMS.getConfiguration().getNumberOfCpuCores()
 
@@ -20,7 +34,7 @@ config {
 
         it can be modified globally (in a script) to add/remove a format, or can be overridden on
         a per-video basis by supplying a new list to the youtube method (see below) e.g.
-        
+
         exclude '1080p':
 
             youtube $YOUTUBE_ACCEPT - [ 37 ]
@@ -29,7 +43,7 @@ config {
 
             youtube [ 38 ] + $YOUTUBE_ACCEPT
 
-        For the full list of formats, see: https://secure.wikimedia.org/wikipedia/en/wiki/YouTube#Quality_and_codecs
+        For the full list of formats, see: http://en.wikipedia.org/wiki/YouTube#Quality_and_codecs
     */
 
     $YOUTUBE_ACCEPT = [
@@ -45,7 +59,7 @@ config {
        this is placed here (i.e. first) as a convenience so that scripts can create/override
        settings common to all other profiles without modifying $DEFAULT_MENCODER_ARGS e.g.
 
-       set the default audio bitrate to 348 Kbps (see profile_default.groovy test):
+       set the default audio bitrate to 348 Kbps (see the src/test/resources/profile_default.groovy test):
 
            profile ('Default') {
                pattern { match { true } }
@@ -81,7 +95,7 @@ config {
             youtube()
         }
     }
-                  
+
     profile ('Apple Trailers') {
         pattern {
             match $URI: '^http://(?:(?:movies|www|trailers)\\.)?apple\\.com/.+$'
@@ -98,7 +112,7 @@ config {
             match { 'Apple Trailers' in $MATCHES }
             match $URI: '(_h720p\\.mov|\\.m4v)$'
         }
-        
+
         action {
             tr '-lavcopts': [ '4096': '5086' ] // increase the bitrate
         }
@@ -108,7 +122,7 @@ config {
         pattern {
             match $URI: '^http://feedproxy\\.google\\.com/~r/TEDTalks_video\\b'
         }
-        
+
         action {
             set '-ofps': '24'
         }
@@ -129,7 +143,7 @@ config {
         pattern {
             match $URI: '^http://(www\\.)?gametrailers\\.com/download/(?<gametrailers_page_id>\\d+)/[^.]+\\.flv$'
         }
-        
+
         // 2) and use it to restore the correct webpage URI
         action {
            let $URI: "http://www.gametrailers.com/player/${gametrailers_page_id}.html"
@@ -140,7 +154,7 @@ config {
         pattern {
             match $URI: '^http://(www\\.)?gametrailers\\.com/'
         }
-        
+
         action {
             /*
                 The order is important here! Make sure we scrape the variables before we set the URI.
