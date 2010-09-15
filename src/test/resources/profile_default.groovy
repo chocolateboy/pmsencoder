@@ -1,7 +1,6 @@
 config {
     profile ('Default') {
-        pattern { match { true } }
-
+        // note: the pattern block is (now) optional
         action {
             tr '-lavcopts': [ 'abitrate=\\d+': 'abitrate=384' ]
         }

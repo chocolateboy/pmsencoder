@@ -54,11 +54,11 @@ class MatcherTest extends PMSEncoderTestCase {
 
         /*
             lavcopts look like this:
-            
+
                 -lavcopts vcodec=mpeg2video:vbitrate=4096:threads=2:acodec=ac3:abitrate=128
 
             but for the purposes of this test, this will suffice:
-            
+
                 -lavcopts vbitrate=4096
         */
 
@@ -77,10 +77,24 @@ class MatcherTest extends PMSEncoderTestCase {
         the highest available resolution.
     */
     void testYouTube() {
+        youTubeCommon('35')
+    }
+
+    // verify that globally modifying $YOUTUBE_ACCEPT works
+    void testYOUTUBE_ACCEPT() {
+        def customConfig = this.getClass().getResource('/youtube_accept.groovy')
+        youTubeCommon('34', customConfig)
+    }
+
+    private void youTubeCommon(String fmt, URL customConfig = null) {
         def youtube = 'http://www.youtube.com'
         def uri = "$youtube/watch?v=_OBlgSz8sSM"
         def fixedURI = "$uri&has_verified=1".toString()
         def command = new Command([ '$URI': uri ])
+
+        if (customConfig != null) {
+            matcher.load(customConfig)
+        }
 
         // bypass Groovy's annoyingly loose definition of true
         assertSame(true, matcher.match(command, false)) // false: don't use default MEncoder args
@@ -105,9 +119,9 @@ class MatcherTest extends PMSEncoderTestCase {
         // the mysterious $t token changes frequently, but always seems to end in a URL-encoded "="
         assert t ==~ /.*%3D$/
         assertEquals('HDCYT', stash['youtube_author'])
-        assertEquals('35', stash['youtube_fmt'])
+        assertEquals(fmt, stash['youtube_fmt'])
         assertEquals(fixedURI, stash['youtube_uri'])
-        def wantURI = "$youtube/get_video?fmt=35&video_id=$video_id&t=$t&asv="
+        def wantURI = "${youtube}/get_video?fmt=${fmt}&video_id=${video_id}&t=${t}&asv="
         assertEquals(wantURI, stash['$URI'])
         assertEquals([], args)
     }

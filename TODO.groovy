@@ -1,4 +1,4 @@
-/* add mencoder.feature.level (bool) to stash based on MEncoder version */
+/* add $mencoder_feature_level (bool) to stash based on MEncoder version */
 
 /* XPath scraping? */
 
@@ -9,8 +9,8 @@
         format: 'html' // default if xpath is defined
     )
 
-/* add tests for $YOUTUBE_ACCEPT */
-
 /* make scripts hot-swappable */
 
-/* wrap profiles in a try/catch block? */
+/*
+    wrap profile/config evaluation in try/catch blocks so that errors can be recovered from
+*/

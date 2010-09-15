@@ -56,17 +56,17 @@ config {
     ]
 
     /*
-       this is placed here (i.e. first) as a convenience so that scripts can create/override
-       settings common to all other profiles without modifying $DEFAULT_MENCODER_ARGS e.g.
+        this is placed here (i.e. first) as a convenience so that scripts can create/override
+        settings common to all other profiles without modifying $DEFAULT_MENCODER_ARGS e.g.:
 
-       set the default audio bitrate to 348 Kbps (see the src/test/resources/profile_default.groovy test):
+            // set the default audio bitrate to 348 Kbps
+            // (see src/test/resources/profile_default.groovy)
 
-           profile ('Default') {
-               pattern { match { true } }
-               action {
-                   tr '-lavcopts': [ 'abitrate=\\d+': 'abitrate=384' ]
-               }
-           }
+            profile ('Default') {
+                action {
+                    tr '-lavcopts': [ 'abitrate=\\d+': 'abitrate=384' ]
+                }
+            }
     */
 
     profile ('Default') {

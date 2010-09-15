@@ -21,7 +21,7 @@ To upgrade to a new version of the plugin, simply replace the old jar file with 
 
 # Tips <a name="Tips"></a>
 
-* To work around the PMS [bug](http://code.google.com/p/ps3mediaserver/issues/detail?id=759) that causes web video playback to be delayed for ~40s, uncheck "HTTP Engine V2" in the PMS "General Configuration" tab. This can also be done by setting `http_engine_v2 = false` in PMS.conf. Then restart PMS.<sup>[<a href="#HTTPEngine">1</a>]</sup>
+* To work around the PMS [bug](http://code.google.com/p/ps3mediaserver/issues/detail?id=759) that causes web video playback to be delayed for ~40s, uncheck "HTTP Engine V2" in the PMS "General Configuration" tab. This can also be done by setting `http_engine_v2 = false` in PMS.conf. Then restart PMS. See [below](#HTTPEngine) for caveats.
 
 # Troubleshooting <a name="Troubleshooting"></a>
 

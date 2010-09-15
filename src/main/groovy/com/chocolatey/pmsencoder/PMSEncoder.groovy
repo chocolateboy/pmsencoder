@@ -222,7 +222,7 @@ class Profile extends Logger {
 
     @Typed(TypePolicy.MIXED) // Groovy++ doesn't support delegation
     void extractBlocks(Closure closure) {
-        def delegate = new CompileTimeProfileDelegate(config, name)
+        def delegate = new ValidatingProfileDelegate(config, name)
         // wrapper method: runs the closure then validates the result, raising an exception if anything is amiss
         delegate.runProfileBlock(closure)
 
@@ -236,20 +236,26 @@ class Profile extends Logger {
     // clean (cf. Ruby's BlankSlate)
     @Typed(TypePolicy.MIXED) // Groovy++ doesn't support delegation
     boolean runPatternBlock(Pattern delegate) {
-        // pattern methods short-circuit matching on failure by throwing a MatchFailureException,
-        // so we need to wrap this in a try/catch block
+        if (patternBlock == null) {
+            // unconditionally match
+            log.debug("no pattern block supplied: matched OK")
+        } else {
+            // pattern methods short-circuit matching on failure by throwing a MatchFailureException,
+            // so we need to wrap this in a try/catch block
 
-        try {
-            delegate.with(patternBlock)
-        } catch (MatchFailureException e) {
-            log.debug("pattern block: caught match exception")
-            // one of the match methods failed, so the whole block failed
-            return false
+            try {
+                delegate.with(patternBlock)
+            } catch (MatchFailureException e) {
+                log.debug("pattern block: caught match exception")
+                // one of the match methods failed, so the whole block failed
+                return false
+            }
+
+            // success simply means "no match failure exception was thrown" - this also handles cases where the
+            // pattern block is empty
+            log.debug("pattern block: matched OK")
         }
 
-        // success simply means "no match failure exception was thrown" - this also handles cases where the
-        // pattern block is empty.
-        log.debug("pattern block: matched OK")
         return true
     }
 
@@ -383,12 +389,12 @@ public class CommandDelegate extends ConfigDelegate {
     }
 }
 
-class CompileTimeProfileDelegate extends ConfigDelegate {
+class ValidatingProfileDelegate extends ConfigDelegate {
     public Closure patternBlock = null
     public Closure actionBlock = null
     public String name
 
-    CompileTimeProfileDelegate(Config config, String name) {
+    ValidatingProfileDelegate(Config config, String name) {
         super(config)
         this.name = name
     }
@@ -416,9 +422,7 @@ class CompileTimeProfileDelegate extends ConfigDelegate {
     private runProfileBlock(Closure closure) throws PMSEncoderException {
         this.with(closure)
 
-        if (patternBlock == null) {
-            throw new PMSEncoderException("invalid profile ($name): no pattern block defined")
-        }
+        // the pattern block is optional; if not supplied, the profile always matches
 
         if (actionBlock == null) {
             throw new PMSEncoderException("invalid profile ($name): no action block defined")
