@@ -222,7 +222,7 @@ class Profile extends Logger {
 
     @Typed(TypePolicy.MIXED) // Groovy++ doesn't support delegation
     void extractBlocks(Closure closure) {
-        def delegate = new ValidatingProfileDelegate(config, name)
+        def delegate = new ProfileValidationDelegate(config, name)
         // wrapper method: runs the closure then validates the result, raising an exception if anything is amiss
         delegate.runProfileBlock(closure)
 
@@ -389,12 +389,12 @@ public class CommandDelegate extends ConfigDelegate {
     }
 }
 
-class ValidatingProfileDelegate extends ConfigDelegate {
+class ProfileValidationDelegate extends ConfigDelegate {
     public Closure patternBlock = null
     public Closure actionBlock = null
     public String name
 
-    ValidatingProfileDelegate(Config config, String name) {
+    ProfileValidationDelegate(Config config, String name) {
         super(config)
         this.name = name
     }
