@@ -5,8 +5,8 @@ class CustomConfigTest extends PMSEncoderTestCase {
     void testOverrideDefaultArgs() {
         def customConfig = this.getClass().getResource('/default_mencoder_args.groovy')
         def uri = 'http://www.example.com'
-        def command = new Command([ '$URI': uri ])
-        def wantCommand = new Command([ '$URI': uri ], [ '-foo', '-bar', '-baz', '-quux' ])
+        def command = new Command([ $URI: uri ])
+        def wantCommand = new Command([ $URI: uri ], [ '-foo', '-bar', '-baz', '-quux' ])
 
         matcher.load(customConfig)
 
@@ -28,8 +28,8 @@ class CustomConfigTest extends PMSEncoderTestCase {
         TEDArgs[index] = '24'
 
         def uri = 'http://feedproxy.google.com/~r/TEDTalks_video'
-        def command = new Command([ '$URI': uri ])
-        def wantCommand = new Command([ '$URI': uri ], TEDArgs)
+        def command = new Command([ $URI: uri ])
+        def wantCommand = new Command([ $URI: uri ], TEDArgs)
 
         assertMatch(
             command,      // supplied command
@@ -43,10 +43,10 @@ class CustomConfigTest extends PMSEncoderTestCase {
     void testProfileReplace() {
         def customConfig = this.getClass().getResource('/profile_replace.groovy')
         def uri = 'http://feedproxy.google.com/~r/TEDTalks_video'
-        def command = new Command([ '$URI': uri ])
+        def command = new Command([ $URI: uri ])
         def TEDArgs = new ArrayList<String>(matcher.config.$DEFAULT_MENCODER_ARGS)
         def wantArgs = (TEDArgs + [ '-foo', 'bar' ]) as List<String> // FIXME: type-inference fail (or use Scala)
-        def wantCommand = new Command([ '$URI': uri + '/foo/bar.baz' ], wantArgs)
+        def wantCommand = new Command([ $URI: uri + '/foo/bar.baz' ], wantArgs)
 
         matcher.load(customConfig)
 
@@ -61,8 +61,8 @@ class CustomConfigTest extends PMSEncoderTestCase {
     void testProfileAppend() {
         def customConfig = this.getClass().getResource('/profile_append.groovy')
         def uri = 'http://www.example.com'
-        def command = new Command([ '$URI': uri ])
-        def wantCommand = new Command([ '$URI': uri ], [ '-an', 'example' ])
+        def command = new Command([ $URI: uri ])
+        def wantCommand = new Command([ $URI: uri ], [ '-an', 'example' ])
 
         matcher.load(customConfig)
 
@@ -76,7 +76,7 @@ class CustomConfigTest extends PMSEncoderTestCase {
     void testGStrings() {
         def customConfig = this.getClass().getResource('/gstrings.groovy')
         def uri = 'http://www.example.com'
-        def command = new Command([ '$URI': uri ])
+        def command = new Command([ $URI: uri ])
         def wantCommand = new Command(
             [
                 action:  'Hello, world!',
@@ -102,8 +102,8 @@ class CustomConfigTest extends PMSEncoderTestCase {
     void testGString() {
         def customConfig = this.getClass().getResource('/gstring_scope.groovy')
         def uri = 'http://www.example.com'
-        def command = new Command([ '$URI': uri ])
-        def wantCommand = new Command([ '$URI': uri ], [ 'config3', 'profile3', 'pattern3', 'action3' ])
+        def command = new Command([ $URI: uri ])
+        def wantCommand = new Command([ $URI: uri ], [ 'config3', 'profile3', 'pattern3', 'action3' ])
 
         matcher.load(customConfig)
 
@@ -117,7 +117,7 @@ class CustomConfigTest extends PMSEncoderTestCase {
     void testInterpolationInDefaultMEncoderArgs() {
         def customConfig = this.getClass().getResource('/gstring_scope.groovy')
         def uri = 'http://www.example.com'
-        def command = new Command([ '$URI': uri ])
+        def command = new Command([ $URI: uri ])
         def wantArgs = [
             '-prefer-ipv4',
             '-oac', 'lavc',
@@ -131,7 +131,7 @@ class CustomConfigTest extends PMSEncoderTestCase {
             '-vf', 'harddup'
         ]
 
-        def wantCommand = new Command([ '$URI': uri ], wantArgs)
+        def wantCommand = new Command([ $URI: uri ], wantArgs)
 
         assertMatch(
             command,       // supplied command
@@ -144,7 +144,7 @@ class CustomConfigTest extends PMSEncoderTestCase {
     void testDefaultProfileOverride() {
         def customConfig = this.getClass().getResource('/profile_default.groovy')
         def uri = 'http://www.example.com'
-        def command = new Command([ '$URI': uri ])
+        def command = new Command([ $URI: uri ])
         def wantArgs = new ArrayList<String>(matcher.config.$DEFAULT_MENCODER_ARGS)
         def index = wantArgs.findIndexOf { it == '-lavcopts' }
 
@@ -152,7 +152,7 @@ class CustomConfigTest extends PMSEncoderTestCase {
         // make sure nbcores is interpolated here as 3 in threads=3
         wantArgs[ index + 1 ] = 'vcodec=mpeg2video:vbitrate=4096:threads=3:acodec=ac3:abitrate=384'
 
-        def wantCommand = new Command([ '$URI': uri ], wantArgs)
+        def wantCommand = new Command([ $URI: uri ], wantArgs)
         matcher.load(customConfig)
 
         assertMatch(

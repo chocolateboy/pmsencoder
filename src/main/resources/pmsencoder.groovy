@@ -144,9 +144,9 @@ config {
             match $URI: '^http://(www\\.)?gametrailers\\.com/download/(?<gametrailers_page_id>\\d+)/[^.]+\\.flv$'
         }
 
-        // 2) and use it to restore the correct webpage URI
+        // 2) and use it to restore the correct web page URI
         action {
-           let $URI: "http://www.gametrailers.com/player/${gametrailers_page_id}.html"
+           let $URI: "http://www.gametrailers.com/player/${$gametrailers_page_id}.html"
         }
     }
 
@@ -164,7 +164,7 @@ config {
             scrape '\\bhttp://www\\.gametrailers\\.com/download/\\d+/(?<gametrailers_filename>t_[^.]+)\\.wmv\\b'
 
             // now use them to rewrite the URI
-            $URI = "http://trailers-ak.gametrailers.com/gt_vault/$gametrailers_movie_id/${gametrailers_filename}.flv"
+            $URI = "http://trailers-ak.gametrailers.com/gt_vault/${$gametrailers_movie_id}/${$gametrailers_filename}.flv"
         }
     }
 }

@@ -10,9 +10,9 @@ class PatternTest extends PMSEncoderTestCase {
 
     void testPatternMatchBlock() {
         def uri = 'http://foo.bar.baz'
-        def command = new Command([ '$URI': uri ])
+        def command = new Command([ $URI: uri ])
         def wantCommand = new Command(
-            [ '$URI': uri, eq: uri ], []
+            [ $URI: uri, eq: uri ], []
         )
 
 
@@ -25,9 +25,9 @@ class PatternTest extends PMSEncoderTestCase {
 
     void testMatches() {
         def uri = 'http://trailers.apple.com/movies/fox_searchlight/127hours/127hours-tlr1_h720p.mov'
-        def command = new Command([ '$URI': uri ])
+        def command = new Command([ $URI: uri ])
         def wantCommand = new Command(
-            [ '$URI': uri, profile: 'Apple 3' ], [ '-ofps', '24', '-user-agent', 'QuickTime/7.6.2' ]
+            [ $URI: uri, profile: 'Apple 3' ], [ '-ofps', '24', '-user-agent', 'QuickTime/7.6.2' ]
         )
 
         assertMatch(

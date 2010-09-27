@@ -27,9 +27,9 @@ class PMSEncoderTest extends PMSEncoderTestCase {
         assertEquals([ foo: "bar" ], newStash)
     }
 
-    void testCompileTimeProfileDelegateInitalState() {
+    void testProfileValidationDelegateInitalState() {
         def config = new Config(pms)
-        def delegate = new CompileTimeProfileDelegate(config, "Test Profile")
+        def delegate = new ProfileValidationDelegate(config, "Test Profile")
 
         assertNotNull(delegate)
         assertEquals("Test Profile", delegate.name)

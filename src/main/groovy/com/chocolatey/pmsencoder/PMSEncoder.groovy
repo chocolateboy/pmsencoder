@@ -609,14 +609,14 @@ class Action extends CommandDelegate {
     @Typed(TypePolicy.MIXED) // XXX try to handle GStrings
     void youtube(List<Integer> formats = $YOUTUBE_ACCEPT) {
         def uri = $stash['$URI']
-        def video_id = $stash['youtube_video_id']
-        def t = $stash['youtube_t']
+        def video_id = $stash['$youtube_video_id']
+        def t = $stash['$youtube_t']
         def found = false
 
         assert video_id != null
         assert t != null
 
-        $command.let('youtube_uri', uri)
+        $command.let('$youtube_uri', uri)
 
         if (formats.size() > 0) {
             found = formats.any { fmt ->
@@ -627,7 +627,7 @@ class Action extends CommandDelegate {
                     log.info("success")
                     // set the new URI - note: use the low-level interface NOT the (deferred) DSL interface!
                     $command.let('$URI', stream_uri)
-                    $command.let('youtube_fmt', fmt)
+                    $command.let('$youtube_fmt', fmt)
                     return true
                 } else {
                     log.info("failure")

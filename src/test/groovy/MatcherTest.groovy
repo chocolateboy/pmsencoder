@@ -5,8 +5,8 @@ class MatcherTest extends PMSEncoderTestCase {
     // no match - change nothing
     private void noMatch() {
         def uri = 'http://www.example.com'
-        def command = new Command([ '$URI': uri ])
-        def wantCommand = new Command([ '$URI': uri ])
+        def command = new Command([ $URI: uri ])
+        def wantCommand = new Command([ $URI: uri ])
 
         assertMatch(
             command,      // supplied command
@@ -23,9 +23,9 @@ class MatcherTest extends PMSEncoderTestCase {
 
     void testApple() {
         def uri = 'http://www.apple.com/foobar.mov'
-        def command = new Command([ '$URI': uri ], [ '-lavcopts', 'vbitrate=4096' ])
+        def command = new Command([ $URI: uri ], [ '-lavcopts', 'vbitrate=4096' ])
         def wantCommand = new Command(
-            [ '$URI': uri ],
+            [ $URI: uri ],
             [
                 '-lavcopts', 'vbitrate=4096',
                 '-ofps', '24',
@@ -42,9 +42,9 @@ class MatcherTest extends PMSEncoderTestCase {
 
     void testAppleHD() {
         def uri = 'http://www.apple.com/foobar.m4v'
-        def command = new Command([ '$URI': uri ], [ '-lavcopts', 'vbitrate=4096' ])
+        def command = new Command([ $URI: uri ], [ '-lavcopts', 'vbitrate=4096' ])
         def wantCommand = new Command(
-            [ '$URI': uri ],
+            [ $URI: uri ],
             [
                 '-lavcopts', 'vbitrate=5086',
                 '-ofps', '24',
@@ -90,7 +90,7 @@ class MatcherTest extends PMSEncoderTestCase {
         def youtube = 'http://www.youtube.com'
         def uri = "$youtube/watch?v=_OBlgSz8sSM"
         def fixedURI = "$uri&has_verified=1".toString()
-        def command = new Command([ '$URI': uri ])
+        def command = new Command([ $URI: uri ])
 
         if (customConfig != null) {
             matcher.load(customConfig)
@@ -106,21 +106,21 @@ class MatcherTest extends PMSEncoderTestCase {
         assertEquals([ 'YouTube' ], matches)
         assertEquals([
             '$URI',
-            'youtube_author',
-            'youtube_fmt',
-            'youtube_t',
-            'youtube_uri',
-            'youtube_video_id'
+            '$youtube_author',
+            '$youtube_fmt',
+            '$youtube_t',
+            '$youtube_uri',
+            '$youtube_video_id'
         ], stash.keySet().toList().sort())
 
-        def video_id = stash['youtube_video_id']
+        def video_id = stash['$youtube_video_id']
         assertEquals('_OBlgSz8sSM', video_id)
-        def t = stash['youtube_t']
+        def t = stash['$youtube_t']
         // the mysterious $t token changes frequently, but always seems to end in a URL-encoded "="
         assert t ==~ /.*%3D$/
-        assertEquals('HDCYT', stash['youtube_author'])
-        assertEquals(fmt, stash['youtube_fmt'])
-        assertEquals(fixedURI, stash['youtube_uri'])
+        assertEquals('HDCYT', stash['$youtube_author'])
+        assertEquals(fmt, stash['$youtube_fmt'])
+        assertEquals(fixedURI, stash['$youtube_uri'])
         def wantURI = "${youtube}/get_video?fmt=${fmt}&video_id=${video_id}&t=${t}&asv="
         assertEquals(wantURI, stash['$URI'])
         assertEquals([], args)
@@ -128,8 +128,8 @@ class MatcherTest extends PMSEncoderTestCase {
 
     void testTED() {
         def uri = 'http://feedproxy.google.com/~r/TEDTalks_video/~3/EOXWNNyoC3E/843'
-        def command = new Command([ '$URI': uri ])
-        def wantCommand = new Command([ '$URI': uri ], [ '-ofps', '24' ])
+        def command = new Command([ $URI: uri ])
+        def wantCommand = new Command([ $URI: uri ], [ '-ofps', '24' ])
 
         assertMatch(
             command,
@@ -144,13 +144,13 @@ class MatcherTest extends PMSEncoderTestCase {
         def uri = "http://www.gametrailers.com/download/$page_id/${filename}.flv"
         def movie_id = '5162'
         def wantURI = "http://trailers-ak.gametrailers.com/gt_vault/$movie_id/${filename}.flv"
-        def command = new Command([ '$URI': uri ])
+        def command = new Command([ $URI: uri ])
         def wantCommand = new Command(
             [
-                '$URI':                wantURI,
-                gametrailers_movie_id: movie_id,
-                gametrailers_page_id:  page_id,
-                gametrailers_filename: filename
+                $URI:                   wantURI,
+                $gametrailers_movie_id: movie_id,
+                $gametrailers_page_id:  page_id,
+                $gametrailers_filename: filename
             ]
         )
 

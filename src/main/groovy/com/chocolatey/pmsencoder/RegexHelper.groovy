@@ -30,7 +30,8 @@ class RegexHelper {
                 String name = matcher.getGroupName(i)
                 if (name) {
                     String value = matcher.group(i, "") /* default to an empty string */
-                    map[name] = value
+                    // automatically prefix the $ sigil e.g. (?<URI>...) -> $URI
+                    map['$' + name] = value
                 }
             }
         }
