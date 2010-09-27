@@ -165,7 +165,7 @@ class Config extends Logger {
     public List<String> $DEFAULT_MENCODER_ARGS = []
     public List<Integer> $YOUTUBE_ACCEPT = []
     public PMS $PMS
-    
+
     public Config(PMS pms) {
         $PMS = pms
     }
@@ -342,7 +342,7 @@ public class CommandDelegate extends ConfigDelegate {
         super(config)
         this.command = command
     }
-        
+
     // DSL properties
 
     // $command: read-only
@@ -548,7 +548,7 @@ class Action extends CommandDelegate {
         assert name != null
 
         def index = $ARGS.findIndexOf { it == name }
-     
+
         if (index == -1) {
             if (value != null) {
                 log.info("adding $name $value")
@@ -556,7 +556,7 @@ class Action extends CommandDelegate {
                     XXX squashed bug: careful not to perform operations on $stash or $command.args
                     that return and subsequenly operate on a new value
                     (i.e. make sure they're modified in place):
-                    
+
                         def args = $command.args
                         args += ... // XXX doesn't modify $command.args
                 */
@@ -583,7 +583,7 @@ class Action extends CommandDelegate {
         replaceMap.each { name, map ->
             // squashed bug (see  above): take care to $ARGS in-place
             def index = $ARGS.findIndexOf { it == name }
-         
+
             if (index != -1) {
                 map.each { search, replace ->
                     log.info("replacing $search with $replace in $name")
