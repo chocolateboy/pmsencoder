@@ -22,7 +22,7 @@ import net.pms.PMS;
 import org.apache.log4j.xml.DOMConfigurator;
 
 public class Plugin implements StartStopListener {
-    private static final String VERSION = "1.1.0";
+    private static final String VERSION = "1.2.0";
     private static final String PMSENCODER_CONFIG_FILE_PATH = "pmsencoder.config_file";
     private PmsConfiguration configuration;
     private Engine pmsencoder;
