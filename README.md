@@ -22,6 +22,9 @@ To upgrade to a new version of the plugin, simply replace the old jar file with 
 # Tips <a name="Tips"></a>
 
 * To work around the PMS [bug](http://code.google.com/p/ps3mediaserver/issues/detail?id=759) that causes web video playback to be delayed for ~40s, uncheck "HTTP Engine V2" in the PMS "General Configuration" tab. This can also be done by setting `http_engine_v2 = false` in PMS.conf. Then restart PMS. See [below](#HTTPEngine) for caveats.
+* The PMSEncoder alternative to the default PMS WEB.conf can be found [here](http://github.com/chocolateboy/pmsencoder/blob/master/examples/conf/WEB.conf) (click "raw" to download).
+* The [Community Beta](https://code.google.com/p/ps3mediaservercontrib/) of PMS includes a patch that
+  restores support for [GameTrailers feeds](http://www.gametrailers.com/rssgenform.php).
 
 # Troubleshooting <a name="Troubleshooting"></a>
 
@@ -32,7 +35,9 @@ To upgrade to a new version of the plugin, simply replace the old jar file with 
 * Make sure there's only one version of the plugin in the `plugins` directory.
 * Make sure the edited PMS.conf is the one PMS is using (search the filesystem for other copies).
 * Make sure `mencoder_path` is not set (or is not pointing to the old, standalone version of PMSEncoder).
-* Check the PMS trace, PMS debug.log, and pmsencoder.log (which should be in the same directory as the debug.log) for errors.
+* Make sure the error is reproducible after a PMS restart. Caching in PMS and/or the PS3 often produces one-off errors.
+* Check the PMS trace, PMS debug.log, and pmsencoder.log (which should be in the same directory as the debug.log) for
+  errors.
 
 ## Reporting Issues <a name="Help"></a>
 
