@@ -11,7 +11,7 @@ These instructions assume you have the [latest version](http://ps3mediaserver.or
 # Installation <a name="Installation"></a>
 
 * download the [PMSEncoder jar file](http://github.com/downloads/chocolateboy/pmsencoder/pmsencoder-1.1.0.jar) and place it in the PMS `plugins` directory
-* shut down PMS and add `pmsencoder` to the front of the list of engines in `PMS.conf` e.g.
+* shut down PMS and add `pmsencoder` to the front of the list of engines in PMS.conf e.g.
   * `engines = pmsencoder,mencoder,tsmuxer,mplayeraudio` &c.
 * restart PMS
 
@@ -21,8 +21,8 @@ To upgrade to a new version of the plugin, simply replace the old jar file with 
 
 # Tips <a name="Tips"></a>
 
-* To work around the PMS [bug](http://code.google.com/p/ps3mediaserver/issues/detail?id=759) that causes web video playback to be delayed for ~40s, uncheck "HTTP Engine V2" in the PMS "General Configuration" tab. This can also be done by setting `http_engine_v2 = false` in `PMS.conf`. Then restart PMS. See [below](#HTTPEngine) for caveats.
-* To take PMSEncoder for a spin, try [this `WEB.conf`](http://github.com/chocolateboy/pmsencoder/raw/master/examples/conf/WEB.conf), which contains a list of feeds that are regularly tested and updated.
+* To work around the PMS [bug](http://code.google.com/p/ps3mediaserver/issues/detail?id=759) that causes web video playback to be delayed for ~40s, uncheck "HTTP Engine V2" in the PMS "General Configuration" tab. This can also be done by setting `http_engine_v2 = false` in PMS.conf. Then restart PMS. See [below](#HTTPEngine) for caveats.
+* To take PMSEncoder for a spin, try [this WEB.conf](http://github.com/chocolateboy/pmsencoder/raw/master/examples/conf/WEB.conf), which contains a list of feeds that are regularly tested and updated.
 * The [Community Beta](https://code.google.com/p/ps3mediaservercontrib/) of PMS includes a patch that
   restores support for [GameTrailers feeds](http://www.gametrailers.com/rssgenform.php).
 
@@ -30,10 +30,10 @@ To upgrade to a new version of the plugin, simply replace the old jar file with 
 
 * Internet Explorer saves .jar files as .zip files. Either save the file with a [different](http://www.mozilla.com/firefox/) [browser](http://www.google.com/chrome), or rename it, replacing the .zip extension with .jar.
 * <a name="HTTPEngine"></a>If you [disabled "HTTP Engine V2"](#Tips), try re-enabling it as some renderers, such as the Sony Bravia KDL-37V5500, require it.
-* If `PMS.conf` doesn't exist (see [here](http://ps3mediaserver.org/forum/viewtopic.php?f=6&t=3507&p=32731#p32731) for the default locations), create it by clicking the "Save" icon in the PMS GUI.
-* If the list of engines doesn't exist in `PMS.conf`, follow the instructions [here](http://ps3mediaserver.org/forum/viewtopic.php?f=6&t=7435&p=34674#p34674).
+* If PMS.conf doesn't exist (see [here](http://ps3mediaserver.org/forum/viewtopic.php?f=6&t=3507&p=32731#p32731) for the default locations), create it by clicking the "Save" icon in the PMS GUI.
+* If the list of engines doesn't exist in PMS.conf, follow the instructions [here](http://ps3mediaserver.org/forum/viewtopic.php?f=6&t=7435&p=34674#p34674).
 * Make sure there's only one version of the plugin in the `plugins` directory.
-* Make sure the edited `PMS.conf` is the one PMS is using (search the filesystem for other copies).
+* Make sure the edited PMS.conf is the one PMS is using (search the filesystem for other copies).
 * Make sure `mencoder_path` is not set (or is not pointing to the old, standalone version of PMSEncoder).
 * Make sure the error is reproducible after a PMS restart. Caching in PMS and/or the PS3 often produces one-off errors.
 * Check the PMS trace, PMS debug.log, and pmsencoder.log (which should be in the same directory as the debug.log) for
@@ -46,7 +46,7 @@ Please do the following when reporting any issues:
 1. restart (or start) PMS
 2. try to stream a web video
 3. wait until it fails
-4. post your `PMS.conf`, pmsencoder.log and debug.log (as a zipped attachment)
+4. post your PMS.conf, pmsencoder.log and debug.log (as a zipped attachment)
 
 ## Support <a name="Support"></a>
 
