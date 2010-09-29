@@ -296,6 +296,7 @@ class Profile extends Logger {
 // i.e. a delegate with access to a Config
 public class ConfigDelegate extends Logger {
     private Config config
+    @Lazy private URLDecoder decoder = new URLDecoder()
 
     public ConfigDelegate(Config config) {
         this.config = config
@@ -306,6 +307,11 @@ public class ConfigDelegate extends Logger {
     // $CONFIG: read-only
     protected final Config get$CONFIG() {
         config
+    }
+
+    // $DECODER: read-only
+    protected URLDecoder get$DECODER() {
+        decoder
     }
 
     // $PMS: read-only
@@ -345,13 +351,13 @@ public class CommandDelegate extends ConfigDelegate {
 
     // DSL properties
 
-    // $command: read-only
-    protected Command get$command() {
+    // $COMMAND: read-only
+    protected Command get$COMMAND() {
         command
     }
 
-    // $stash: read-only
-    protected final Stash get$stash() {
+    // $STASH: read-only
+    protected final Stash get$STASH() {
         command.stash
     }
 
@@ -441,7 +447,7 @@ class Pattern extends CommandDelegate {
     // which is handled later (if the match succeeds) by merging the pattern
     // block's temporary stash
     protected String propertyMissing(String name, Object value) {
-        $stash[name] = value
+        $STASH[name] = value
     }
 
     // DSL method
@@ -455,13 +461,13 @@ class Pattern extends CommandDelegate {
     void match(String name, String value) {
         assert name && value
 
-        if ($stash[name] == null) { // this will happen for old custom configs that use let $URI: ...
+        if ($STASH[name] == null) { // this will happen for old custom configs that use let $URI: ...
             log.warn("invalid match: $name is not defined")
             // fall through
         } else {
             log.info("matching $name against $value")
 
-            if (RegexHelper.match($stash[name], value, $stash)) {
+            if (RegexHelper.match($STASH[name], value, $STASH)) {
                 log.info("success")
                 return // abort default failure exception below
             } else {
@@ -504,7 +510,7 @@ class Action extends CommandDelegate {
     // DSL method
     @Typed(TypePolicy.MIXED) // XXX try to handle GStrings
     void scrape(String regex, Map<String, String> options = [:]) {
-        def uri = options['uri'] ?: $stash['$URI']
+        def uri = options['uri'] ?: $STASH['$URI']
         def document = cache[uri]
         def newStash = new Stash()
 
@@ -519,7 +525,7 @@ class Action extends CommandDelegate {
 
         if (RegexHelper.match(document, regex, newStash)) {
             log.info("success")
-            newStash.each { name, value -> $command.let(name, value) }
+            newStash.each { name, value -> $COMMAND.let(name, value) }
         } else {
             log.info("failure")
         }
@@ -530,7 +536,7 @@ class Action extends CommandDelegate {
     @Typed(TypePolicy.DYNAMIC) // XXX try to handle GStrings
     void let(Map<String, String> map) {
         map.each { key, value ->
-            $command.let(key, value)
+            $COMMAND.let(key, value)
         }
     }
 
@@ -553,12 +559,12 @@ class Action extends CommandDelegate {
             if (value != null) {
                 log.info("adding $name $value")
                 /*
-                    XXX squashed bug: careful not to perform operations on $stash or $command.args
+                    XXX squashed bug: careful not to perform operations on $STASH or $COMMAND.args
                     that return and subsequenly operate on a new value
                     (i.e. make sure they're modified in place):
 
-                        def args = $command.args
-                        args += ... // XXX doesn't modify $command.args
+                        def args = $COMMAND.args
+                        args += ... // XXX doesn't modify $COMMAND.args
                 */
                 $ARGS << name << value
             } else {
@@ -608,15 +614,15 @@ class Action extends CommandDelegate {
     // DSL method
     @Typed(TypePolicy.MIXED) // XXX try to handle GStrings
     void youtube(List<Integer> formats = $YOUTUBE_ACCEPT) {
-        def uri = $stash['$URI']
-        def video_id = $stash['$youtube_video_id']
-        def t = $stash['$youtube_t']
+        def uri = $STASH['$URI']
+        def video_id = $STASH['$youtube_video_id']
+        def t = $STASH['$youtube_t']
         def found = false
 
         assert video_id != null
         assert t != null
 
-        $command.let('$youtube_uri', uri)
+        $COMMAND.let('$youtube_uri', uri)
 
         if (formats.size() > 0) {
             found = formats.any { fmt ->
@@ -626,8 +632,8 @@ class Action extends CommandDelegate {
                 if (http.head(stream_uri)) {
                     log.info("success")
                     // set the new URI - note: use the low-level interface NOT the (deferred) DSL interface!
-                    $command.let('$URI', stream_uri)
-                    $command.let('$youtube_fmt', fmt)
+                    $COMMAND.let('$URI', stream_uri)
+                    $COMMAND.let('$youtube_fmt', fmt)
                     return true
                 } else {
                     log.info("failure")
@@ -645,12 +651,12 @@ class Action extends CommandDelegate {
 
     // DSL method: append a list of options to the command's args list
     void append(List<String> args) {
-        $command.args += args
+        $COMMAND.args += args
     }
 
     // DSL method: prepend a list of options to the command's args list
     void prepend(List<String> args) {
-        $command.args = args + $ARGS
+        $COMMAND.args = args + $ARGS
     }
 
     // private helper method containing code common to replace and remove

@@ -100,6 +100,7 @@ public class Plugin implements StartStopListener {
         String customConfigPath = (String)configuration.getCustomProperty(PMSENCODER_CONFIG_FILE_PATH);
 
         if (customConfigPath != null) {
+            // TODO: document this
             PMS.minimal("custom PMSEncoder config path defined: " + customConfigPath);
             loadConfig(customConfigPath);
         } else {
