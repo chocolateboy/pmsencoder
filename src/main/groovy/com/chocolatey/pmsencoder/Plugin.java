@@ -68,8 +68,7 @@ public class Plugin implements StartStopListener {
         }
     }
 
-    // GMaven doesn't like generic methods, hence this egregious hack
-    private boolean loadConfig(Object config) {
+    private boolean loadConfig(Object config) { // config is either a URL or a String
         boolean loaded = true;
 
         try {
