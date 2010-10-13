@@ -82,7 +82,7 @@ config {
 
         action {
             // fix the URI to bypass age verification
-            $URI = "${$URI}&has_verified=1"
+            $URI += "&has_verified=1"
 
             // extract the resource's sekrit identifier ($t) from the HTML
             scrape '&t=(?<youtube_t>[^&]+)'
@@ -146,7 +146,7 @@ config {
 
         // 2) and use it to restore the correct web page URI
         action {
-           let $URI: "http://www.gametrailers.com/player/${$gametrailers_page_id}.html"
+           let $URI: "http://www.gametrailers.com/player/${gametrailers_page_id}.html"
         }
     }
 
@@ -164,7 +164,7 @@ config {
             scrape '\\bhttp://www\\.gametrailers\\.com/download/\\d+/(?<gametrailers_filename>t_[^.]+)\\.wmv\\b'
 
             // now use them to rewrite the URI
-            $URI = "http://trailers-ak.gametrailers.com/gt_vault/${$gametrailers_movie_id}/${$gametrailers_filename}.flv"
+            $URI = "http://trailers-ak.gametrailers.com/gt_vault/${gametrailers_movie_id}/${gametrailers_filename}.flv"
         }
     }
 }

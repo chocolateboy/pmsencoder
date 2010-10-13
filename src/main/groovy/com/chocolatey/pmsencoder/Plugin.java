@@ -29,7 +29,7 @@ public class Plugin implements StartStopListener {
     private Matcher matcher;
     private PMS pms;
     private String currentDirectory;
-   
+
     public Plugin() {
         PMS.minimal("initializing PMSEncoder " + VERSION);
         pms = PMS.get();

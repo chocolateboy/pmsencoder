@@ -14,3 +14,12 @@
 /*
     wrap profile/config evaluation in try/catch blocks so that errors can be recovered from
 */
+
+/*
+    document the outstanding issue with e.g. "${URI}&has_verified" barfing:
+
+        java.net.URISyntaxException: Illegal character in path at index 5: class java.net.URI&has_verified=1
+
+    investigate using a custom GroovyShell without URI autoimported
+
+*/

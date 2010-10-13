@@ -89,7 +89,7 @@ class MatcherTest extends PMSEncoderTestCase {
     private void youTubeCommon(String fmt, URL customConfig = null) {
         def youtube = 'http://www.youtube.com'
         def uri = "$youtube/watch?v=_OBlgSz8sSM"
-        def fixedURI = "$uri&has_verified=1".toString()
+        def fixedURI = "${uri}&has_verified=1".toString()
         def command = new Command([ $URI: uri ])
 
         if (customConfig != null) {

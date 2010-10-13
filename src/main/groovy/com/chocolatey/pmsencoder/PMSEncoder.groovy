@@ -27,16 +27,29 @@ public class Stash extends LinkedHashMap<java.lang.String, java.lang.String> {
         old.each { key, value -> this.put(key.toString(), value.toString()) }
     }
 
+    private java.lang.String canonicalize(Object key) {
+        java.lang.String name = key.toString()
+        name.startsWith('$') ? name : '$' + name
+    }
+
     public Stash(Map<String, String> map) {
         map.each { key, value -> this.put(key.toString(), value.toString()) }
     }
 
+    public java.lang.String put(java.lang.String key, java.lang.String value) {
+        super.put(canonicalize(key), value)
+    }
+
     public java.lang.String put(Object key, Object value) {
-        super.put(key.toString(), value.toString())
+        super.put(canonicalize(key), value.toString())
+    }
+
+    public java.lang.String get(java.lang.String key) {
+        super.get(canonicalize(key))
     }
 
     public java.lang.String get(Object key) {
-        super.get(key.toString())
+        super.get(canonicalize(key))
     }
 }
 
@@ -202,7 +215,7 @@ class Config extends Logger {
             profile.extractBlocks(closure)
             profiles[name] = profile
         } catch (Throwable e) {
-            log.error("invalid profile ($name): " + e.getMessage());
+            log.error("invalid profile ($name): " + e.getMessage())
         }
     }
 }
