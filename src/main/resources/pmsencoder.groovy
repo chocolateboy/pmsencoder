@@ -74,6 +74,28 @@ config {
         action { }
     }
 
+    profile ('YouTube-DL Compatible') {
+        pattern {
+            // match any of the sites youtube-dl supports - copied from the source
+            match $URI: [
+                '^((?:https?://)?(?:youtu\\.be/|(?:\\w+\\.)?youtube(?:-nocookie)?\\.com/' +
+                '(?:(?:v/)|(?:(?:watch(?:_popup)?(?:\\.php)?)?(?:\\?|#!?)(?:.+&)?v=))))?([0-9A-Za-z_-]+)(?(1).+)?$',
+                '(?:http://)?(?:www\\.)?metacafe\\.com/watch/([^/]+)/([^/]+)/.*',
+                '(?i)(?:https?://)?(?:www\\.)?dailymotion\\.[a-z]{2,3}/video/([^_/]+)_([^/]+)',
+                '(?:http://)?video\\.google\\.(?:com(?:\\.au)?|co\\.(?:uk|jp|kr|cr)|ca|de|es|fr|it|nl|pl)' +
+                    '/videoplay\\?docid=([^\\&]+).*',
+                '(?:http://)?(?:[a-z0-9]+\\.)?photobucket\\.com/.*[\\?\\&]current=(.*\\.flv)',
+                '(?:http://)?(?:[a-z]+\\.)?video\\.yahoo\\.com/(?:watch|network)/([0-9]+)(?:/|\\?v=)([0-9]+)(?:[#\\?].*)?',
+                '(?:http://)?(?:\\w+\\.)?youtube.com/(?:(?:view_play_list|my_playlists)\\?.*?p=|user/.*?/user/)([^&]+).*',
+                '(?:http://)?(?:\\w+\\.)?youtube.com/user/(.*)'
+            ]
+        }
+
+        action {
+            $youtube_dl_compatible = '2010.10.03' // version the regexes were copied from
+        }
+    }
+
     // extract metadata about the video for other profiles
     profile ('YouTube Metadata') {
         // extract the resource's video_id from the URI of the standard YouTube page

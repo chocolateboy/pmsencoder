@@ -103,15 +103,16 @@ class MatcherTest extends PMSEncoderTestCase {
         def args = command.args
         def matches = command.matches
 
-        assertEquals([ 'YouTube Metadata', 'YouTube' ], matches)
+        assertEquals([ 'YouTube-DL Compatible', 'YouTube Metadata', 'YouTube' ], matches)
         assertEquals([
             '$URI',
-            '$youtube_author',
-            '$youtube_fmt',
+            '$youtube_dl_compatible',
+            '$youtube_video_id',
             '$youtube_t',
+            '$youtube_author',
             '$youtube_uri',
-            '$youtube_video_id'
-        ], stash.keySet().toList().sort())
+            '$youtube_fmt'
+        ], stash.keySet().toList())
 
         def video_id = stash['$youtube_video_id']
         assertEquals('_OBlgSz8sSM', video_id)

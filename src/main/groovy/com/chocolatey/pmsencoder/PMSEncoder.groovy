@@ -459,24 +459,18 @@ class Pattern extends CommandDelegate {
 
     // DSL method
     @Typed(TypePolicy.DYNAMIC) // XXX try to handle GStrings
-    void match(String name, String value) {
-        assert name && value
-
-        if ($STASH[name] == null) { // this will happen for old custom configs that use let $URI: ...
-            log.warn("invalid match: $name is not defined")
-            // fall through
-        } else {
-            log.info("matching $name against $value")
-
-            if (RegexHelper.match($STASH[name], value, $STASH)) {
-                log.info("success")
-                return // abort default failure exception below
-            } else {
-                log.info("failure")
-            }
+    void match(String name, List<String> values) {
+        if (!(values.any { value -> matchString(name.toString(), value.toString()) })) {
+            throw STOP_MATCHING
         }
+    }
 
-        throw STOP_MATCHING
+    // DSL method
+    @Typed(TypePolicy.DYNAMIC) // XXX try to handle GStrings
+    void match(String name, String value) {
+        if (!matchString(name.toString(), value.toString())) {
+            throw STOP_MATCHING
+        }
     }
 
     // DSL method
@@ -490,6 +484,27 @@ class Pattern extends CommandDelegate {
             log.info("failure")
             throw STOP_MATCHING
         }
+    }
+
+    @Typed(TypePolicy.DYNAMIC) // XXX try to handle GStrings
+    private boolean matchString(String name, String value) {
+        assert name && value
+
+        if ($STASH[name] == null) { // this will happen for old custom configs that use let uri: ...
+            log.warn("invalid match: $name is not defined")
+            // fall through
+        } else {
+            log.info("matching $name against $value")
+
+            if (RegexHelper.match($STASH[name], value, $STASH)) {
+                log.info("success")
+                return true // abort default failure below
+            } else {
+                log.info("failure")
+            }
+        }
+
+        return false
     }
 }
 
