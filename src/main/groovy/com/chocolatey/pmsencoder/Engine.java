@@ -55,7 +55,6 @@ public class Engine extends MEncoderWebVideo {
 
     @Override
     public ProcessWrapper launchTranscode(String uri, DLNAMediaInfo media, OutputParams params) throws IOException {
-        log.info("mediainfo: " + media);
         PipeProcess pipe = new PipeProcess("pmsencoder" + System.currentTimeMillis());
         String outfile = pipe.getInputPipe();
         Command command = new Command();
@@ -65,6 +64,7 @@ public class Engine extends MEncoderWebVideo {
         oldStash.put("$URI", uri);
         oldStash.put("$EXECUTABLE", executable());
         oldStash.put("$OUTPUT", outfile);
+        oldStash.put("$ADD_URI", "append");
 
         oldArgs.add("-o");
         oldArgs.add(outfile);
