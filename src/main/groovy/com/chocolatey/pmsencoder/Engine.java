@@ -2,6 +2,7 @@ package com.chocolatey.pmsencoder;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import javax.swing.JComponent;
@@ -19,6 +20,7 @@ import net.pms.io.ProcessWrapper;
 import net.pms.io.ProcessWrapperImpl;
 import net.pms.PMS;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 
 public class Engine extends MEncoderWebVideo {
@@ -37,7 +39,7 @@ public class Engine extends MEncoderWebVideo {
         } else if (os.startsWith("Windows")){
           shellCmdArray = new String[]{ "cmd.exe", "/C" };
         } else {
-          shellCmdArray = new String[]{ "/bin/sh" };
+          shellCmdArray = new String[]{ "/bin/sh", "-c" };
         }
     }
 
@@ -64,7 +66,6 @@ public class Engine extends MEncoderWebVideo {
         oldStash.put("$URI", uri);
         oldStash.put("$EXECUTABLE", executable());
         oldStash.put("$OUTPUT", outfile);
-        oldStash.put("$ADD_URI", "append");
 
         oldArgs.add("-o");
         oldArgs.add(outfile);
@@ -92,45 +93,30 @@ public class Engine extends MEncoderWebVideo {
         }
 
         String executable = stash.get("$EXECUTABLE");
-
-        int postExecutable;
+        String cmdArray[];
 
         if (executable == "SHELL") {
-            int i;
-            for (i = 0; i < shellCmdArray.length; ++i) {
-                args.add(i, shellCmdArray[i]);
+            cmdArray = new String[ shellCmdArray.length + 1 ];
+            for (int i = 0; i < shellCmdArray.length; ++i) {
+                cmdArray[i] = shellCmdArray[i];
             }
-            postExecutable = i + 1;
+            cmdArray[ shellCmdArray.length ] = StringUtils.join(args, " ");
         } else {
             args.add(0, executable);
-            postExecutable = 1;
-        }
-
-        /*
-         * if it's still an MEncoder command, add "$URI -o /tmp/javaps3media/psmesencoder1234";
-         * otherwise assume the matching action has defined the URI and any output option(s)
-         */
-        String addURI = stash.get("$ADD_URI");
-
-        if (addURI != null) {
-            if (addURI == "prepend") {
-                args.add(postExecutable, stash.get("$URI"));
-            } else if (addURI == "append") {
+            if (executable == executable()) {
                 args.add(stash.get("$URI"));
-            } else {
-                log.info("skipping URI append/prepend: $ADD_URI: " + addURI);
             }
+            cmdArray = new String[ args.size() ];
+            args.toArray(cmdArray);
         }
 
-        log.info("command: " + args);
+        log.info("command: " + Arrays.toString(cmdArray));
 
         params.input_pipes[0] = pipe;
         params.minBufferSize = params.minFileSize;
         params.secondread_minsize = 100000;
         params.log = true; // send the command's stdout/stderr to debug.log
 
-        String cmdArray[] = new String[ args.size() ];
-        args.toArray(cmdArray);
 
         ProcessWrapper mkfifo_process = pipe.getPipeProcess();
         ProcessWrapperImpl pw = new ProcessWrapperImpl(cmdArray, params);

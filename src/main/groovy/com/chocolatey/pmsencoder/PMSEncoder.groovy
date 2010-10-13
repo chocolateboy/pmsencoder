@@ -309,7 +309,6 @@ class Profile extends Logger {
 // i.e. a delegate with access to a Config
 public class ConfigDelegate extends Logger {
     private Config config
-    @Lazy private URLDecoder decoder = new URLDecoder()
 
     public ConfigDelegate(Config config) {
         this.config = config
@@ -320,11 +319,6 @@ public class ConfigDelegate extends Logger {
     // $CONFIG: read-only
     protected final Config get$CONFIG() {
         config
-    }
-
-    // $DECODER: read-only
-    protected URLDecoder get$DECODER() {
-        decoder
     }
 
     // $PMS: read-only
@@ -393,13 +387,7 @@ public class CommandDelegate extends ConfigDelegate {
 
     // DSL getter
     protected String propertyMissing(String name) throws PMSEncoderException {
-        def val = command.stash[name]
-
-        if (val == null) {
-            throw new PMSEncoderException("invalid property access: $name is not defined")
-        } else {
-            return val
-        }
+        command.stash[name]
     }
 
     // DSL setter

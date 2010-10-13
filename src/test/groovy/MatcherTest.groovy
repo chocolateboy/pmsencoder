@@ -103,7 +103,7 @@ class MatcherTest extends PMSEncoderTestCase {
         def args = command.args
         def matches = command.matches
 
-        assertEquals([ 'YouTube' ], matches)
+        assertEquals([ 'YouTube Metadata', 'YouTube' ], matches)
         assertEquals([
             '$URI',
             '$youtube_author',

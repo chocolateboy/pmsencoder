@@ -74,7 +74,8 @@ config {
         action { }
     }
 
-    profile ('YouTube') {
+    // extract metadata about the video for other profiles
+    profile ('YouTube Metadata') {
         // extract the resource's video_id from the URI of the standard YouTube page
         pattern {
             match $URI: '^http://(?:\\w+\\.)?youtube\\.com/watch\\?v=(?<youtube_video_id>[^&]+)'
@@ -90,10 +91,21 @@ config {
             // extract the uploader ("author") so that scripts can use it
             scrape '\\.author=(?<youtube_author>[^&]+)'
 
-            // Now, with $video_id and $t defined, call the custom YouTube handler.
-            // Note: the parentheses are required for a no-arg action
-            youtube()
         }
+    }
+
+    // perform the actual YouTube handling if the metadata has been extracted.
+    // this approach allows scripts to override just this profile without having
+    // to rescrape the page to match on the uploader &c.
+    // it also simplifies matching i.e. check for $youtube_video_id rather than repeating the regex
+
+    profile ('YouTube') {
+        pattern {
+            match { $youtube_video_id != null }
+        }
+        // Now, with $video_id and $t defined, call the custom YouTube handler.
+        // Note: the parentheses are required for a no-arg action
+        action { youtube() }
     }
 
     profile ('Apple Trailers') {
