@@ -217,8 +217,10 @@ class Config extends Logger {
         String extendz = options['extends']
         String overrides = options['overrides']
 
-        if ((profiles[name] != null)) {
-            log.info("replacing profile: $overrides with $name")
+        if (overrides) {
+            log.info("replacing profile $overrides with: $name")
+        } else if (profiles[name] != null) {
+            log.info("replacing profile: $name")
         } else {
             log.info("registering profile: $name")
         }
