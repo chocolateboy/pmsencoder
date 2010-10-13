@@ -111,8 +111,9 @@ config {
             // make sure URI is sigilized to prevent clashes with the class
             scrape '&t=(?<youtube_t>[^&]+)', [ uri: youtube_scrape_uri ]
 
-            // extract the uploader ("author") so that scripts can use it
-            scrape '\\.author=(?<youtube_author>[^&]+)', [ uri: youtube_scrape_uri ]
+            // extract the uploader ("creator") so that scripts can use it
+            // scrape '"creator"\\s*:\\s*"(?<youtube_creator>[^"]+)"', [ uri: youtube_scrape_uri ]
+            scrape "'VIDEO_USERNAME'\\s*:\\s*'(?<youtube_uploader>[^']+)'", [ uri: youtube_scrape_uri ]
         }
     }
 

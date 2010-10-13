@@ -96,9 +96,9 @@ public class Engine extends MEncoderWebVideo {
         int nMatches = matches.size();
 
         if (nMatches == 1) {
-            log.info("1 match for: " + uri);
+            log.info("1 match (" + matches + ") for: " + uri);
         } else {
-            log.info(nMatches + " matches for: " + uri);
+            log.info(nMatches + " matches (" + matches + ") for: " + uri);
         }
 
         String executable = stash.get("$EXECUTABLE");

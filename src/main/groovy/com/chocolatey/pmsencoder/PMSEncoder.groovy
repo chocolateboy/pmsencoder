@@ -186,25 +186,17 @@ class Config extends Logger {
     boolean match(Command command) {
         log.info("matching URI: ${command.stash['$URI']}")
 
-        profiles.each { name, profile ->
+        // XXX make sure we take the name from the profile itself
+        // rather than the map key - the latter may have been usurped
+        // by a profile with a different name
+
+        profiles.values().each { profile ->
             if (profile.match(command)) {
-                command.matches << name
+                command.matches << profile.name
             }
         }
 
         return command.matches.size() > 0
-    }
-
-    // DSL accessor ($PROFILES): read-only
-    /*
-       FIXME: need to encapsulate this e.g.
-
-            $PROFILES.disable('Name')
-            $PROFILES.enable('Name')
-            $PROFILES.remove('Name')
-    */
-    protected Map<String, Profile> get$PROFILES() {
-        profiles
     }
 
     // DSL method
@@ -217,15 +209,39 @@ class Config extends Logger {
     @Typed(TypePolicy.MIXED) // Groovy++ doesn't support delegation
     // a Profile consists of a name, a pattern block and an action block - all
     // determined when the config file is loaded/compiled
-    void profile (String name, Closure closure) {
+    // XXX more annoying DDWIM magic: Groovy reorders the arguments
+    // http://enfranchisedmind.com/blog/posts/groovy-argument-reordering/
+    protected void profile (Map<String, String> options = [:], String name, Closure closure) throws PMSEncoderException {
         // run the profile block at compile-time to extract its pattern and action blocks,
         // but invoke them at runtime
-        log.info("registering profile: $name")
+        String extendz = options['extends']
+        String overrides = options['overrides']
+
+        if ((profiles[name] != null)) {
+            log.info("replacing profile: $overrides with $name")
+        } else {
+            log.info("registering profile: $name")
+        }
+
         Profile profile = new Profile(name, this)
 
+        // TODO need detailed diagnostics
         try {
             profile.extractBlocks(closure)
-            profiles[name] = profile
+
+            if (extendz) {
+                profile.assignPatternBlockIfNull(profiles[extendz])
+                profile.assignActionBlockIfNull(profiles[extendz])
+            }
+
+            // this is why name is defined both as the key of the map and in the profile
+            // itself. the key is only used for ordering/replacement
+            // the public name is always the profile's own name field
+            if (overrides) {
+                profiles[overrides] = profile
+            } else {
+                profiles[name] = profile
+            }
         } catch (Throwable e) {
             log.error("invalid profile ($name): " + e.getMessage())
         }
@@ -235,8 +251,8 @@ class Config extends Logger {
 // this holds a reference to the pattern and action, and isn't delegated to at runtime
 class Profile extends Logger {
     private final Config config
-    private Closure patternBlock
-    private Closure actionBlock
+    protected Closure patternBlock
+    protected Closure actionBlock
 
     public final String name
 
@@ -252,8 +268,8 @@ class Profile extends Logger {
         delegate.runProfileBlock(closure)
 
         // we made it without triggering an exception, so the two fields are sane: save them
-        this.patternBlock = delegate.patternBlock
-        this.actionBlock = delegate.actionBlock
+        this.patternBlock = delegate.patternBlock // possibly null
+        this.actionBlock = delegate.actionBlock   // possibly null
     }
 
     // pulled out of the match method below so that type-softening is isolated
@@ -289,7 +305,11 @@ class Profile extends Logger {
     // clean (cf. Ruby's BlankSlate)
     @Typed(TypePolicy.MIXED) // Groovy++ doesn't support delegation
     boolean runActionBlock(Action delegate) {
-        delegate.with(actionBlock)
+        if (actionBlock != null) {
+            delegate.with(actionBlock)
+        } else {
+            return true
+        }
     }
 
     boolean match(Command command) {
@@ -314,6 +334,20 @@ class Profile extends Logger {
             return true
         } else {
             return false
+        }
+    }
+
+    public void assignPatternBlockIfNull(Profile profile) {
+        // XXX can't get ?= to work here...
+        if (this.patternBlock == null) {
+            this.patternBlock = profile.patternBlock
+        }
+    }
+
+    public void assignActionBlockIfNull(Profile profile) {
+        // XXX can't get ?= to work here...
+        if (this.actionBlock == null) {
+            this.actionBlock = profile.actionBlock
         }
     }
 }
@@ -438,14 +472,10 @@ class ProfileValidationDelegate extends ConfigDelegate {
     }
 
     @Typed(TypePolicy.MIXED) // Groovy++ doesn't support delegation
-    private runProfileBlock(Closure closure) throws PMSEncoderException {
+    private runProfileBlock(Closure closure) {
         this.with(closure)
-
         // the pattern block is optional; if not supplied, the profile always matches
-
-        if (actionBlock == null) {
-            throw new PMSEncoderException("invalid profile ($name): no action block defined")
-        }
+        // the action block is optional; if not supplied no action is performed
     }
 }
 
@@ -472,7 +502,7 @@ class Pattern extends CommandDelegate {
     // DSL method
     @Typed(TypePolicy.DYNAMIC) // XXX try to handle GStrings
     void domain(String name, String value) {
-        if (!matchString(domainToRegex(name.toString()), regex)) {
+        if (!matchString(name, domainToRegex(value.toString()))) {
             throw STOP_MATCHING
         }
     }
@@ -480,7 +510,7 @@ class Pattern extends CommandDelegate {
     // DSL method
     @Typed(TypePolicy.DYNAMIC) // XXX try to handle GStrings
     void domain(String name, List<String> values) {
-        if (!(values.any { value -> matchString(domainToRegex(name.toString()), value.toString()) })) {
+        if (!(values.any { value -> matchString(name, domainToRegex(value.toString())) })) {
             throw STOP_MATCHING
         }
     }
@@ -522,7 +552,7 @@ class Pattern extends CommandDelegate {
 
     @Typed(TypePolicy.DYNAMIC) // XXX try to handle GStrings
     private boolean matchString(String name, String value) {
-        assert name && value
+        assert (name != null) && (value != null)
 
         if ($STASH[name] == null) { // this will happen for old custom configs that use let uri: ...
             log.warn("invalid match: $name is not defined")
@@ -541,8 +571,9 @@ class Pattern extends CommandDelegate {
         return false
     }
 
+    @Typed(TypePolicy.DYNAMIC) // XXX try to handle GStrings
     private String domainToRegex(String domain) {
-        return "^https?://(\\w+.)*${domain}/".toString()
+        return "^https?://(\\w+\\.)*${domain}/".toString()
     }
 }
 

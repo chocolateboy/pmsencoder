@@ -108,7 +108,7 @@ class MatcherTest extends PMSEncoderTestCase {
             '$youtube_dl_compatible',
             '$youtube_video_id',
             '$youtube_t',
-            '$youtube_author',
+            '$youtube_uploader',
             '$youtube_uri',
             '$youtube_fmt'
         ], stash.keySet().toList())
@@ -118,7 +118,7 @@ class MatcherTest extends PMSEncoderTestCase {
         def t = stash['$youtube_t']
         // the mysterious $t token changes frequently, but always seems to end in a URL-encoded "="
         assert t ==~ /.*%3D$/
-        assertEquals('HDCYT', stash['$youtube_author'])
+        assertEquals('HDCYT', stash['$youtube_uploader'])
         assertEquals(fmt, stash['$youtube_fmt'])
         assertEquals(uri, stash['$youtube_uri'])
         def wantURI = "${youtube}/get_video?fmt=${fmt}&video_id=${video_id}&t=${t}&asv="
