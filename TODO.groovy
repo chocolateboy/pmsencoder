@@ -23,3 +23,5 @@
     investigate using a custom GroovyShell without URI autoimported
 
 */
+
+// test profile surgery via $PROFILES

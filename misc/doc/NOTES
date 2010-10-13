@@ -1,0 +1,6 @@
+DLNA baseline:
+
+    Media Class | Mandatory Formats | Optional Formats
+    Image       | JPEG              | PNG, GIF, TIFF
+    Audio       | LPCM              | AC3, AAC, MP3, WMA9, ATRAC3plus
+    Video       | MPEG2             | MPEG1, MPEG4, VC1, MPV1

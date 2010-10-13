@@ -44,6 +44,13 @@ public class Engine extends MEncoderWebVideo {
     }
 
     @Override
+    // temporarily log calls to this method so we can figure out its scope
+    public String mimeType() {
+        log.info("mimeType called");
+        return "video/mpeg";
+    }
+
+    @Override
     public String id() {
         return ID;
     }
@@ -57,6 +64,8 @@ public class Engine extends MEncoderWebVideo {
 
     @Override
     public ProcessWrapper launchTranscode(String uri, DLNAMediaInfo media, OutputParams params) throws IOException {
+        log.info("media: " + media); // XXX
+        log.info("params: " + params); // XXX
         PipeProcess pipe = new PipeProcess("pmsencoder" + System.currentTimeMillis());
         String outfile = pipe.getInputPipe();
         Command command = new Command();

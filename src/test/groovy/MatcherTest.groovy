@@ -89,7 +89,6 @@ class MatcherTest extends PMSEncoderTestCase {
     private void youTubeCommon(String fmt, URL customConfig = null) {
         def youtube = 'http://www.youtube.com'
         def uri = "$youtube/watch?v=_OBlgSz8sSM"
-        def fixedURI = "${uri}&has_verified=1".toString()
         def command = new Command([ $URI: uri ])
 
         if (customConfig != null) {
@@ -121,7 +120,7 @@ class MatcherTest extends PMSEncoderTestCase {
         assert t ==~ /.*%3D$/
         assertEquals('HDCYT', stash['$youtube_author'])
         assertEquals(fmt, stash['$youtube_fmt'])
-        assertEquals(fixedURI, stash['$youtube_uri'])
+        assertEquals(uri, stash['$youtube_uri'])
         def wantURI = "${youtube}/get_video?fmt=${fmt}&video_id=${video_id}&t=${t}&asv="
         assertEquals(wantURI, stash['$URI'])
         assertEquals([], args)

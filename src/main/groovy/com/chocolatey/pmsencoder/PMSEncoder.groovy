@@ -172,7 +172,7 @@ class Matcher extends Logger {
 }
 
 class Config extends Logger {
-    private final Map<String, Profile> profiles = [:] // defaults to LinkedHashMap
+    private Map<String, Profile> profiles = [:] // defaults to LinkedHashMap
 
     // DSL fields (mutable)
     public List<String> $DEFAULT_MENCODER_ARGS = []
@@ -193,6 +193,18 @@ class Config extends Logger {
         }
 
         return command.matches.size() > 0
+    }
+
+    // DSL accessor ($PROFILES): read-only
+    /*
+       FIXME: need to encapsulate this e.g.
+
+            $PROFILES.disable('Name')
+            $PROFILES.enable('Name')
+            $PROFILES.remove('Name')
+    */
+    protected Map<String, Profile> get$PROFILES() {
+        profiles
     }
 
     // DSL method
@@ -453,6 +465,28 @@ class Pattern extends CommandDelegate {
 
     // DSL method
     @Typed(TypePolicy.DYNAMIC) // XXX try to handle GStrings
+    void domain(Map<String, String> map) {
+        map.each { name, value -> domain(name, value) }
+    }
+
+    // DSL method
+    @Typed(TypePolicy.DYNAMIC) // XXX try to handle GStrings
+    void domain(String name, String value) {
+        if (!matchString(domainToRegex(name.toString()), regex)) {
+            throw STOP_MATCHING
+        }
+    }
+
+    // DSL method
+    @Typed(TypePolicy.DYNAMIC) // XXX try to handle GStrings
+    void domain(String name, List<String> values) {
+        if (!(values.any { value -> matchString(domainToRegex(name.toString()), value.toString()) })) {
+            throw STOP_MATCHING
+        }
+    }
+
+    // DSL method
+    @Typed(TypePolicy.DYNAMIC) // XXX try to handle GStrings
     void match(Map<String, String> map) {
         map.each { name, value -> match(name, value) }
     }
@@ -505,6 +539,10 @@ class Pattern extends CommandDelegate {
         }
 
         return false
+    }
+
+    private String domainToRegex(String domain) {
+        return "^https?://(\\w+.)*${domain}/".toString()
     }
 }
 

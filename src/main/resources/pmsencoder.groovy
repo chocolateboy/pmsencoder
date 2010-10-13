@@ -105,29 +105,35 @@ config {
 
         action {
             // fix the URI to bypass age verification
-            $URI += "&has_verified=1"
+            def youtube_scrape_uri = "${$URI}&has_verified=1"
 
             // extract the resource's sekrit identifier ($t) from the HTML
-            scrape '&t=(?<youtube_t>[^&]+)'
+            // make sure URI is sigilized to prevent clashes with the class
+            scrape '&t=(?<youtube_t>[^&]+)', [ uri: youtube_scrape_uri ]
 
             // extract the uploader ("author") so that scripts can use it
-            scrape '\\.author=(?<youtube_author>[^&]+)'
-
+            scrape '\\.author=(?<youtube_author>[^&]+)', [ uri: youtube_scrape_uri ]
         }
     }
 
     // perform the actual YouTube handling if the metadata has been extracted.
-    // this approach allows scripts to override just this profile without having
-    // to rescrape the page to match on the uploader &c.
-    // it also simplifies matching i.e. check for $youtube_video_id rather than repeating the regex
+    // separating the profiles into metadata and implementation allows scripts to
+    // override just this profile without having to rescrape the page to match on
+    // the uploader &c.
+    //
+    // it also simplifies custom matchers e.g. check for 'YouTube Medatata' in $MATCHES
+    // rather than repeating the regex
 
     profile ('YouTube') {
         pattern {
             match { $youtube_video_id != null }
         }
-        // Now, with $video_id and $t defined, call the custom YouTube handler.
+
+        // Now, with $video_id and $t defined, call the builtin YouTube handler.
         // Note: the parentheses are required for a no-arg action
-        action { youtube() }
+        action {
+            youtube()
+        }
     }
 
     profile ('Apple Trailers') {
@@ -135,7 +141,8 @@ config {
             match $URI: '^http://(?:(?:movies|www|trailers)\\.)?apple\\.com/.+$'
         }
 
-        // FIXME: 4096 is a needlessly high video bitrate; they typically weigh in at ~1200 Kbps
+        // FIXME: the default 4096 kbps (1/2 a megabyte per second) video bitrate
+        // is needlessly high; these typically weigh in at ~1200 kbps
         action {
             set '-ofps': '24', '-user-agent': 'QuickTime/7.6.2'
         }
