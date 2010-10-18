@@ -71,7 +71,6 @@ config {
 
     profile ('Default') {
         pattern { match { false } }
-        action { }
     }
 
     profile ('YouTube-DL Compatible') {

@@ -215,7 +215,7 @@ class Config extends Logger {
         // run the profile block at compile-time to extract its pattern and action blocks,
         // but invoke them at runtime
         String extendz = options['extends']
-        String overrides = options['overrides']
+        String overrides = options['overrides'] ?: options['replaces']
 
         if (overrides) {
             log.info("replacing profile $overrides with: $name")

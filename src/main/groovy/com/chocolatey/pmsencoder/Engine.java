@@ -46,7 +46,7 @@ public class Engine extends MEncoderWebVideo {
     @Override
     // temporarily log calls to this method so we can figure out its scope
     public String mimeType() {
-        log.info("mimeType called");
+        // log.info("mimeType called");
         return "video/mpeg";
     }
 
@@ -95,7 +95,9 @@ public class Engine extends MEncoderWebVideo {
         List<String> matches = command.getMatches();
         int nMatches = matches.size();
 
-        if (nMatches == 1) {
+        if (nMatches == 0) {
+            log.info("0 matches for: " + uri);
+        } else if(nMatches == 1) {
             log.info("1 match (" + matches + ") for: " + uri);
         } else {
             log.info(nMatches + " matches (" + matches + ") for: " + uri);
