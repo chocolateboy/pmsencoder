@@ -332,7 +332,7 @@ class Profile extends Logger {
         // completed successfully
         def pattern = new Pattern(config, newCommand)
 
-        log.info("matching $name")
+        log.info("matching profile: $name")
 
         // returns true if all matches in the block succeed, false otherwise 
         if (runPatternBlock(pattern)) {

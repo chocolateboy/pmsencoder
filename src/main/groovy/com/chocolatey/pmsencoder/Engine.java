@@ -28,20 +28,6 @@ public class Engine extends MEncoderWebVideo {
     private Matcher matcher;
     private final PmsConfiguration configuration;
     private Logger log;
-    private static final String[] shellCmdArray;
-
-    // via http://ostermiller.org/utils/ExecHelper.java.html
-    static {
-        String os = System.getProperty("os.name");
-
-        if (os.equals("Windows 95") || os.equals("Windows 98") || os.equals("Windows ME")) {
-          shellCmdArray = new String[]{ "command.exe", "/C" };
-        } else if (os.startsWith("Windows")){
-          shellCmdArray = new String[]{ "cmd.exe", "/C" };
-        } else {
-          shellCmdArray = new String[]{ "/bin/sh", "-c" };
-        }
-    }
 
     @Override
     // temporarily log calls to this method so we can figure out its scope
@@ -62,12 +48,24 @@ public class Engine extends MEncoderWebVideo {
         this.log = Logger.getLogger(this.getClass().getName());
     }
 
+    private String getPipePath(String name) {
+        try {
+            return PMS.get().isWindows() ? "\\\\.\\pipe\\" + name : PMS.getConfiguration().getTempFolder() + "/" + name;
+        } catch (IOException e) {
+            PMS.error("Pipe may not be in temporary directory", e);
+            return name;
+        }
+    }
+
     @Override
     public ProcessWrapper launchTranscode(String uri, DLNAMediaInfo media, OutputParams params) throws IOException {
         log.info("media: " + media); // XXX
         log.info("params: " + params); // XXX
-        PipeProcess pipe = new PipeProcess("pmsencoder" + System.currentTimeMillis());
+        long now = System.currentTimeMillis();
+        PipeProcess pipe = new PipeProcess("pmsencoder_transcoder_" + now);
         String outfile = pipe.getInputPipe();
+        String downloaderPipeBasename = "pmsencoder_downloader_" + now;
+        String downloaderPipePath = getPipePath(downloaderPipeBasename);
         Command command = new Command();
         command.setParams(params);
         Stash oldStash = command.getStash();
@@ -76,6 +74,7 @@ public class Engine extends MEncoderWebVideo {
         oldStash.put("$URI", uri);
         oldStash.put("$EXECUTABLE", executable());
         oldStash.put("$OUTPUT", outfile);
+        oldStash.put("$DOWNLOADER_OUTPUT", downloaderPipePath);
 
         oldArgs.add("-o");
         oldArgs.add(outfile);
@@ -104,22 +103,28 @@ public class Engine extends MEncoderWebVideo {
             log.info(nMatches + " matches (" + matches + ") for: " + uri);
         }
 
+        String downloaderString = stash.get("$DOWNLOADER");
+        String[] downloaderArray = null;
+
+        if (downloaderString != null) {
+            downloaderArray = StringUtils.split(downloaderString, null); // split on whitespace
+        }
+
         String executable = stash.get("$EXECUTABLE");
         String cmdArray[];
 
-        if (executable == "SHELL") {
-            cmdArray = new String[ shellCmdArray.length + 1 ];
-            for (int i = 0; i < shellCmdArray.length; ++i) {
-                cmdArray[i] = shellCmdArray[i];
-            }
-            cmdArray[ shellCmdArray.length ] = StringUtils.join(args, " ");
-        } else {
-            args.add(0, executable);
-            if (executable == executable()) {
-                args.add(stash.get("$URI"));
-            }
-            cmdArray = new String[ args.size() ];
-            args.toArray(cmdArray);
+        // cmdArray[ shellCmdArray.length ] = StringUtils.join(args, " ");
+
+        args.add(0, executable);
+        if (executable == executable()) {
+            args.add(stash.get("$URI"));
+        }
+
+        cmdArray = new String[ args.size() ];
+        args.toArray(cmdArray);
+
+        if (downloaderArray != null) {
+            log.info("downloader: " + downloaderString);
         }
 
         log.info("command: " + Arrays.toString(cmdArray));
@@ -129,17 +134,52 @@ public class Engine extends MEncoderWebVideo {
         params.secondread_minsize = 100000;
         params.log = true; // send the command's stdout/stderr to debug.log
 
-
         ProcessWrapper mkfifo_process = pipe.getPipeProcess();
         ProcessWrapperImpl pw = new ProcessWrapperImpl(cmdArray, params);
-        pw.attachProcess(mkfifo_process);
-        mkfifo_process.runInNewThread();
 
-        try {
-            Thread.sleep(300);
-        } catch (InterruptedException e) { }
+        PipeProcess downloaderPipe = null;
 
-        pipe.deleteLater();
+        if (downloaderArray != null) {
+            // create the downloader's mkfifo process
+            downloaderPipe = new PipeProcess(downloaderPipeBasename);
+            ProcessWrapper downloaderMkfifoProcess = downloaderPipe.getPipeProcess();
+
+            pw.attachProcess(downloaderMkfifoProcess);
+            pw.attachProcess(mkfifo_process);
+
+            downloaderMkfifoProcess.runInNewThread();
+            mkfifo_process.runInNewThread();
+
+            try {
+                Thread.sleep(350);
+            } catch (InterruptedException e) { }
+
+            downloaderPipe.deleteLater();
+            pipe.deleteLater();
+
+            // create the downloader process
+            OutputParams downloaderParams = new OutputParams(configuration);
+            downloaderParams.log = true;
+            ProcessWrapperImpl downloaderProcess = new ProcessWrapperImpl(downloaderArray, downloaderParams);
+            pw.attachProcess(downloaderProcess);
+            downloaderProcess.runInNewThread();
+
+            try {
+                Thread.sleep(300);
+            } catch (InterruptedException e) {
+                PMS.error("thread interrupted", e);
+            }
+        } else {
+            pw.attachProcess(mkfifo_process);
+            mkfifo_process.runInNewThread();
+
+            try {
+                Thread.sleep(300);
+            } catch (InterruptedException e) { }
+
+            pipe.deleteLater();
+        }
+
         pw.runInNewThread();
 
         try {
