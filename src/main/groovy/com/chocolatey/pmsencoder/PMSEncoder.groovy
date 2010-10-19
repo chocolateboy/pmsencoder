@@ -2,6 +2,7 @@
 package com.chocolatey.pmsencoder
 
 import net.pms.PMS
+import net.pms.io.OutputParams
 
 // if these extend Exception (rather than RuntimeException) Groovy(++?) wraps them in
 // InvokerInvocationException, which causes all kinds of tedium.
@@ -63,11 +64,13 @@ public class Command extends Logger {
     Stash stash
     List<String> args
     List<String> matches
+    OutputParams params
 
     private Command(Stash stash, List<String> args, List<String> matches) {
         this.stash = stash
         this.args = args
         this.matches = matches
+        this.params = null
     }
 
     public Command() {
@@ -96,11 +99,17 @@ public class Command extends Logger {
         this(new Stash(other.stash), new ArrayList<String>(other.args), new ArrayList<String>(other.matches))
     }
 
+    public void setParams(OutputParams params) {
+        this.params = params
+    }
+
     public boolean equals(Command other) {
+        // XXX ignore params for now
         this.stash == other.stash && this.args == other.args && this.matches == other.matches
     }
 
     public java.lang.String toString() {
+        // XXX ignore params for now
         "{ stash: $stash, args: $args, matches: $matches }".toString()
     }
 
@@ -414,6 +423,11 @@ public class CommandDelegate extends ConfigDelegate {
     // $STASH: read-only
     protected final Stash get$STASH() {
         command.stash
+    }
+
+    // $PARAMS: read-only
+    public OutputParams get$PARAMS() {
+        command.params
     }
 
     // DSL accessor ($ARGS): read-only

@@ -69,6 +69,7 @@ public class Engine extends MEncoderWebVideo {
         PipeProcess pipe = new PipeProcess("pmsencoder" + System.currentTimeMillis());
         String outfile = pipe.getInputPipe();
         Command command = new Command();
+        command.setParams(params);
         Stash oldStash = command.getStash();
         List<String> oldArgs = command.getArgs();
 
