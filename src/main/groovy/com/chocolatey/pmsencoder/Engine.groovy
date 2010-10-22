@@ -90,36 +90,9 @@ public class Engine extends MEncoderWebVideo {
     }
 
     @Override
-    public ProcessWrapper launchTranscode(String uri, DLNAMediaInfo media, OutputParams transcoderParams)
+    public ProcessWrapper launchTranscode(String uri, DLNAMediaInfo media, OutputParams params)
     throws IOException {
         def now = System.currentTimeMillis()
-
-        /*
-         * On Windows, there are potentially 3 files (named pipes):
-         *
-         * 1) the downloader's output (invisible to the user)
-         * 2) the transcoder's input
-         * 3) the transcoder's output (read by PMS)
-         *
-         * e.g.
-         *
-         * downloader --output downloader.output
-         * transcoder --input transcoder.input --output transcoder.output
-         *
-         * net.pms.io.PipeIPCProcess pipes bytes from downloader.output into transcoder.input
-         *
-         * On other platforms, there are still 3 names, but two of the files are the same:
-         *
-         * 1) the downloader's output/transcoder's input (same file)
-         * 2) the transcoder's output
-         *
-         * downloader --output fifo
-         * transcoder --input fifo --output transcoder.output
-         *
-         */
-
-        def downloaderOutputBasename = 'pmsencoder_downloader_out_' + now // downloader-only
-        def transcoderInputBasename = 'pmsencoder_transcoder_in_' + now   // Windows/downloader-only
         def transcoderOutputBasename = 'pmsencoder_transcoder_out_' + now // always used (read by PMS)
         def transcoderOutputPath = getFifoPath(transcoderOutputBasename)
 
@@ -127,22 +100,20 @@ public class Engine extends MEncoderWebVideo {
         def oldStash = command.getStash()
         def oldArgs = command.getArgs()
 
-        command.setParams(transcoderParams)
+        command.setParams(params)
 
         oldStash.put('$URI', uri)
         oldStash.put('$MENCODER', configuration.getMencoderPath())
         oldStash.put('$MENCODER_MT', configuration.getMencoderMTPath())
         oldStash.put('$TRANSCODER_OUT', transcoderOutputPath)
 
-        def downloaderOutputPath = getFifoPath(downloaderOutputBasename)
-        def transcoderInputPath = getFifoPath(transcoderInputBasename)
+        def downloaderOutputBasename = 'pmsencoder_downloader_out_' + now // only used if a downloader is defined
+        def downloaderOutputPath = getFifoPath(downloaderOutputBasename) // only used if a downloader is defined
 
         if (isWindows) {
-            oldStash.put('$DOWNLOADER_OUT', downloaderOutputPath)
-            oldStash.put('$TRANSCODER_IN', transcoderInputPath)
+            oldStash.put('$DOWNLOADER_OUT', '-')
         } else {
             oldStash.put('$DOWNLOADER_OUT', downloaderOutputPath)
-            oldStash.put('$TRANSCODER_IN', downloaderOutputPath)
         }
 
         oldArgs.add('-o')
@@ -177,17 +148,31 @@ public class Engine extends MEncoderWebVideo {
 
         if (transcoderArgs == null) { // using MEncoder: prepends the executable and append the URI
             transcoderArgs = newArgs
-            transcoderArgs.add(0, executable())
-            transcoderArgs.add(downloaderArgs == null ? newStash.get('$URI') : transcoderInputPath)
+
+            if (downloaderArgs == null) {
+                transcoderArgs.add(0, executable())
+                transcoderArgs.add(newStash.get('$URI'))
+            } else {
+                // XXX ffs: http://jira.codehaus.org/browse/GROOVY-2225
+                transcoderArgs.add(0, (isWindows ? executable().replaceAll(~'/', '\\\\') : executable()))
+                transcoderArgs.add(isWindows ? '-' : downloaderOutputPath)
+            }
         }
 
-        def transcoderCmdArray = new String[ transcoderArgs.size() ]
-        transcoderArgs.toArray(transcoderCmdArray)
+        params.minBufferSize = params.minFileSize
+        params.secondread_minsize = 100000
+        params.log = true // send the command's stdout/stderr to debug.log
 
-        transcoderParams.minBufferSize = transcoderParams.minFileSize
-        transcoderParams.secondread_minsize = 100000
-        transcoderParams.log = true // send the command's stdout/stderr to debug.log
-        def pw = new ProcessWrapperImpl(transcoderCmdArray, transcoderParams)
+        def pw
+
+        if ((downloaderArgs != null) && isWindows) {
+            pw = handleDownloadWindows(downloaderArgs, transcoderArgs, params)
+        } else {
+            def cmdArray = new String[ transcoderArgs.size() ]
+            transcoderArgs.toArray(cmdArray)
+            log.info('transcoder command: ' + Arrays.toString(cmdArray))
+            pw = new ProcessWrapperImpl(cmdArray, params)
+        }
 
         // create the transcoder's mkfifo process
         // the names used here are (pipe/mkfifo) are an imperfect attempt to make the current names less 
@@ -198,33 +183,38 @@ public class Engine extends MEncoderWebVideo {
         // XXX it's safe to set this lazily because the input_pipes array is not used by the ProcessWrapperImpl
         // constructor above the alternative is to call pw.attachProcess() ourselves every time we
         // create a mkfifo process
-        transcoderParams.input_pipes[0] = pipe
+        params.input_pipes[0] = pipe
 
-        if (downloaderArgs != null) {
-            handleDownload(pw, downloaderArgs, downloaderOutputBasename, transcoderInputBasename)
+        if ((downloaderArgs != null) && !isWindows) {
+            handleDownloadUnix(pw, downloaderArgs, downloaderOutputBasename)
         }
 
-        log.info('transcoder command: ' + Arrays.toString(transcoderCmdArray))
         pw.runInNewThread()
         sleepFor(1000)
         return pw
     }
 
-    void handleDownload(
-        ProcessWrapperImpl pw,
-        List<String> args,
-        String downloaderOutputBasename,
-        String transcoderInputBasename
+    private ProcessWrapperImpl handleDownloadWindows(
+        List<String> downloaderArgs,
+        List<String> transcoderArgs,
+        OutputParams params
     ) {
-        if (isWindows) {
-            def pipe = new PipeIPCProcess(downloaderOutputBasename, transcoderInputBasename, true, true)
-            mkfifo(pw, pipe)
-        } else {
-            mkfifo(pw, new PipeProcess(downloaderOutputBasename))
-        }
+        def cmdList = [ "cmd.exe", "/C" ] + downloaderArgs + "|" + transcoderArgs
+        def cmdArray = new String[ cmdList.size() ]
 
-        def cmdArray = new String[ args.size() ]
-        args.toArray(cmdArray)
+        cmdList.toArray(cmdArray)
+
+        def pw = new ProcessWrapperImpl(cmdArray, params)
+
+        log.info('command: ' + Arrays.toString(cmdArray))
+        return pw
+    }
+
+    private void handleDownloadUnix(ProcessWrapperImpl pw, List<String> downloaderArgs, String downloaderOutputBasename) {
+        mkfifo(pw, new PipeProcess(downloaderOutputBasename))
+
+        def cmdArray = new String[ downloaderArgs.size() ]
+        downloaderArgs.toArray(cmdArray)
 
         def params = new OutputParams(configuration)
         params.log = true

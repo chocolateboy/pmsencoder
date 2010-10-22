@@ -34,6 +34,7 @@ To upgrade to a new version of the plugin, simply replace the old jar file with 
 * If the list of engines doesn't exist in PMS.conf, follow the instructions [here](http://ps3mediaserver.org/forum/viewtopic.php?f=6&t=7435&p=34674#p34674).
 * Make sure there's only one version of the plugin in the `plugins` directory.
 * Make sure the edited PMS.conf is the one PMS is using (search the filesystem for other copies).
+* Make sure `pmsencoder` is still first in the engines list.
 * Make sure `mencoder_path` is not set (or is not pointing to the old, standalone version of PMSEncoder).
 * Make sure the error is reproducible after a PMS restart. Caching in PMS and/or the PS3 often produces one-off errors.
 * Check the PMS trace, PMS debug.log, and pmsencoder.log (which should be in the same directory as the debug.log) for
