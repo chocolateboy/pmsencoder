@@ -65,12 +65,16 @@ public class Command extends Logger {
     List<String> args
     List<String> matches
     OutputParams params
+    List <String> transcoder
+    List <String> downloader
 
     private Command(Stash stash, List<String> args, List<String> matches) {
         this.stash = stash
         this.args = args
         this.matches = matches
         this.params = null
+        this.transcoder = null
+        this.downloader = null
     }
 
     public Command() {
@@ -104,13 +108,18 @@ public class Command extends Logger {
     }
 
     public boolean equals(Command other) {
-        // XXX ignore params for now
-        this.stash == other.stash && this.args == other.args && this.matches == other.matches
+        this.stash == other.stash &&
+        this.args == other.args &&
+        this.matches == other.matches &&
+        this.params == other.params &&
+        this.downloader == other.downloader &&
+        this.transcoder == other.transcoder
     }
 
     public java.lang.String toString() {
-        // XXX ignore params for now
-        "{ stash: $stash, args: $args, matches: $matches }".toString()
+        // can't stringify params until this patch has been applied:
+        // https://code.google.com/p/ps3mediaserver/issues/detail?id=863
+        "{ stash: $stash, args: $args, matches: $matches, downloader: $downloader, transcoder: $transcoder }".toString()
     }
 
     // setter implementation with logged stash assignments
@@ -128,39 +137,34 @@ public class Command extends Logger {
 class Matcher extends Logger {
     // FIXME: this is only public for a (single) test
     // 1) Config has the same scope as Matcher so they could be merged,
-    // but we don't want to expose load
-    // 2) the config "globals" (e.g. $DEFAULT_MENCODER_PATH) could be moved here
+    // but we don't want to expose load()
+    // 2) the config "globals" (e.g. $DEFAULT_MENCODER_ARGS) could be moved here
     public final Config config
 
     Matcher(PMS pms) {
         this.config = new Config(pms)
     }
 
-    void load(String path) {
-        load(new File(path))
+    void load(String path, String fileName = path) {
+        load(new File(path), fileName)
     }
 
-    void load(File file) {
-        load(new FileInputStream(file))
+    void load(URL url, String fileName = url.toString()) {
+        load(url.openStream(), fileName)
     }
 
-    void load(URL url) {
-        load(url.openStream())
+    void load(File file, String fileName = file.getPath()) {
+        load(new FileInputStream(file), fileName)
     }
 
-    void load(InputStream stream) {
-        load(new InputStreamReader(stream))
+    void load(InputStream stream, String fileName) {
+        load(new InputStreamReader(stream), fileName)
     }
 
-    void load(Reader reader) {
-        // XXX squashed bug: don't drain the reader by logging its value!
-        Script script = new GroovyShell().parse(reader)
-        ExpandoMetaClass emc = new ExpandoMetaClass(script.class, false)
-
-        emc.setProperty('config', config.&config) // set the DSL's sole top-level method: config
-        emc.initialize()
-        script.metaClass = emc
-        script.run()
+    void load(Reader reader, String fileName) {
+        def binding = new Binding(config: config.&config)
+        def groovy = new GroovyShell(binding)
+        groovy.evaluate(reader, fileName)
     }
 
     @Typed(TypePolicy.DYNAMIC) // XXX needed to handle GStrings
@@ -440,6 +444,30 @@ public class CommandDelegate extends ConfigDelegate {
     // FIXME: test this!
     protected List<String> set$ARGS(List<String> args) {
         command.args = args.collect { it.toString() } // handle GStrings
+    }
+
+    // DSL accessor ($DOWNLOADER): read-only
+    protected List<String> get$DOWNLOADER() {
+        command.downloader
+    }
+
+    // DSL accessor ($DOWNLOADER): read-write
+    @Typed(TypePolicy.DYNAMIC) // try to handle GStrings
+    // FIXME: test this!
+    protected List<String> set$DOWNLOADER(List<String> downloader) {
+        command.downloader = downloader.collect { it.toString() } // handle GStrings
+    }
+
+    // DSL accessor ($TRANSCODER): read-only
+    protected List<String> get$TRANSCODER() {
+        command.transcoder
+    }
+
+    // DSL accessor ($TRANSCODER): read-write
+    @Typed(TypePolicy.DYNAMIC) // try to handle GStrings
+    // FIXME: test this!
+    protected List<String> set$TRANSCODER(List<String> transcoder) {
+        command.transcoder = transcoder.collect { it.toString() } // handle GStrings
     }
 
     // DSL accessor ($MATCHES): read-only
