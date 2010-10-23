@@ -56,11 +56,6 @@ public class Engine extends MEncoderWebVideo {
         }
     }
 
-    // XXX unused
-    private boolean fifoCreated(PipeProcess pp) {
-        return (new File(pp.getInputPipe())).exists()
-    }
-
     private void sleepFor(long milliseconds) {
         try {
             Thread.sleep(milliseconds)
