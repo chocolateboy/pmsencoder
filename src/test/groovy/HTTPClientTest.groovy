@@ -1,9 +1,9 @@
 @Typed
 package com.chocolatey.pmsencoder
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.*;
-import java.lang.NoClassDefFoundError;
+import static org.hamcrest.MatcherAssert.assertThat
+import static org.hamcrest.Matchers.*
+import java.lang.NoClassDefFoundError
 
 /*
     for some reason, HTTPBuilder (via HTTPClient) is acting flaky under

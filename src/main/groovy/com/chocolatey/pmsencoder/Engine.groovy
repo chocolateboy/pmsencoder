@@ -102,8 +102,9 @@ public class Engine extends MEncoderWebVideo {
         oldStash.put('$MENCODER_MT', configuration.getMencoderMTPath())
         oldStash.put('$TRANSCODER_OUT', transcoderOutputPath)
 
-        def downloaderOutputBasename = 'pmsencoder_downloader_out_' + now // only used if a downloader is defined
-        def downloaderOutputPath = getFifoPath(downloaderOutputBasename) // only used if a downloader is defined
+        // these are only used if a (non-Windows) downloader is assigned
+        def downloaderOutputBasename = 'pmsencoder_downloader_out_' + now
+        def downloaderOutputPath = getFifoPath(downloaderOutputBasename)
 
         if (isWindows) {
             oldStash.put('$DOWNLOADER_OUT', '-')
@@ -141,7 +142,7 @@ public class Engine extends MEncoderWebVideo {
         def downloaderArgs = command.getDownloader()
         def transcoderArgs = command.getTranscoder()
 
-        if (transcoderArgs == null) { // using MEncoder: prepends the executable and append the URI
+        if (transcoderArgs == null) { // using MEncoder: prepend the executable and append the URI
             transcoderArgs = newArgs
 
             if (downloaderArgs == null) {
@@ -170,13 +171,11 @@ public class Engine extends MEncoderWebVideo {
         }
 
         // create the transcoder's mkfifo process
-        // the names used here are (pipe/mkfifo) are an imperfect attempt to make the current names less 
-        // incomprehensible (a PipeProcess has a getPipeProcess method which returns a... ProcessWrapper?!)
         // note: we could set this thread running before calling the match() method
         def pipe = mkfifo(pw, new PipeProcess(transcoderOutputBasename))
 
         // XXX it's safe to set this lazily because the input_pipes array is not used by the ProcessWrapperImpl
-        // constructor above the alternative is to call pw.attachProcess() ourselves every time we
+        // constructor above. the alternative is to call pw.attachProcess() ourselves every time we
         // create a mkfifo process
         params.input_pipes[0] = pipe
 

@@ -26,3 +26,15 @@
 
 // test profile extends: ...
 
+/*
+
+    infinite loop/stack overflow in maven assembly plugin (in Plexus Archiver) with
+    Groovy++ 0.2.26
+
+    assembling with:
+
+        mvn -X assembly:single
+
+    works around it for now (presumably by distracting it from its concurrency blues with debug noise)
+
+*/
