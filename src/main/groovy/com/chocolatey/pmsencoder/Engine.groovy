@@ -86,7 +86,7 @@ public class Engine extends MEncoderWebVideo {
     private void mkfifo(ProcessWrapperImpl pw, ProcessWrapper process) {
         process.runInNewThread()
         pw.attachProcess(process)
-        sleepFor(1000)
+        sleepFor(150)
     }
 
     @Override
@@ -190,7 +190,7 @@ public class Engine extends MEncoderWebVideo {
         }
 
         pw.runInNewThread()
-        sleepFor(1000)
+        sleepFor(100)
         return pw
     }
 
