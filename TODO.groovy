@@ -27,14 +27,24 @@
 // test profile extends: ...
 
 /*
-
     infinite loop/stack overflow in maven assembly plugin (in Plexus Archiver) with
-    Groovy++ 0.2.26
+    Groovy++ 0.2.26: https://groups.google.com/group/groovyplusplus/msg/a765fe77975650db
+    revert to 0.2.25 for now
+*/
 
-    assembling with:
+/*
+    script management:
 
-        mvn -X assembly:single
+        simple: pmsencoder script directory rather than a single script
+        better: pmsencoder script repositories i.e. add/remove URIs of PMSEncoder script directories
+        disable/enable scripts through the Swing UI (cf. GreaseMonkey)
+*/
 
-    works around it for now (presumably by distracting it from its concurrency blues with debug noise)
+/*
 
+    fix the sigil mess - the whole thing is a workaround for the URI property conflicting with the class
+    groovysh has the same problem, but groovy script.groovy doesn't
+    also: https://code.google.com/p/awsgroovyclouds/source/browse/trunk/AWSDrivers/src/com/groovyclouds/aws/S3Driver.groovy#897
+
+        private static final def URI = "URI"
 */
