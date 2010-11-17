@@ -411,6 +411,7 @@ public class ConfigDelegate extends Logger {
 // i.e. a delegate with access to a Command
 public class CommandDelegate extends ConfigDelegate {
     private Command command
+    private final Map<String, String> cache = [:] // only needed/used by scrape()
 
     public CommandDelegate(Config config, Command command) {
         super(config)
@@ -483,6 +484,36 @@ public class CommandDelegate extends ConfigDelegate {
     // DSL setter
     protected String propertyMissing(String name, Object value) {
         command.let(name, value.toString())
+    }
+
+    // DSL method - can be called from a pattern or an action
+    // actions delegate to this method, whereas patterns add the
+    // short-circuit semantics and delegate to this via super.scrape(...)
+    @Typed(TypePolicy.MIXED) // XXX try to handle GStrings
+    boolean scrape(String regex, Map<String, String> options = [:]) {
+        def uri = options['uri'] ?: $STASH['$URI']
+        def document = cache[uri]
+        def newStash = new Stash()
+        def scraped = false
+
+        if (document == null) {
+            log.info("getting $uri")
+            document = cache[uri] = http.get(uri)
+        }
+
+        assert document != null
+
+        log.info("matching content of $uri against $regex")
+
+        if (RegexHelper.match(document, regex, newStash)) {
+            log.info("success")
+            newStash.each { name, value -> command.let(name, value) }
+            scraped = true
+        } else {
+            log.info("failure")
+        }
+
+        return scraped
     }
 }
 
@@ -619,46 +650,37 @@ class Pattern extends CommandDelegate {
     private String domainToRegex(String domain) {
         return "^https?://(\\w+\\.)*${domain}/".toString()
     }
+
+    @Override // for documentation; Groovy doesn't require it
+    @Typed(TypePolicy.DYNAMIC) // XXX try to handle GStrings
+
+    /*
+        We don't have to worry about stash-assignment side-effects, as they're
+        only committed if the whole pattern block succeeds. This is handled
+        up the callstack (in Profile.runPatternBlock)
+    */
+    boolean scrape(String regex, Map<String, String> options = [:]) {
+        if (super.scrape(regex, options)) {
+            return true
+        } else {
+            throw STOP_MATCHING
+        }
+    }
 }
 
 /* XXX: add configurable HTTP proxy support? */
 class Action extends CommandDelegate {
-    private final Map<String, String> cache = [:]
-
     @Lazy private HTTPClient http = new HTTPClient()
 
     Action(Config config, Command command) {
         super(config, command)
     }
 
-   /*
+    /*
         1) get the URI pointed to by options['uri'] or stash['$URI'] (if it hasn't already been retrieved)
         2) perform a regex match against the document
         3) update the stash with any named captures
     */
-    // DSL method
-    @Typed(TypePolicy.MIXED) // XXX try to handle GStrings
-    void scrape(String regex, Map<String, String> options = [:]) {
-        def uri = options['uri'] ?: $STASH['$URI']
-        def document = cache[uri]
-        def newStash = new Stash()
-
-        if (document == null) {
-            log.info("getting $uri")
-            document = cache[uri] = http.get(uri)
-        }
-
-        assert document != null
-
-        log.info("matching content of $uri against $regex")
-
-        if (RegexHelper.match(document, regex, newStash)) {
-            log.info("success")
-            newStash.each { name, value -> $COMMAND.let(name, value) }
-        } else {
-            log.info("failure")
-        }
-    }
 
     // define a variable in the stash
     // DSL method
