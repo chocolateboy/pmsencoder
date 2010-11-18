@@ -124,8 +124,8 @@ public class Engine extends MEncoderWebVideo {
             PMS.error('match error', e)
         }
 
-        // the whole point of the command abstraction is that the stash-Map/args-List
-        // can be changed by the matcher so make sure we refresh
+        // the whole point of the command abstraction is that the stash Map/args List
+        // can be changed by the matcher, so make sure we refresh
         def newStash = command.getStash()
         def newArgs = command.getArgs()
         def matches = command.getMatches()
@@ -133,7 +133,7 @@ public class Engine extends MEncoderWebVideo {
 
         if (nMatches == 0) {
             log.info('0 matches for: ' + uri)
-        } else if(nMatches == 1) {
+        } else if (nMatches == 1) {
             log.info('1 match (' + matches + ') for: ' + uri)
         } else {
             log.info(nMatches + ' matches (' + matches + ') for: ' + uri)

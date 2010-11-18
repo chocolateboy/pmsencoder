@@ -21,7 +21,7 @@ class CustomConfigTest extends PMSEncoderTestCase {
     // confirm that the default TED profile works
     void testProfile() {
         /// XXX clone doesn't work
-        def TEDArgs = new ArrayList<String>(matcher.config.$DEFAULT_MENCODER_ARGS)
+        def TEDArgs = new ArrayList<String>(matcher.config.$DEFAULT_TRANSCODER_ARGS)
         def index = TEDArgs.findIndexOf { it == '25' }
 
         assert index > -1 // power assert!
@@ -44,7 +44,7 @@ class CustomConfigTest extends PMSEncoderTestCase {
         def customConfig = this.getClass().getResource('/profile_replace.groovy')
         def uri = 'http://feedproxy.google.com/~r/TEDTalks_video'
         def command = new Command([ $URI: uri ])
-        def TEDArgs = new ArrayList<String>(matcher.config.$DEFAULT_MENCODER_ARGS)
+        def TEDArgs = new ArrayList<String>(matcher.config.$DEFAULT_TRANSCODER_ARGS)
         def wantArgs = (TEDArgs + [ '-foo', 'bar' ]) as List<String> // FIXME: type-inference fail (or use Scala)
         def wantCommand = new Command([ $URI: uri + '/foo/bar.baz' ], wantArgs)
 
@@ -145,7 +145,7 @@ class CustomConfigTest extends PMSEncoderTestCase {
         def customConfig = this.getClass().getResource('/profile_default.groovy')
         def uri = 'http://www.example.com'
         def command = new Command([ $URI: uri ])
-        def wantArgs = new ArrayList<String>(matcher.config.$DEFAULT_MENCODER_ARGS)
+        def wantArgs = new ArrayList<String>(matcher.config.$DEFAULT_TRANSCODER_ARGS)
         def index = wantArgs.findIndexOf { it == '-lavcopts' }
 
         assert index > -1 // power assert!

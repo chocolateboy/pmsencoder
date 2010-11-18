@@ -15,8 +15,8 @@
 config {
     def nbcores = $PMS.getConfiguration().getNumberOfCpuCores()
 
-    // the default MEncoder args - these can be redefined in a script
-    $DEFAULT_MENCODER_ARGS = [
+    // default args for the default transcoder (MEncoder) - these can be redefined in a script
+    $DEFAULT_TRANSCODER_ARGS = [
         '-prefer-ipv4',
         '-oac', 'lavc',
         '-of', 'lavf',
@@ -57,7 +57,7 @@ config {
 
     /*
         this is placed here (i.e. first) as a convenience so that scripts can create/override
-        settings common to all other profiles without modifying $DEFAULT_MENCODER_ARGS e.g.:
+        settings common to all other profiles without modifying $DEFAULT_TRANSCODER_ARGS e.g.:
 
             // set the default audio bitrate to 348 Kbps
             // (see src/test/resources/profile_default.groovy)

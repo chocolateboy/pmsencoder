@@ -96,7 +96,7 @@ class MatcherTest extends PMSEncoderTestCase {
         }
 
         // bypass Groovy's annoyingly loose definition of true
-        assertSame(true, matcher.match(command, false)) // false: don't use default MEncoder args
+        assertSame(true, matcher.match(command, false)) // false: don't use default transcoder args
 
         def stash = command.stash
         def args = command.args

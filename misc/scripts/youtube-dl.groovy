@@ -3,7 +3,7 @@ config {
     def PYTHON = '/usr/bin/python'
     def MENCODER = $PMS.getConfiguration().getMencoderPath()
 
-    profile ('YouTube-DL', overrides: 'YouTube') { // replace it with a profile that works for all YouTube-DL sites
+    profile ('YouTube-DL', replaces: 'YouTube') { // replace it with a profile that works for all YouTube-DL sites
         pattern {
             match { 'YouTube-DL Compatible' in $MATCHES }
         }

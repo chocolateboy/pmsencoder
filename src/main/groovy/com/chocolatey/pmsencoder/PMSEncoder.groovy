@@ -138,7 +138,7 @@ class Matcher extends Logger {
     // FIXME: this is only public for a (single) test
     // 1) Config has the same scope as Matcher so they could be merged,
     // but we don't want to expose load()
-    // 2) the config "globals" (e.g. $DEFAULT_MENCODER_ARGS) could be moved here
+    // 2) the config "globals" (e.g. $DEFAULT_TRANSCODER_ARGS) could be moved here
     public final Config config
 
     Matcher(PMS pms) {
@@ -171,7 +171,7 @@ class Matcher extends Logger {
     boolean match(Command command, boolean useDefault = true) {
         if (useDefault) {
             // watch out: there's a GString about
-            config.$DEFAULT_MENCODER_ARGS.each { command.args << it.toString() }
+            config.$DEFAULT_TRANSCODER_ARGS.each { command.args << it.toString() }
         }
 
         def matched = config.match(command) // we could use the @Delegate annotation, but this is cleaner/clearer
@@ -188,7 +188,7 @@ class Config extends Logger {
     private Map<String, Profile> profiles = [:] // defaults to LinkedHashMap
 
     // DSL fields (mutable)
-    public List<String> $DEFAULT_MENCODER_ARGS = []
+    public List<String> $DEFAULT_TRANSCODER_ARGS = []
     public List<Integer> $YOUTUBE_ACCEPT = []
     public PMS $PMS
 
@@ -228,10 +228,10 @@ class Config extends Logger {
         // run the profile block at compile-time to extract its pattern and action blocks,
         // but invoke them at runtime
         String extendz = options['extends']
-        String overrides = options['overrides'] ?: options['replaces']
+        String replaces = options['replaces']
 
-        if (overrides) {
-            log.info("replacing profile $overrides with: $name")
+        if (replaces) {
+            log.info("replacing profile $replaces with: $name")
         } else if (profiles[name] != null) {
             log.info("replacing profile: $name")
         } else {
@@ -252,8 +252,8 @@ class Config extends Logger {
             // this is why name is defined both as the key of the map and in the profile
             // itself. the key is only used for ordering/replacement
             // the public name is always the profile's own name field
-            if (overrides) {
-                profiles[overrides] = profile
+            if (replaces) {
+                profiles[replaces] = profile
             } else {
                 profiles[name] = profile
             }
@@ -387,14 +387,14 @@ public class ConfigDelegate extends Logger {
         config.$PMS
     }
 
-    // DSL getter: $DEFAULT_MENCODER_ARGS
-    protected List<String> get$DEFAULT_MENCODER_ARGS() {
-        config.$DEFAULT_MENCODER_ARGS
+    // DSL getter: $DEFAULT_TRANSCODER_ARGS
+    protected List<String> get$DEFAULT_TRANSCODER_ARGS() {
+        config.$DEFAULT_TRANSCODER_ARGS
     }
 
-    // DSL setter: $DEFAULT_MENCODER_ARGS
-    protected List<String> get$DEFAULT_MENCODER_ARGS(List<String> args) {
-        config.$DEFAULT_MENCODER_ARGS = args
+    // DSL setter: $DEFAULT_TRANSCODER_ARGS
+    protected List<String> get$DEFAULT_TRANSCODER_ARGS(List<String> args) {
+        config.$DEFAULT_TRANSCODER_ARGS = args
     }
 
     // DSL getter: $YOUTUBE_ACCEPT
@@ -486,9 +486,9 @@ public class CommandDelegate extends ConfigDelegate {
         command.let(name, value.toString())
     }
 
-    // DSL method - can be called from a pattern or an action
-    // actions delegate to this method, whereas patterns add the
-    // short-circuit semantics and delegate to this via super.scrape(...)
+    // DSL method - can be called from a pattern or an action.
+    // actions inherit this method, whereas patterns add the
+    // short-circuiting behaviour and delegate to this via super.scrape(...)
     @Typed(TypePolicy.MIXED) // XXX try to handle GStrings
     boolean scrape(String regex, Map<String, String> options = [:]) {
         def uri = options['uri'] ?: $STASH['$URI']
@@ -698,7 +698,7 @@ class Action extends CommandDelegate {
         map.each { name, value -> setArg(name.toString(), value.toString()) }
     }
 
-    // set an MEncoder option - create it if it doesn't exist
+    // set a transcoder option - create it if it doesn't exist
     // DSL method
     @Typed(TypePolicy.MIXED) // XXX try to handle GStrings
     void setArg(String name, String value = null) {
@@ -729,7 +729,7 @@ class Action extends CommandDelegate {
     }
 
     /*
-        perform a search-and-replace in the value of an MEncoder option
+        perform a search-and-replace in the value of a transcoder option
         TODO: signature: handle null, a single map and an array of maps
     */
 
