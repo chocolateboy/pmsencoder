@@ -91,6 +91,7 @@ config {
         }
 
         action {
+            // FIXME: update this
             $youtube_dl_compatible = '2010.10.03' // version the regexes were copied from
         }
     }

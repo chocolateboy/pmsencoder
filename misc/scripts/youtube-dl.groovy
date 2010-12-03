@@ -1,7 +1,6 @@
 config {
-    def YOUTUBE_DL = '/path/to/youtube-dl'
     def PYTHON = '/usr/bin/python'
-    def MENCODER = $PMS.getConfiguration().getMencoderPath()
+    def YOUTUBE_DL = '/path/to/youtube-dl'
 
     profile ('YouTube-DL', replaces: 'YouTube') { // replace it with a profile that works for all YouTube-DL sites
         pattern {
@@ -9,8 +8,7 @@ config {
         }
 
         action {
-            $EXECUTABLE = 'SHELL'
-            $ARGS = "$PYTHON $YOUTUBE_DL --quiet --max-quality 37 -o - \"${$URI}\" | $MENCODER - ".tokenize() + $ARGS
+            $DOWNLOADER = "$PYTHON $YOUTUBE_DL --max-quality 37 -o $DOWNLOADER_OUT ${$URI}".tokenize()
         }
     }
 }
