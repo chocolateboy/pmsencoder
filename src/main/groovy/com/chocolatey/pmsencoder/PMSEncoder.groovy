@@ -617,6 +617,22 @@ class Pattern extends CommandDelegate {
 
     // DSL method
     @Typed(TypePolicy.DYNAMIC) // XXX try to handle GStrings
+    void match(String name) {
+        if (!$MATCHES.contains(name)) {
+            throw STOP_MATCHING
+        }
+    }
+
+    // DSL method
+    @Typed(TypePolicy.DYNAMIC) // XXX try to handle GStrings
+    void match(List<String> names) {
+        if (!$MATCHES.containsAll(names)) {
+            throw STOP_MATCHING
+        }
+    }
+
+    // DSL method
+    @Typed(TypePolicy.DYNAMIC) // XXX try to handle GStrings
     void match(Closure closure) {
         log.info("running match block")
 

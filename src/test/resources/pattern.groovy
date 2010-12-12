@@ -11,7 +11,8 @@ config {
 
     profile ('Apple 3') {
         pattern {
-            match { $MATCHES.containsAll([ 'Apple Trailers', 'Apple Trailers HD' ]) }
+            // test match List<String>
+            match([ 'Apple Trailers', 'Apple Trailers HD' ])
         }
 
         action {
