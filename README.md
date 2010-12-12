@@ -19,6 +19,11 @@ These instructions assume you have the [latest version](http://ps3mediaserver.or
 
 To upgrade to a new version of the plugin, simply replace the old jar file with the new version in the `plugins` directory, and restart PMS.
 
+## Uninstalling <a name="Uninstall"></a>
+
+To uninstall PMSEncoder, remove the jar file from the plugins directory and remove `pmsencoder,` from the list of engines in
+`PMS.conf`.
+
 # Tips <a name="Tips"></a>
 
 * To work around the PMS [bug](http://code.google.com/p/ps3mediaserver/issues/detail?id=759) that causes web video playback to be delayed for ~40s, uncheck "HTTP Engine V2" in the PMS "General Configuration" tab. This can also be done by setting `http_engine_v2 = false` in PMS.conf. Then restart PMS. See [below](#HTTPEngine) for caveats.

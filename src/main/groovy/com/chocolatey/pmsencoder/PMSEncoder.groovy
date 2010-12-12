@@ -501,7 +501,10 @@ public class CommandDelegate extends ConfigDelegate {
             document = cache[uri] = http.get(uri)
         }
 
-        assert document != null
+        if (document == null) {
+            log.error("document not found")
+            return scraped
+        }
 
         log.info("matching content of $uri against $regex")
 
@@ -657,7 +660,7 @@ class Pattern extends CommandDelegate {
     /*
         We don't have to worry about stash-assignment side-effects, as they're
         only committed if the whole pattern block succeeds. This is handled
-        up the callstack (in Profile.runPatternBlock)
+        up the callstack (in Profile.match)
     */
     boolean scrape(String regex, Map<String, String> options = [:]) {
         if (super.scrape(regex, options)) {
@@ -756,6 +759,33 @@ class Action extends CommandDelegate {
         }
     }
 
+    private Map<String, String> getFormatURLMap(String video_id) {
+        def fmt_url_map = [:]
+
+        def found =  [ '&el=embedded', '&el=detailspage', '&el=vevo' , '' ].any { String param ->
+            def uri = "http://www.youtube.com/get_video_info?video_id=${video_id}${param}&ps=default&eurl=&gl=US&hl=en"
+            def regex = '\\bfmt_url_map=(?<youtube_fmt_url_map>[^&]+)'
+            def newStash = new Stash()
+            def document = http.get(uri)
+
+            if ((document != null) && RegexHelper.match(document, regex, newStash)) {
+                // XXX type-inference fail
+                List<String> fmt_url_pairs = URLDecoder.decode(newStash['$youtube_fmt_url_map']).tokenize(',')
+                fmt_url_pairs.inject(fmt_url_map) { Map<String, String> map, String pair ->
+                    // XXX type-inference fail
+                    List<String> kv = pair.tokenize('|')
+                    map[kv[0]] = kv[1]
+                    return map
+                }
+                return true
+            } else {
+                return false
+            }
+        }
+
+        return found ? fmt_url_map : null
+    }
+
     /*
         given (in the stash) the $youtube_video_id and $youtube_t values of a YouTube stream URI
         (i.e. the direct link to a video), construct the full URI with various $fmt values in
@@ -776,22 +806,29 @@ class Action extends CommandDelegate {
         $COMMAND.let('$youtube_uri', uri)
 
         if (formats.size() > 0) {
-            found = formats.any { fmt ->
-                def stream_uri = "http://www.youtube.com/get_video?video_id=$video_id&t=$t&eurl=&el=&ps=&asv=&fmt=$fmt"
-                log.info("trying fmt $fmt: $stream_uri")
+            def fmt_url_map = getFormatURLMap(video_id)
+            if (fmt_url_map != null) {
+                log.trace("fmt_url_map: " + fmt_url_map)
 
-                if (http.head(stream_uri)) {
-                    log.info("success")
-                    // set the new URI - note: use the low-level interface NOT the (deferred) DSL interface!
-                    $COMMAND.let('$URI', stream_uri)
-                    $COMMAND.let('$youtube_fmt', fmt)
-                    return true
-                } else {
-                    log.info("failure")
-                    return false
+                found = formats.any { fmt ->
+                    log.info("checking fmt_url_map for $fmt")
+                    def stream_uri = fmt_url_map[fmt.toString()]
+
+                    if (stream_uri != null) {
+                        // set the new URI
+                        log.info('success')
+                        $COMMAND.let('$youtube_fmt', fmt)
+                        $COMMAND.let('$URI', stream_uri)
+                        return true
+                    } else {
+                        log.info("failure")
+                        return false
+                    }
                 }
+            } else {
+                log.fatal("can't find fmt -> URI map in video metadata")
             }
-        } else {
+        }  else {
             log.fatal("no formats defined for $uri")
         }
 

@@ -121,8 +121,7 @@ class MatcherTest extends PMSEncoderTestCase {
         assertEquals('HDCYT', stash['$youtube_uploader'])
         assertEquals(fmt, stash['$youtube_fmt'])
         assertEquals(uri, stash['$youtube_uri'])
-        def wantURI = "${youtube}/get_video?fmt=${fmt}&video_id=${video_id}&t=${t}&asv="
-        assertEquals(wantURI, stash['$URI'])
+        assert stash['$URI'] =~ '\\.youtube\\.com/videoplayback\\?'
         assertEquals([], args)
     }
 
