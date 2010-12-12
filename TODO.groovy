@@ -41,10 +41,13 @@
 */
 
 /*
-
     fix the sigil mess - the whole thing is a workaround for the URI property conflicting with the class
     groovysh has the same problem, but groovy script.groovy doesn't
     also: https://code.google.com/p/awsgroovyclouds/source/browse/trunk/AWSDrivers/src/com/groovyclouds/aws/S3Driver.groovy#897
 
         private static final def URI = "URI"
 */
+
+// add an option to allow the logfile location to be specified
+
+// pmsencoder_conf=/path/to/pmsencoder.conf

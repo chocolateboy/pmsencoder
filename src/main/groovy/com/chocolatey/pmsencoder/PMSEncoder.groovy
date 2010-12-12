@@ -777,7 +777,7 @@ class Action extends CommandDelegate {
 
         if (formats.size() > 0) {
             found = formats.any { fmt ->
-                def stream_uri = "http://www.youtube.com/get_video?fmt=$fmt&video_id=$video_id&t=$t&asv="
+                def stream_uri = "http://www.youtube.com/get_video?video_id=$video_id&t=$t&eurl=&el=&ps=&asv=&fmt=$fmt"
                 log.info("trying fmt $fmt: $stream_uri")
 
                 if (http.head(stream_uri)) {
