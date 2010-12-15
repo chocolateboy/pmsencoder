@@ -21,7 +21,7 @@ import static groovyx.net.http.Method.HEAD
 class HTTPClient {
     private HTTPBuilder http = new HTTPBuilder()
 
-    @Typed(TypePolicy.DYNAMIC)
+    @Typed(TypePolicy.MIXED)
     String get(String uri) {
         http.request(uri, GET, TEXT) { req ->
             response.success = { resp, reader -> reader.getText() }
@@ -34,14 +34,6 @@ class HTTPClient {
         http.request(uri, HEAD, TEXT) { req ->
             response.success = { true }
             response.failure = { false }
-        }
-    }
-
-    @Typed(TypePolicy.MIXED)
-    String mixed_get(String uri) {
-        http.request(uri, GET, TEXT) { req ->
-            response.success = { resp, reader -> reader.getText() }
-            response.failure = { null } // parity (for now) with LWP::Simple
         }
     }
 }
