@@ -8,7 +8,7 @@ config {
         }
 
         action {
-            $DOWNLOADER = "$PYTHON $YOUTUBE_DL --max-quality 37 -o $DOWNLOADER_OUT ${$URI}".tokenize()
+            $DOWNLOADER = "$PYTHON $YOUTUBE_DL --max-quality 37 -o $DOWNLOADER_OUT ${$URI}"
         }
     }
 }

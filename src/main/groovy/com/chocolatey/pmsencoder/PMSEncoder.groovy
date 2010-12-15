@@ -549,6 +549,13 @@ public class CommandDelegate extends ConfigDelegate {
         command.downloader = downloader.collect { it.toString() } // handle GStrings
     }
 
+    // DSL accessor ($DOWNLOADER): read-write
+    @Typed(TypePolicy.DYNAMIC) // try to handle GStrings
+    // FIXME: test this!
+    protected List<String> set$DOWNLOADER(String downloader) {
+        command.downloader = downloader.toString().tokenize() // handle GStrings
+    }
+
     // DSL accessor ($TRANSCODER): read-only
     protected List<String> get$TRANSCODER() {
         command.transcoder
