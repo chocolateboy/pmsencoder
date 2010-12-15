@@ -542,18 +542,27 @@ public class CommandDelegate extends ConfigDelegate {
         command.downloader
     }
 
-    // DSL accessor ($DOWNLOADER): read-write
-    @Typed(TypePolicy.DYNAMIC) // try to handle GStrings
-    // FIXME: test this!
-    protected List<String> set$DOWNLOADER(List<String> downloader) {
-        command.downloader = downloader.collect { it.toString() } // handle GStrings
-    }
+    /*
+        XXX Groovy/Groovy++ fail
+
+        if two setters for $DOWNLOADER are defined (one for String and another for List<String>)
+        Groovy/Groovy++ always uses List<String> and complains at runtime that
+        it can't cast a GString into List<String>:
+
+        Cannot cast object '/usr/bin/downloader string http://www.downloader-string.com'
+        with class 'org.codehaus.groovy.runtime.GStringImpl' to class 'java.util.List'
+
+        workaround: define just one setter and determine the type with instanceof
+    */
 
     // DSL accessor ($DOWNLOADER): read-write
     @Typed(TypePolicy.DYNAMIC) // try to handle GStrings
-    // FIXME: test this!
-    protected List<String> set$DOWNLOADER(String downloader) {
-        command.downloader = downloader.toString().tokenize() // handle GStrings
+    protected List<String> set$DOWNLOADER(Object downloader) {
+        if (downloader instanceof List) {
+            command.downloader = downloader.collect { it.toString() }
+        } else {
+            command.downloader = downloader.toString().tokenize()
+        }
     }
 
     // DSL accessor ($TRANSCODER): read-only
@@ -752,7 +761,7 @@ class Pattern extends CommandDelegate {
 
     @Typed(TypePolicy.DYNAMIC) // XXX try to handle GStrings
     private String domainToRegex(String domain) {
-        return "^https?://(\\w+\\.)*${domain}/".toString()
+        return "^https?://(\\w+\\.)*${domain}(/|\$)".toString()
     }
 
     /*
