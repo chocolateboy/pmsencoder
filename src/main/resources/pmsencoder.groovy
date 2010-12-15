@@ -41,7 +41,7 @@ config {
 
         add '2304p':
 
-            youtube [ 38 ] + $YOUTUBE_ACCEPT
+            youtube([ 38 ] + $YOUTUBE_ACCEPT)
 
         For the full list of formats, see: http://en.wikipedia.org/wiki/YouTube#Quality_and_codecs
     */
