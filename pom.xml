@@ -211,6 +211,12 @@
             <scope>test</scope>
         </dependency>
 
+        <dependency>
+            <groupId>excalibur</groupId>
+            <artifactId>excalibur-fortress</artifactId>
+            <version>1.0</version>
+        </dependency>
+
     </dependencies>
 
 </project>

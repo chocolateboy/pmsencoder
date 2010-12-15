@@ -29,7 +29,6 @@
 /*
     infinite loop/stack overflow in maven assembly plugin (in Plexus Archiver) with
     Groovy++ 0.2.26: https://groups.google.com/group/groovyplusplus/msg/a765fe77975650db
-    revert to 0.2.25 for now
 */
 
 /*
@@ -51,3 +50,11 @@
 // add an option to allow the logfile location to be specified
 
 // pmsencoder_conf=/path/to/pmsencoder.conf
+
+// allow $DOWNLOADER to be a string (i.e. tokenize it if it's not a list)
+
+// single (String) argument domain method - default to matching the URI
+
+    domain 'example.com'
+
+// or just remove the need to supply $URI altogether (what else would it match?)

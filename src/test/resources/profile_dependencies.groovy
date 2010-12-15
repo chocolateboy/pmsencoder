@@ -6,20 +6,24 @@ config {
 
     profile (ICHC) {
         pattern {
-            match $URI: '^http://(\\w+\\.)?icanhascheezburger.com/'
+            domain 'icanhascheezburger.com'
         }
     }
 
-    profile ('I Can Has YouTube', before: 'YouTube', after: ICHC) {
+    profile ('I Can Has YouTube', before: 'YouTube Metadata', after: ICHC) {
         pattern {
-            match ICHC // string or List<String> in $MATCHES
-            scrape '\\b(?<URI>http://www\\.youtube\\.com/v/[^&]+)'
+            match ICHC
+            scrape '\\bhttp://www\\.youtube\\.com/v/(?<video_id>[^&?]+)'
+        }
+
+        action {
+            $URI = "http://www.youtube.com/watch?v=${video_id}"
         }
     }
 
     profile ('I Can Has Viddler', after: ICHC) {
         pattern {
-            match ICHC // string or List<String> in $MATCHES
+            match ICHC
             scrape "\\bsrc='(?<URI>http://www\\.viddler\\.com/file/\\w+/html5mobile/)'"
         }
 

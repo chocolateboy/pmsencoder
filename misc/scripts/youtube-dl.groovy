@@ -4,7 +4,7 @@ config {
 
     profile ('YouTube-DL', replaces: 'YouTube') { // replace it with a profile that works for all YouTube-DL sites
         pattern {
-            match { 'YouTube-DL Compatible' in $MATCHES }
+            match 'YouTube-DL Compatible'
         }
 
         action {

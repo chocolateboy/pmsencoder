@@ -9,7 +9,7 @@ config {
         }
     }
 
-    profile ('Apple 3') {
+    profile ('Apple 3', after: [ 'Apple Trailers', 'Apple Trailers HD' ]) {
         pattern {
             // test match List<String>
             match([ 'Apple Trailers', 'Apple Trailers HD' ])

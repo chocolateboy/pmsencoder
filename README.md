@@ -8,14 +8,14 @@ Due to a [bug](http://code.google.com/p/ps3mediaserver/issues/detail?id=766) in 
 
 These instructions assume you have the [latest version](http://ps3mediaserver.org/forum/viewtopic.php?f=2&t=3217) of PS3 Media Server, the [latest version](http://www.java.com/en/download/index.jsp) of Java, and a recent MEncoder.
 
-# Installation <a name="Installation"></a>
+# Installation <a name="Install"></a>
 
 * download the [PMSEncoder jar file](http://github.com/downloads/chocolateboy/pmsencoder/pmsencoder-1.1.0.jar) and place it in the PMS `plugins` directory
 * shut down PMS and add `pmsencoder` to the front of the list of engines in PMS.conf e.g.
   * `engines = pmsencoder,mencoder,tsmuxer,mplayeraudio` &c.
 * restart PMS
 
-## Upgrading <a name="Upgrading"></a>
+## Upgrading <a name="Upgrade"></a>
 
 To upgrade to a new version of the plugin, simply replace the old jar file with the new version in the `plugins` directory, and restart PMS.
 
@@ -23,6 +23,10 @@ To upgrade to a new version of the plugin, simply replace the old jar file with 
 
 To uninstall PMSEncoder, remove the jar file from the plugins directory and remove `pmsencoder,` from the list of engines in
 `PMS.conf`.
+
+## Building <a name="Build"></a>
+
+To build PMSEncoder from source, see the [Wiki](https://github.com/chocolateboy/pmsencoder/wiki/Development).
 
 # Tips <a name="Tips"></a>
 

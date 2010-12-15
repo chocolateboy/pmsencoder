@@ -4,6 +4,10 @@ package com.chocolatey.pmsencoder
 import net.pms.PMS
 import net.pms.io.OutputParams
 
+import org.apache.avalon.fortress.util.dag.Vertex
+import org.apache.avalon.fortress.util.dag.DirectedAcyclicGraphVerifier as DAG
+import org.apache.avalon.fortress.util.dag.CyclicDependencyException
+
 // if these extend Exception (rather than RuntimeException) Groovy(++?) wraps them in
 // InvokerInvocationException, which causes all kinds of tedium.
 // For the time being: extend RuntimeException - even though they're both checked
@@ -185,7 +189,9 @@ class Matcher extends Logger {
 }
 
 class Config extends Logger {
-    private Map<String, Profile> profiles = [:] // defaults to LinkedHashMap
+    private Map<String, Vertex> profiles = [:] // defaults to LinkedHashMap
+    private boolean verified = false
+    private List<Profile> orderedProfiles = null
 
     // DSL fields (mutable)
     public List<String> $DEFAULT_TRANSCODER_ARGS = []
@@ -196,17 +202,51 @@ class Config extends Logger {
         $PMS = pms
     }
 
+    private void verifyDependencies() {
+        def vertices = profiles.values().toList()
+
+        def sane = vertices.every { Vertex vertex ->
+            def valid = true
+
+            try {
+                DAG.verify(vertex)
+            } catch (CyclicDependencyException e) {
+                log.error("detected cyclic dependency between profiles: " + e.message)
+                valid = false
+            }
+
+            return valid
+        }
+
+        if (sane) {
+            DAG.topologicalSort(vertices) // in-place
+            orderedProfiles = vertices.collect { (it.node as Reference<Profile>).get() }
+        } else {
+            orderedProfiles = null
+        }
+
+        verified = true
+    }
+
     boolean match(Command command) {
         log.info("matching URI: ${command.stash['$URI']}")
 
-        // XXX make sure we take the name from the profile itself
-        // rather than the map key - the latter may have been usurped
-        // by a profile with a different name
+        if (verified == false) {
+            verifyDependencies()
+            assert verified == true
+        }
 
-        profiles.values().each { profile ->
-            if (profile.match(command)) {
-                command.matches << profile.name
+        if (orderedProfiles != null) {
+            orderedProfiles.each { profile ->
+                if (profile.match(command)) {
+                    // XXX make sure we take the name from the profile itself
+                    // rather than the map key - the latter may have been usurped
+                    // by a profile with a different name
+                    command.matches << profile.name
+                }
             }
+        } else {
+            log.error("skipping match due to profile dependency cycle")
         }
 
         return command.matches.size() > 0
@@ -224,13 +264,26 @@ class Config extends Logger {
     // determined when the config file is loaded/compiled
     // XXX more annoying DDWIM magic: Groovy reorders the arguments
     // http://enfranchisedmind.com/blog/posts/groovy-argument-reordering/
-    protected void profile (Map<String, String> options = [:], String name, Closure closure) throws PMSEncoderException {
+    protected void profile (Map<String, Object> options = [:], String name, Closure closure) throws PMSEncoderException {
         // run the profile block at compile-time to extract its pattern and action blocks,
         // but invoke them at runtime
-        String extendz = options['extends']
-        String replaces = options['replaces']
+        def extendz = options['extends'] as String
+        def replaces= options['replaces'] as String
+        def predecessors, successors
 
-        if (replaces) {
+        if (options['before'] != null) {
+            predecessors = (options['before'] instanceof List) ?
+                options['before'] as List<String> :
+                [ options['before'] as String ]
+        }
+
+        if (options['after'] != null) {
+            successors = (options['after'] instanceof List) ?
+                options['after'] as List<String> :
+                [ options['after'] as String ]
+        }
+
+        if (replaces != null) {
             log.info("replacing profile $replaces with: $name")
         } else if (profiles[name] != null) {
             log.info("replacing profile: $name")
@@ -244,18 +297,54 @@ class Config extends Logger {
         try {
             profile.extractBlocks(closure)
 
-            if (extendz) {
-                profile.assignPatternBlockIfNull(profiles[extendz])
-                profile.assignActionBlockIfNull(profiles[extendz])
+            if (extendz != null) {
+                if (profile[extendz] == null) {
+                    log.error("attempt to extend a nonexistent profile: $extendz")
+                } else {
+                    def base = (profiles[extendz].node as Reference<Profile>).get()
+                    profile.assignPatternBlockIfNull(base)
+                    profile.assignActionBlockIfNull(base)
+                }
             }
 
             // this is why name is defined both as the key of the map and in the profile
-            // itself. the key is only used for ordering/replacement
-            // the public name is always the profile's own name field
-            if (replaces) {
-                profiles[replaces] = profile
+            // itself. the key allows replacement
+            def target
+
+            if (replaces != null) {
+                target = replaces
             } else {
-                profiles[name] = profile
+                target = name
+            }
+
+            if (profiles[target] != null) {
+                (profiles[target].node as Reference<Profile>).set(profile)
+            } else {
+                def vertex = new Vertex(new Reference<Profile>(profile))
+                profiles[target] = vertex
+                verified = false
+            }
+
+            if (predecessors != null) {
+                predecessors.each { String before ->
+                    if (profiles[before] == null) {
+                        log.error("attempt to define a predecessor for a nonexistent profile: $name before $before")
+                    } else {
+                        log.error("adding dependency: $target before $before")
+                        profiles[before].addDependency(profiles[target])
+                    }
+                }
+            }
+
+            if (successors != null) {
+                successors.each { String after ->
+                    if (profiles[after] == null) {
+                        log.error("attempt to define a successor for a nonexistent profile: $name after $after")
+                    } else {
+                        log.error("adding dependency: $target after $after")
+                        profiles[target].addDependency(profiles[after])
+                    }
+                }
             }
         } catch (Throwable e) {
             log.error("invalid profile ($name): " + e.getMessage())
@@ -353,14 +442,14 @@ class Profile extends Logger {
     }
 
     public void assignPatternBlockIfNull(Profile profile) {
-        // XXX can't get ?= to work here...
+        // XXX where is ?= ?
         if (this.patternBlock == null) {
             this.patternBlock = profile.patternBlock
         }
     }
 
     public void assignActionBlockIfNull(Profile profile) {
-        // XXX can't get ?= to work here...
+        // XXX where is ?= ?
         if (this.actionBlock == null) {
             this.actionBlock = profile.actionBlock
         }
@@ -412,6 +501,7 @@ public class ConfigDelegate extends Logger {
 public class CommandDelegate extends ConfigDelegate {
     private Command command
     private final Map<String, String> cache = [:] // only needed/used by scrape()
+    @Lazy protected HTTPClient http = new HTTPClient()
 
     public CommandDelegate(Config config, Command command) {
         super(config)
@@ -498,6 +588,7 @@ public class CommandDelegate extends ConfigDelegate {
 
         if (document == null) {
             log.info("getting $uri")
+            assert http != null
             document = cache[uri] = http.get(uri)
         }
 
@@ -573,22 +664,16 @@ class Pattern extends CommandDelegate {
 
     // DSL method
     @Typed(TypePolicy.DYNAMIC) // XXX try to handle GStrings
-    void domain(Map<String, String> map) {
-        map.each { name, value -> domain(name, value) }
-    }
-
-    // DSL method
-    @Typed(TypePolicy.DYNAMIC) // XXX try to handle GStrings
-    void domain(String name, String value) {
-        if (!matchString(name, domainToRegex(value.toString()))) {
+    void domain(String name) {
+        if (!matchString($STASH['$URI'], domainToRegex(name.toString()))) {
             throw STOP_MATCHING
         }
     }
 
     // DSL method
     @Typed(TypePolicy.DYNAMIC) // XXX try to handle GStrings
-    void domain(String name, List<String> values) {
-        if (!(values.any { value -> matchString(name, domainToRegex(value.toString())) })) {
+    void domain(List<String> domains) {
+        if (!(domains.any { name -> matchString($STASH['$URI'], domainToRegex(name.toString())) })) {
             throw STOP_MATCHING
         }
     }
@@ -596,7 +681,9 @@ class Pattern extends CommandDelegate {
     // DSL method
     @Typed(TypePolicy.DYNAMIC) // XXX try to handle GStrings
     void match(Map<String, String> map) {
-        map.each { name, value -> match(name, value) }
+        if (!(map.every { name, value -> matchString($STASH[name.toString()], value.toString()) })) {
+            throw STOP_MATCHING
+        }
     }
 
     // DSL method
@@ -609,16 +696,8 @@ class Pattern extends CommandDelegate {
 
     // DSL method
     @Typed(TypePolicy.DYNAMIC) // XXX try to handle GStrings
-    void match(String name, String value) {
-        if (!matchString(name.toString(), value.toString())) {
-            throw STOP_MATCHING
-        }
-    }
-
-    // DSL method
-    @Typed(TypePolicy.DYNAMIC) // XXX try to handle GStrings
     void match(String name) {
-        if (!$MATCHES.contains(name)) {
+        if (!$MATCHES.contains(name.toString())) {
             throw STOP_MATCHING
         }
     }
@@ -646,15 +725,14 @@ class Pattern extends CommandDelegate {
 
     @Typed(TypePolicy.DYNAMIC) // XXX try to handle GStrings
     private boolean matchString(String name, String value) {
-        assert (name != null) && (value != null)
-
-        if ($STASH[name] == null) { // this will happen for old custom configs that use let uri: ...
-            log.warn("invalid match: $name is not defined")
-            // fall through
+        if (name == null) {
+            log.error("invalid match: name is not defined")
+        } else if (value == null) {
+            log.error("invalid match: value is not defined")
         } else {
             log.info("matching $name against $value")
 
-            if (RegexHelper.match($STASH[name], value, $STASH)) {
+            if (RegexHelper.match(name.toString(), value.toString(), $STASH)) {
                 log.info("success")
                 return true // abort default failure below
             } else {
@@ -670,14 +748,13 @@ class Pattern extends CommandDelegate {
         return "^https?://(\\w+\\.)*${domain}/".toString()
     }
 
-    @Override // for documentation; Groovy doesn't require it
-    @Typed(TypePolicy.DYNAMIC) // XXX try to handle GStrings
-
     /*
         We don't have to worry about stash-assignment side-effects, as they're
         only committed if the whole pattern block succeeds. This is handled
         up the callstack (in Profile.match)
     */
+    @Override // for documentation; Groovy doesn't require it
+    @Typed(TypePolicy.DYNAMIC) // XXX try to handle GStrings
     boolean scrape(String regex, Map<String, String> options = [:]) {
         if (super.scrape(regex, options)) {
             return true
@@ -689,8 +766,6 @@ class Pattern extends CommandDelegate {
 
 /* XXX: add configurable HTTP proxy support? */
 class Action extends CommandDelegate {
-    @Lazy private HTTPClient http = new HTTPClient()
-
     Action(Config config, Command command) {
         super(config, command)
     }

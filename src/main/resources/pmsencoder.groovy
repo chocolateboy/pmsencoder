@@ -73,50 +73,6 @@ config {
         pattern { match { false } }
     }
 
-    profile ('YouTube-DL Compatible') {
-        pattern {
-            // match any of the sites youtube-dl supports - copied from the source
-            match $URI: [
-                '^((?:https?://)?(?:youtu\\.be/|(?:\\w+\\.)?youtube(?:-nocookie)?\\.com/' +
-                '(?:(?:v/)|(?:(?:watch(?:_popup)?(?:\\.php)?)?(?:\\?|#!?)(?:.+&)?v=))))?([0-9A-Za-z_-]+)(?(1).+)?$',
-                '(?:http://)?(?:www\\.)?metacafe\\.com/watch/([^/]+)/([^/]+)/.*',
-                '(?i)(?:https?://)?(?:www\\.)?dailymotion\\.[a-z]{2,3}/video/([^_/]+)_([^/]+)',
-                '(?:http://)?video\\.google\\.(?:com(?:\\.au)?|co\\.(?:uk|jp|kr|cr)|ca|de|es|fr|it|nl|pl)' +
-                    '/videoplay\\?docid=([^\\&]+).*',
-                '(?:http://)?(?:[a-z0-9]+\\.)?photobucket\\.com/.*[\\?\\&]current=(.*\\.flv)',
-                '(?:http://)?(?:[a-z]+\\.)?video\\.yahoo\\.com/(?:watch|network)/([0-9]+)(?:/|\\?v=)([0-9]+)(?:[#\\?].*)?',
-                '(?:http://)?(?:\\w+\\.)?youtube.com/(?:(?:view_play_list|my_playlists)\\?.*?p=|user/.*?/user/)([^&]+).*',
-                '(?:http://)?(?:\\w+\\.)?youtube.com/user/(.*)'
-            ]
-        }
-
-        action {
-            // FIXME: update this
-            $youtube_dl_compatible = '2010.10.03' // version the regexes were copied from
-        }
-    }
-
-    // extract metadata about the video for other profiles
-    profile ('YouTube Metadata') {
-        // extract the resource's video_id from the URI of the standard YouTube page
-        pattern {
-            match $URI: '^http://(?:\\w+\\.)?youtube\\.com/watch\\?v=(?<youtube_video_id>[^&]+)'
-        }
-
-        action {
-            // fix the URI to bypass age verification
-            def youtube_scrape_uri = "${$URI}&has_verified=1"
-
-            // extract the resource's sekrit identifier ($t) from the HTML
-            // make sure URI is sigilized to prevent clashes with the class
-            scrape '&t=(?<youtube_t>[^&]+)', [ uri: youtube_scrape_uri ]
-
-            // extract the uploader ("creator") so that scripts can use it
-            // scrape '"creator"\\s*:\\s*"(?<youtube_creator>[^"]+)"', [ uri: youtube_scrape_uri ]
-            scrape "'VIDEO_USERNAME'\\s*:\\s*'(?<youtube_uploader>[^']+)'", [ uri: youtube_scrape_uri ]
-        }
-    }
-
     // perform the actual YouTube handling if the metadata has been extracted.
     // separating the profiles into metadata and implementation allows scripts to
     // override just this profile without having to rescrape the page to match on
@@ -137,6 +93,50 @@ config {
         }
     }
 
+    profile ('YouTube-DL Compatible', before: 'YouTube') {
+        pattern {
+            // match any of the sites youtube-dl supports - copied from the source
+            match $URI, [
+                '^((?:https?://)?(?:youtu\\.be/|(?:\\w+\\.)?youtube(?:-nocookie)?\\.com/' +
+                '(?:(?:v/)|(?:(?:watch(?:_popup)?(?:\\.php)?)?(?:\\?|#!?)(?:.+&)?v=))))?([0-9A-Za-z_-]+)(?(1).+)?$',
+                '(?:http://)?(?:www\\.)?metacafe\\.com/watch/([^/]+)/([^/]+)/.*',
+                '(?i)(?:https?://)?(?:www\\.)?dailymotion\\.[a-z]{2,3}/video/([^_/]+)_([^/]+)',
+                '(?:http://)?video\\.google\\.(?:com(?:\\.au)?|co\\.(?:uk|jp|kr|cr)|ca|de|es|fr|it|nl|pl)' +
+                    '/videoplay\\?docid=([^\\&]+).*',
+                '(?:http://)?(?:[a-z0-9]+\\.)?photobucket\\.com/.*[\\?\\&]current=(.*\\.flv)',
+                '(?:http://)?(?:[a-z]+\\.)?video\\.yahoo\\.com/(?:watch|network)/([0-9]+)(?:/|\\?v=)([0-9]+)(?:[#\\?].*)?',
+                '(?:http://)?(?:\\w+\\.)?youtube.com/(?:(?:view_play_list|my_playlists)\\?.*?p=|user/.*?/user/)([^&]+).*',
+                '(?:http://)?(?:\\w+\\.)?youtube.com/user/(.*)'
+            ]
+        }
+
+        action {
+            // FIXME: update this
+            $youtube_dl_compatible = '2010.10.03' // version the regexes were copied from
+        }
+    }
+
+    // extract metadata about the video for other profiles
+    profile ('YouTube Metadata', before: 'YouTube-DL Compatible') {
+        // extract the resource's video_id from the URI of the standard YouTube page
+        pattern {
+            match $URI: '^http://(?:\\w+\\.)?youtube\\.com/watch\\?v=(?<youtube_video_id>[^&]+)'
+        }
+
+        action {
+            // fix the URI to bypass age verification
+            def youtube_scrape_uri = "${$URI}&has_verified=1"
+
+            // extract the resource's sekrit identifier ($t) from the HTML
+            // make sure URI is sigilized to prevent clashes with the class
+            scrape '&t=(?<youtube_t>[^&]+)', [ uri: youtube_scrape_uri ]
+
+            // extract the uploader ("creator") so that scripts can use it
+            // scrape '"creator"\\s*:\\s*"(?<youtube_creator>[^"]+)"', [ uri: youtube_scrape_uri ]
+            scrape "'VIDEO_USERNAME'\\s*:\\s*'(?<youtube_uploader>[^']+)'", [ uri: youtube_scrape_uri ]
+        }
+    }
+
     profile ('Apple Trailers') {
         pattern {
             match $URI: '^http://(?:(?:movies|www|trailers)\\.)?apple\\.com/.+$'
@@ -149,9 +149,9 @@ config {
         }
     }
 
-    profile ('Apple Trailers HD') {
+    profile ('Apple Trailers HD', after: 'Apple Trailers') {
         pattern {
-            match { 'Apple Trailers' in $MATCHES }
+            match 'Apple Trailers'
             match $URI: '(_h720p\\.mov|\\.m4v)$'
         }
 
@@ -170,7 +170,25 @@ config {
         }
     }
 
-    profile ('GameTrailers (Revert PMS Workaround)') {
+    profile ('GameTrailers') {
+        pattern {
+            domain 'gametrailers.com'
+        }
+
+        action {
+            /*
+                The order is important here! Make sure we scrape the variables before we set the URI.
+                extract some values from the HTML
+            */
+            scrape '\\bmov_game_id\\s*=\\s*(?<gametrailers_movie_id>\\d+)'
+            scrape '\\bhttp://www\\.gametrailers\\.com/download/\\d+/(?<gametrailers_filename>t_[^.]+)\\.wmv\\b'
+
+            // now use them to rewrite the URI
+            $URI = "http://trailers-ak.gametrailers.com/gt_vault/${gametrailers_movie_id}/${gametrailers_filename}.flv"
+        }
+    }
+
+    profile ('GameTrailers (Revert PMS Workaround)', before: 'GameTrailers') {
         /*
            convert:
 
@@ -189,24 +207,6 @@ config {
         // 2) and use it to restore the correct web page URI
         action {
            let $URI: "http://www.gametrailers.com/player/${gametrailers_page_id}.html"
-        }
-    }
-
-    profile ('GameTrailers') {
-        pattern {
-            match $URI: '^http://(www\\.)?gametrailers\\.com/'
-        }
-
-        action {
-            /*
-                The order is important here! Make sure we scrape the variables before we set the URI.
-                extract some values from the HTML
-            */
-            scrape '\\bmov_game_id\\s*=\\s*(?<gametrailers_movie_id>\\d+)'
-            scrape '\\bhttp://www\\.gametrailers\\.com/download/\\d+/(?<gametrailers_filename>t_[^.]+)\\.wmv\\b'
-
-            // now use them to rewrite the URI
-            $URI = "http://trailers-ak.gametrailers.com/gt_vault/${gametrailers_movie_id}/${gametrailers_filename}.flv"
         }
     }
 }
