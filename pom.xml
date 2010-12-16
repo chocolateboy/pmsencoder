@@ -150,7 +150,13 @@
 
             <plugin>
                 <artifactId>maven-assembly-plugin</artifactId>
-                <version>2.2</version>
+                <!--
+                     FIXME
+
+                     2.2 constantly breaks the build (via plexus-archiver)
+                     downgrade to 2.1 until 2.3 is released
+                -->
+                <version>2.1</version>
                 <configuration>
                     <descriptorRefs>
                         <descriptorRef>jar-with-dependencies</descriptorRef>
@@ -174,7 +180,7 @@
         <dependency>
             <groupId>org.codehaus.groovy.modules.http-builder</groupId>
             <artifactId>http-builder</artifactId>
-            <version>0.5.0</version>
+            <version>0.5.1</version>
             <scope>compile</scope>
         </dependency>
 

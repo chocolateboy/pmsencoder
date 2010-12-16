@@ -96,7 +96,7 @@ config {
     profile ('YouTube-DL Compatible', before: 'YouTube') {
         pattern {
             // match any of the sites youtube-dl supports - copied from the source
-            match $URI, [
+            match $URI: [
                 '^((?:https?://)?(?:youtu\\.be/|(?:\\w+\\.)?youtube(?:-nocookie)?\\.com/' +
                 '(?:(?:v/)|(?:(?:watch(?:_popup)?(?:\\.php)?)?(?:\\?|#!?)(?:.+&)?v=))))?([0-9A-Za-z_-]+)(?(1).+)?$',
                 '(?:http://)?(?:www\\.)?metacafe\\.com/watch/([^/]+)/([^/]+)/.*',

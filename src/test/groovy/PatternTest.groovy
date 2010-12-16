@@ -23,6 +23,62 @@ class PatternTest extends PMSEncoderTestCase {
         )
     }
 
+    void testPatternMatchKeyString() {
+        def uri = 'http://key.string.com'
+        def command = new Command([ $URI: uri ])
+        def wantCommand = new Command(
+            [ $URI: uri ], []
+        )
+
+        assertMatch(
+            command,          // supplied command
+            wantCommand,      // expected command
+            [ 'Key String' ], // expected matches
+        )
+    }
+
+    void testPatternMatchKeyList() {
+        def uri = 'http://key.list.com'
+        def command = new Command([ $URI: uri ])
+        def wantCommand = new Command(
+            [ $URI: uri ], []
+        )
+
+        assertMatch(
+            command,        // supplied command
+            wantCommand,    // expected command
+            [ 'Key List' ], // expected matches
+        )
+    }
+
+    void testPatternMatchStringString() {
+        def uri = 'http://string.string.com'
+        def command = new Command([ $URI: uri ])
+        def wantCommand = new Command(
+            [ $URI: uri ], []
+        )
+
+        assertMatch(
+            command,             // supplied command
+            wantCommand,         // expected command
+            [ 'String String' ], // expected matches
+        )
+    }
+
+    void testPatternMatchStringList() {
+        def uri = 'http://string.list.com'
+        def command = new Command([ $URI: uri ])
+        def wantCommand = new Command(
+            [ $URI: uri ], []
+        )
+
+        assertMatch(
+            command,           // supplied command
+            wantCommand,       // expected command
+            [ 'String List' ], // expected matches
+        )
+    }
+
     void testMatches() {
         def uri = 'http://trailers.apple.com/movies/fox_searchlight/127hours/127hours-tlr1_h720p.mov'
         def command = new Command([ $URI: uri ])

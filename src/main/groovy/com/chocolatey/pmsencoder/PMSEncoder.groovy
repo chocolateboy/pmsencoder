@@ -515,6 +515,11 @@ public class CommandDelegate extends ConfigDelegate {
         command
     }
 
+    // $HTTP: read-only
+    protected HTTPClient get$HTTP() {
+        http
+    }
+
     // $STASH: read-only
     protected final Stash get$STASH() {
         command.stash
@@ -558,11 +563,8 @@ public class CommandDelegate extends ConfigDelegate {
     // DSL accessor ($DOWNLOADER): read-write
     @Typed(TypePolicy.DYNAMIC) // try to handle GStrings
     protected List<String> set$DOWNLOADER(Object downloader) {
-        if (downloader instanceof List) {
-            command.downloader = downloader.collect { it.toString() }
-        } else {
-            command.downloader = downloader.toString().tokenize()
-        }
+        def list = ((downloader instanceof List) ? downloader : downloader.toString().tokenize()) as List
+        command.downloader = list.collect { it.toString() }
     }
 
     // DSL accessor ($TRANSCODER): read-only
@@ -686,6 +688,12 @@ class Pattern extends CommandDelegate {
         }
     }
 
+    // DSL method (alias for domain)
+    @Typed(TypePolicy.DYNAMIC) // XXX try to handle GStrings
+    void domains(String name) {
+        domain(name)
+    }
+
     // DSL method
     @Typed(TypePolicy.DYNAMIC) // XXX try to handle GStrings
     void domain(List<String> domains) {
@@ -694,20 +702,34 @@ class Pattern extends CommandDelegate {
         }
     }
 
+    // DSL method (alias for domain)
+    @Typed(TypePolicy.DYNAMIC) // XXX try to handle GStrings
+    void domains(List<String> domains) {
+        domain(domains)
+    }
+
     // DSL method
     @Typed(TypePolicy.DYNAMIC) // XXX try to handle GStrings
-    void match(Map<String, String> map) {
-        if (!(map.every { name, value -> matchString($STASH[name.toString()], value.toString()) })) {
+    void match(Map<String, Object> map) {
+        map.each { name, value ->
+            def list = (value instanceof List) ? value as List : [ value ]
+            match($STASH[name.toString()], list)
+        }
+    }
+
+    // DSL method
+    @Typed(TypePolicy.DYNAMIC) // XXX try to handle GStrings
+    void match(String name, List values) {
+        if (!(values.any { value -> matchString(name.toString(), value.toString()) })) {
             throw STOP_MATCHING
         }
     }
 
     // DSL method
     @Typed(TypePolicy.DYNAMIC) // XXX try to handle GStrings
-    void match(String name, List<String> values) {
-        if (!(values.any { value -> matchString(name.toString(), value.toString()) })) {
-            throw STOP_MATCHING
-        }
+    void match(String name, Object value) {
+        def list = (value instanceof List) ? value as List : [ value ]
+        match(name.toString(), list)
     }
 
     // DSL method
@@ -759,8 +781,9 @@ class Pattern extends CommandDelegate {
         return false
     }
 
+    // DSL method
     @Typed(TypePolicy.DYNAMIC) // XXX try to handle GStrings
-    private String domainToRegex(String domain) {
+    protected String domainToRegex(String domain) {
         return "^https?://(\\w+\\.)*${domain}(/|\$)".toString()
     }
 

@@ -25,4 +25,11 @@ class HTTPClientTest extends PMSEncoderTestCase {
         assertThat(example, instanceOf(String.class))
         assert example =~ 'RFC\\s+2606'
     }
+
+    void testTarget() {
+        assertNull(http.target('http://www.example.com/nosuchfile.com'))
+        def target = http.target('http://www.sun.com')
+        assertNotNull(target)
+        assert target =~ '\\.oracle\\.com/'
+    }
 }
