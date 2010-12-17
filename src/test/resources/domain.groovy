@@ -22,4 +22,10 @@ config {
             domains([ 'foo.com', 'domains-list.com', 'bar.com' ])
         }
     }
+
+    profile ('Got Dot') {
+        pattern {
+            domain 'dot.com'
+        }
+    }
 }

@@ -47,4 +47,26 @@ class DomainTest extends PMSEncoderTestCase {
 
         assert command.matches == [ 'Domains List' ]
     }
+
+    void testGotDot() {
+        def uri = 'http://www.dot.com'
+        def command = new Command([ $URI: uri ])
+
+        matcher.load(customConfig)
+        // bypass Groovy's annoyingly loose definition of true
+        assertSame(true, matcher.match(command, false)) // false: don't use default transcoder args
+
+        assert command.matches == [ 'Got Dot' ]
+    }
+
+    void testNotDot() {
+        def uri = 'http://www.dotacom'
+        def command = new Command([ $URI: uri ])
+
+        matcher.load(customConfig)
+        // bypass Groovy's annoyingly loose definition of true
+        assertSame(false, matcher.match(command, false)) // false: don't use default transcoder args
+
+        assert command.matches == []
+    }
 }

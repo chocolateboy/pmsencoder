@@ -784,7 +784,8 @@ class Pattern extends CommandDelegate {
     // DSL method
     @Typed(TypePolicy.DYNAMIC) // XXX try to handle GStrings
     protected String domainToRegex(String domain) {
-        return "^https?://(\\w+\\.)*${domain}(/|\$)".toString()
+        def escaped = domain.replaceAll('\\.', '\\\\.')
+        return "^https?://(\\w+\\.)*${escaped}(/|\$)".toString()
     }
 
     /*
