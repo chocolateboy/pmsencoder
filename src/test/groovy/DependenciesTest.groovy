@@ -3,11 +3,11 @@ package com.chocolatey.pmsencoder
 
 class DependenciesTest extends PMSEncoderTestCase {
     void testViddlerDependency() {
-        def customConfig = this.getClass().getResource('/profile_dependencies.groovy')
+        def script = this.getClass().getResource('/profile_dependencies.groovy')
         def uri = 'http://icanhascheezburger.com/2010/12/14/funny-pictures-video-cat-laptop-touchscreen/'
         def command = new Command([ $URI: uri ])
 
-        matcher.load(customConfig)
+        matcher.load(script)
         // bypass Groovy's annoyingly loose definition of true
         assertSame(true, matcher.match(command, false)) // false: don't use default transcoder args
 
@@ -17,11 +17,11 @@ class DependenciesTest extends PMSEncoderTestCase {
     }
 
     void testYouTubeDependency() {
-        def customConfig = this.getClass().getResource('/profile_dependencies.groovy')
+        def script = this.getClass().getResource('/profile_dependencies.groovy')
         def uri = 'http://icanhascheezburger.com/2010/12/13/funny-pictures-videos-film-by-cats/'
         def command = new Command([ $URI: uri ])
 
-        matcher.load(customConfig)
+        matcher.load(script)
         // bypass Groovy's annoyingly loose definition of true
         assertSame(true, matcher.match(command, false)) // false: don't use default transcoder args
 

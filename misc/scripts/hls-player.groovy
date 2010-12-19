@@ -1,4 +1,4 @@
-config {
+script {
     def PYTHON = '/path/to/python'
     def HLS_PLAYER = '/path/to/hls-player'
 

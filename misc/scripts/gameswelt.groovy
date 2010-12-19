@@ -1,4 +1,4 @@
-config {
+script {
    profile ('Gameswelt') {
         pattern {
             match $URI: '^http://www\\.gameswelt\\.de/videos/videos/'

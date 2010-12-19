@@ -87,6 +87,8 @@ public class Engine extends MEncoderWebVideo {
     @Override
     public ProcessWrapper launchTranscode(String uri, DLNAMediaInfo media, OutputParams params)
     throws IOException {
+        // FIXME: should really use a synchronized counter to ensure
+        // concurrent requests don't use the same filenames
         def now = System.currentTimeMillis()
         def transcoderOutputBasename = 'pmsencoder_transcoder_out_' + now // always used (read by PMS)
         def transcoderOutputPath = getFifoPath(transcoderOutputBasename)

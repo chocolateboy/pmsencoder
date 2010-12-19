@@ -1,4 +1,4 @@
-config {
+script {
     profile ('Politiek 24') {
         pattern {
             match { $URI == 'http://livestreams.omroep.nl/nos/politiek24-bb' }

@@ -1,4 +1,4 @@
-config {
+script {
     def downloader = '/usr/bin/downloader'
 
     profile ('Downloader List') {

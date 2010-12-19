@@ -1,4 +1,4 @@
-config {
+script {
     profile ('Bloomberg TV') {
         pattern {
             match { $URI == 'http://www.bloomberg.com/streams/video/LiveBTV200.asx' }

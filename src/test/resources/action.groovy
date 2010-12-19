@@ -1,4 +1,4 @@
-config {
+script {
     profile('Scrape') {
         pattern {
             match { $URI == 'http://action.com' }

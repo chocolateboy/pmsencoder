@@ -5,11 +5,11 @@ class DownloaderTest extends PMSEncoderTestCase {
     def downloader = '/usr/bin/downloader'
 
     void testDownloaderList() {
-        def customConfig = this.getClass().getResource('/downloader.groovy')
+        def script = this.getClass().getResource('/downloader.groovy')
         def uri = 'http://www.downloader-list.com'
         def command = new Command([ $URI: uri ])
 
-        matcher.load(customConfig)
+        matcher.load(script)
         // bypass Groovy's annoyingly loose definition of true
         assertSame(true, matcher.match(command, false)) // false: don't use default transcoder args
 
@@ -18,11 +18,11 @@ class DownloaderTest extends PMSEncoderTestCase {
     }
 
     void testDownloaderString() {
-        def customConfig = this.getClass().getResource('/downloader.groovy')
+        def script = this.getClass().getResource('/downloader.groovy')
         def uri = 'http://www.downloader-string.com'
         def command = new Command([ $URI: uri ])
 
-        matcher.load(customConfig)
+        matcher.load(script)
         // bypass Groovy's annoyingly loose definition of true
         assertSame(true, matcher.match(command, false)) // false: don't use default transcoder args
 

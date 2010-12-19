@@ -1,5 +1,5 @@
 // add a new profile
-config {
+script {
     profile ('Example') {
         pattern {
             match $URI: '^http://www\\.example\\.com\\b'

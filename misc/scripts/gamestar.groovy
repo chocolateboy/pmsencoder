@@ -1,4 +1,4 @@
-config {
+script {
     profile ('Gamestar') {
         pattern {
             match $URI: '^http://www\\.gamestar\\.de/index\\.cfm\\?pid=\\d+&pk=\\d+'

@@ -1,4 +1,4 @@
-config {
+script {
     profile ('Domain String') {
         pattern {
             domain 'domain-string.com'
