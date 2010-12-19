@@ -1,14 +1,14 @@
 @Typed
 package com.chocolatey.pmsencoder
 
-class CustomConfigTest extends PMSEncoderTestCase {
+class CustomScriptTest extends PMSEncoderTestCase {
     void testOverrideDefaultArgs() {
-        def customConfig = this.getClass().getResource('/default_mencoder_args.groovy')
+        def script = this.getClass().getResource('/default_mencoder_args.groovy')
         def uri = 'http://www.example.com'
         def command = new Command([ $URI: uri ])
         def wantCommand = new Command([ $URI: uri ], [ '-foo', '-bar', '-baz', '-quux' ])
 
-        matcher.load(customConfig)
+        matcher.load(script)
 
         assertMatch(
             command,      // supplied command
@@ -21,7 +21,7 @@ class CustomConfigTest extends PMSEncoderTestCase {
     // confirm that the default TED profile works
     void testProfile() {
         /// XXX clone doesn't work
-        def TEDArgs = new ArrayList<String>(matcher.config.$DEFAULT_TRANSCODER_ARGS)
+        def TEDArgs = new ArrayList<String>(matcher.script.$DEFAULT_TRANSCODER_ARGS)
         def index = TEDArgs.findIndexOf { it == '25' }
 
         assert index > -1 // power assert!
@@ -41,14 +41,14 @@ class CustomConfigTest extends PMSEncoderTestCase {
 
     // now confirm that it can be overridden
     void testProfileReplace() {
-        def customConfig = this.getClass().getResource('/profile_replace.groovy')
+        def script = this.getClass().getResource('/profile_replace.groovy')
         def uri = 'http://feedproxy.google.com/~r/TEDTalks_video'
         def command = new Command([ $URI: uri ])
-        def TEDArgs = new ArrayList<String>(matcher.config.$DEFAULT_TRANSCODER_ARGS)
+        def TEDArgs = new ArrayList<String>(matcher.script.$DEFAULT_TRANSCODER_ARGS)
         def wantArgs = (TEDArgs + [ '-foo', 'bar' ]) as List<String> // FIXME: type-inference fail (or use Scala)
         def wantCommand = new Command([ $URI: uri + '/foo/bar.baz' ], wantArgs)
 
-        matcher.load(customConfig)
+        matcher.load(script)
 
         assertMatch(
             command,      // supplied command
@@ -59,12 +59,12 @@ class CustomConfigTest extends PMSEncoderTestCase {
     }
 
     void testProfileAppend() {
-        def customConfig = this.getClass().getResource('/profile_append.groovy')
+        def script = this.getClass().getResource('/profile_append.groovy')
         def uri = 'http://www.example.com'
         def command = new Command([ $URI: uri ])
         def wantCommand = new Command([ $URI: uri ], [ '-an', 'example' ])
 
-        matcher.load(customConfig)
+        matcher.load(script)
 
         assertMatch(
             command,       // supplied command
@@ -74,7 +74,7 @@ class CustomConfigTest extends PMSEncoderTestCase {
     }
 
     void testGStrings() {
-        def customConfig = this.getClass().getResource('/gstrings.groovy')
+        def script = this.getClass().getResource('/gstrings.groovy')
         def uri = 'http://www.example.com'
         def command = new Command([ $URI: uri ])
         def wantCommand = new Command(
@@ -90,7 +90,7 @@ class CustomConfigTest extends PMSEncoderTestCase {
             [ '-key', 'key', '-value', 'value' ]
         )
 
-        matcher.load(customConfig)
+        matcher.load(script)
 
         assertMatch(
             command,        // supplied command
@@ -100,12 +100,12 @@ class CustomConfigTest extends PMSEncoderTestCase {
     }
 
     void testGString() {
-        def customConfig = this.getClass().getResource('/gstring_scope.groovy')
+        def script = this.getClass().getResource('/gstring_scope.groovy')
         def uri = 'http://www.example.com'
         def command = new Command([ $URI: uri ])
         def wantCommand = new Command([ $URI: uri ], [ 'config3', 'profile3', 'pattern3', 'action3' ])
 
-        matcher.load(customConfig)
+        matcher.load(script)
 
         assertMatch(
             command,             // supplied command
@@ -115,7 +115,7 @@ class CustomConfigTest extends PMSEncoderTestCase {
     }
 
     void testInterpolationInDefaultMEncoderArgs() {
-        def customConfig = this.getClass().getResource('/gstring_scope.groovy')
+        def script = this.getClass().getResource('/gstring_scope.groovy')
         def uri = 'http://www.example.com'
         def command = new Command([ $URI: uri ])
         def wantArgs = [
@@ -142,10 +142,10 @@ class CustomConfigTest extends PMSEncoderTestCase {
     }
 
     void testDefaultProfileOverride() {
-        def customConfig = this.getClass().getResource('/profile_default.groovy')
+        def script = this.getClass().getResource('/profile_default.groovy')
         def uri = 'http://www.example.com'
         def command = new Command([ $URI: uri ])
-        def wantArgs = new ArrayList<String>(matcher.config.$DEFAULT_TRANSCODER_ARGS)
+        def wantArgs = new ArrayList<String>(matcher.script.$DEFAULT_TRANSCODER_ARGS)
         def index = wantArgs.findIndexOf { it == '-lavcopts' }
 
         assert index > -1 // power assert!
@@ -153,7 +153,7 @@ class CustomConfigTest extends PMSEncoderTestCase {
         wantArgs[ index + 1 ] = 'vcodec=mpeg2video:vbitrate=4096:threads=3:acodec=ac3:abitrate=384'
 
         def wantCommand = new Command([ $URI: uri ], wantArgs)
-        matcher.load(customConfig)
+        matcher.load(script)
 
         assertMatch(
             command,       // supplied command

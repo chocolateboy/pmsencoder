@@ -1,4 +1,4 @@
-config {
+script {
     profile ("GStrings") {
         def closed_over = 'Hello, world!'
 

@@ -1,4 +1,4 @@
-config {
+script {
     def nbcores = $PMS.getConfiguration().getNumberOfCpuCores()
     def var1 = "config$nbcores"
 

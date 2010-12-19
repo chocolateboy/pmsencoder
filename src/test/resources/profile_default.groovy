@@ -1,4 +1,4 @@
-config {
+script {
     profile ('Default') {
         // note: the pattern block is (now) optional
         action {

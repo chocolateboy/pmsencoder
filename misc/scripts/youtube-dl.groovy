@@ -1,4 +1,4 @@
-config {
+script {
     def PYTHON = '/usr/bin/python'
     def YOUTUBE_DL = '/path/to/youtube-dl'
 

@@ -82,17 +82,17 @@ class MatcherTest extends PMSEncoderTestCase {
 
     // verify that globally modifying $YOUTUBE_ACCEPT works
     void testYOUTUBE_ACCEPT() {
-        def customConfig = this.getClass().getResource('/youtube_accept.groovy')
-        youTubeCommon('34', customConfig)
+        def script = this.getClass().getResource('/youtube_accept.groovy')
+        youTubeCommon('34', script)
     }
 
-    private void youTubeCommon(String fmt, URL customConfig = null) {
+    private void youTubeCommon(String fmt, URL script = null) {
         def youtube = 'http://www.youtube.com'
         def uri = "$youtube/watch?v=_OBlgSz8sSM"
         def command = new Command([ $URI: uri ])
 
-        if (customConfig != null) {
-            matcher.load(customConfig)
+        if (script != null) {
+            matcher.load(script)
         }
 
         // bypass Groovy's annoyingly loose definition of true

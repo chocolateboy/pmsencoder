@@ -1,3 +1,5 @@
+// move all of this to GitHub issues
+
 /* add $mencoder_feature_level (bool) to stash based on MEncoder version */
 
 /* XPath scraping? */
@@ -95,6 +97,4 @@
     resolve all this in the validate/resolve method (currently Config.verifyDependencies) called from Config.match
 */
 
-// rename Config -> Script and config -> script
-
-// move all of this to GitHub issues
+// use maven-external-dependency-plugin to obviate the need to locally install PMS and RegExPlus

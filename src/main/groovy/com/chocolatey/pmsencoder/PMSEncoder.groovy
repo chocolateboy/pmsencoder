@@ -140,13 +140,13 @@ public class Command extends Logger {
 
 class Matcher extends Logger {
     // FIXME: this is only public for a (single) test
-    // 1) Config has the same scope as Matcher so they could be merged,
+    // 1) Script has the same scope as Matcher so they could be merged,
     // but we don't want to expose load()
-    // 2) the config "globals" (e.g. $DEFAULT_TRANSCODER_ARGS) could be moved here
-    public final Config config
+    // 2) the script "globals" (e.g. $DEFAULT_TRANSCODER_ARGS) could be moved here
+    public final Script script
 
     Matcher(PMS pms) {
-        this.config = new Config(pms)
+        this.script = new Script(pms)
     }
 
     void load(String path, String fileName = path) {
@@ -166,7 +166,7 @@ class Matcher extends Logger {
     }
 
     void load(Reader reader, String fileName) {
-        def binding = new Binding(config: config.&config)
+        def binding = new Binding(script: script.&script)
         def groovy = new GroovyShell(binding)
         groovy.evaluate(reader, fileName)
     }
@@ -175,10 +175,10 @@ class Matcher extends Logger {
     boolean match(Command command, boolean useDefault = true) {
         if (useDefault) {
             // watch out: there's a GString about
-            config.$DEFAULT_TRANSCODER_ARGS.each { command.args << it.toString() }
+            script.$DEFAULT_TRANSCODER_ARGS.each { command.args << it.toString() }
         }
 
-        def matched = config.match(command) // we could use the @Delegate annotation, but this is cleaner/clearer
+        def matched = script.match(command) // we could use the @Delegate annotation, but this is cleaner/clearer
 
         if (matched) {
             log.debug("command: $command")
@@ -188,7 +188,7 @@ class Matcher extends Logger {
     }
 }
 
-class Config extends Logger {
+class Script extends Logger {
     private Map<String, Vertex> profiles = [:] // defaults to LinkedHashMap
     private boolean verified = false
     private List<Profile> orderedProfiles = null
@@ -198,7 +198,7 @@ class Config extends Logger {
     public List<Integer> $YOUTUBE_ACCEPT = []
     public PMS $PMS
 
-    public Config(PMS pms) {
+    public Script(PMS pms) {
         $PMS = pms
     }
 
@@ -246,7 +246,7 @@ class Config extends Logger {
                 }
             }
         } else {
-            log.error("skipping match due to profile dependency cycle")
+            log.error('skipping match due to profile dependency cycle')
         }
 
         return command.matches.size() > 0
@@ -254,14 +254,14 @@ class Config extends Logger {
 
     // DSL method
     @Typed(TypePolicy.MIXED) // Groovy++ doesn't support delegation
-    void config(Closure closure) {
-        this.with(closure) // run at (config file) compile-time
+    void script(Closure closure) {
+        this.with(closure) // run at script compile-time
     }
 
     // DSL method
     @Typed(TypePolicy.MIXED) // Groovy++ doesn't support delegation
     // a Profile consists of a name, a pattern block and an action block - all
-    // determined when the config file is loaded/compiled
+    // determined when the script is loaded/compiled
     // XXX more annoying DDWIM magic: Groovy reorders the arguments
     // http://enfranchisedmind.com/blog/posts/groovy-argument-reordering/
     protected void profile (Map<String, Object> options = [:], String name, Closure closure) throws PMSEncoderException {
@@ -330,7 +330,7 @@ class Config extends Logger {
                     if (profiles[before] == null) {
                         log.error("attempt to define a predecessor for a nonexistent profile: $name before $before")
                     } else {
-                        log.error("adding dependency: $target before $before")
+                        log.info("adding dependency: $target before $before")
                         profiles[before].addDependency(profiles[target])
                     }
                 }
@@ -341,7 +341,7 @@ class Config extends Logger {
                     if (profiles[after] == null) {
                         log.error("attempt to define a successor for a nonexistent profile: $name after $after")
                     } else {
-                        log.error("adding dependency: $target after $after")
+                        log.info("adding dependency: $target after $after")
                         profiles[target].addDependency(profiles[after])
                     }
                 }
@@ -354,20 +354,20 @@ class Config extends Logger {
 
 // this holds a reference to the pattern and action, and isn't delegated to at runtime
 class Profile extends Logger {
-    private final Config config
+    private final Script script
     protected Closure patternBlock
     protected Closure actionBlock
 
     public final String name
 
-    Profile(String name, Config config) {
+    Profile(String name, Script script) {
         this.name = name
-        this.config = config
+        this.script = script
     }
 
     @Typed(TypePolicy.MIXED) // Groovy++ doesn't support delegation
     void extractBlocks(Closure closure) {
-        def delegate = new ProfileValidationDelegate(config, name)
+        def delegate = new ProfileValidationDelegate(script, name)
         // wrapper method: runs the closure then validates the result, raising an exception if anything is amiss
         delegate.runProfileBlock(closure)
 
@@ -423,7 +423,7 @@ class Profile extends Logger {
         // this ensures that a partial match (i.e. a failed match) with side-effects/bindings doesn't contaminate
         // the action, and, more importantly, it defers logging until the whole pattern block has
         // completed successfully
-        def pattern = new Pattern(config, newCommand)
+        def pattern = new Pattern(script, newCommand)
 
         log.info("matching profile: $name")
 
@@ -433,7 +433,7 @@ class Profile extends Logger {
             // first merge (with logging)
             newCommand.stash.each { name, value -> command.let(name, value) }
             // now run the actions
-            def action = new Action(config, command)
+            def action = new Action(script, command)
             runActionBlock(action)
             return true
         } else {
@@ -456,55 +456,55 @@ class Profile extends Logger {
     }
 }
 
-// i.e. a delegate with access to a Config
-public class ConfigDelegate extends Logger {
-    private Config config
+// i.e. a delegate with access to a Script
+public class ScriptDelegate extends Logger {
+    private Script script
 
-    public ConfigDelegate(Config config) {
-        this.config = config
+    public ScriptDelegate(Script script) {
+        this.script = script
     }
 
     // DSL properties
 
-    // $CONFIG: read-only
-    protected final Config get$CONFIG() {
-        config
+    // $SCRIPT: read-only
+    protected final Script get$SCRIPT() {
+        script
     }
 
     // $PMS: read-only
     protected final PMS get$PMS() {
-        config.$PMS
+        script.$PMS
     }
 
     // DSL getter: $DEFAULT_TRANSCODER_ARGS
     protected List<String> get$DEFAULT_TRANSCODER_ARGS() {
-        config.$DEFAULT_TRANSCODER_ARGS
+        script.$DEFAULT_TRANSCODER_ARGS
     }
 
     // DSL setter: $DEFAULT_TRANSCODER_ARGS
     protected List<String> get$DEFAULT_TRANSCODER_ARGS(List<String> args) {
-        config.$DEFAULT_TRANSCODER_ARGS = args
+        script.$DEFAULT_TRANSCODER_ARGS = args
     }
 
     // DSL getter: $YOUTUBE_ACCEPT
     protected List<String> get$YOUTUBE_ACCEPT() {
-        config.$YOUTUBE_ACCEPT
+        script.$YOUTUBE_ACCEPT
     }
 
     // DSL setter: $YOUTUBE_ACCEPT
     protected List<String> get$YOUTUBE_ACCEPT(List<String> args) {
-        config.$YOUTUBE_ACCEPT = args
+        script.$YOUTUBE_ACCEPT = args
     }
 }
 
 // i.e. a delegate with access to a Command
-public class CommandDelegate extends ConfigDelegate {
+public class CommandDelegate extends ScriptDelegate {
     private Command command
     private final Map<String, String> cache = [:] // only needed/used by scrape()
     @Lazy protected HTTPClient http = new HTTPClient()
 
-    public CommandDelegate(Config config, Command command) {
-        super(config)
+    public CommandDelegate(Script script, Command command) {
+        super(script)
         this.command = command
     }
 
@@ -611,7 +611,7 @@ public class CommandDelegate extends ConfigDelegate {
         }
 
         if (document == null) {
-            log.error("document not found")
+            log.error('document not found')
             return scraped
         }
 
@@ -629,13 +629,13 @@ public class CommandDelegate extends ConfigDelegate {
     }
 }
 
-class ProfileValidationDelegate extends ConfigDelegate {
+class ProfileValidationDelegate extends ScriptDelegate {
     public Closure patternBlock = null
     public Closure actionBlock = null
     public String name
 
-    ProfileValidationDelegate(Config config, String name) {
-        super(config)
+    ProfileValidationDelegate(Script script, String name) {
+        super(script)
         this.name = name
     }
 
@@ -669,8 +669,8 @@ class ProfileValidationDelegate extends ConfigDelegate {
 class Pattern extends CommandDelegate {
     private static final MatchFailureException STOP_MATCHING = new MatchFailureException()
 
-    Pattern(Config config, Command command) {
-        super(config, command)
+    Pattern(Script script, Command command) {
+        super(script, command)
     }
 
     // DSL setter - overrides the CommandDelegate method to avoid logging,
@@ -764,9 +764,9 @@ class Pattern extends CommandDelegate {
     @Typed(TypePolicy.DYNAMIC) // XXX try to handle GStrings
     private boolean matchString(String name, String value) {
         if (name == null) {
-            log.error("invalid match: name is not defined")
+            log.error('invalid match: name is not defined')
         } else if (value == null) {
-            log.error("invalid match: value is not defined")
+            log.error('invalid match: value is not defined')
         } else {
             log.info("matching $name against $value")
 
@@ -806,8 +806,8 @@ class Pattern extends CommandDelegate {
 
 /* XXX: add configurable HTTP proxy support? */
 class Action extends CommandDelegate {
-    Action(Config config, Command command) {
-        super(config, command)
+    Action(Script script, Command command) {
+        super(script, command)
     }
 
     /*

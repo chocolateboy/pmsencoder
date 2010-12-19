@@ -28,8 +28,8 @@ class PMSEncoderTest extends PMSEncoderTestCase {
     }
 
     void testProfileValidationDelegateInitalState() {
-        def config = new Config(pms)
-        def delegate = new ProfileValidationDelegate(config, "Test Profile")
+        def script = new Script(pms)
+        def delegate = new ProfileValidationDelegate(script, "Test Profile")
 
         assertNotNull(delegate)
         assertEquals("Test Profile", delegate.name)

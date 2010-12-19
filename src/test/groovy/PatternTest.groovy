@@ -4,8 +4,8 @@ package com.chocolatey.pmsencoder
 class PatternTest extends PMSEncoderTestCase {
     void setUp() {
         super.setUp()
-        def customConfig = this.getClass().getResource('/pattern.groovy')
-        matcher.load(customConfig)
+        def script = this.getClass().getResource('/pattern.groovy')
+        matcher.load(script)
     }
 
     void testPatternMatchBlock() {

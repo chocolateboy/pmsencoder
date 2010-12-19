@@ -1,4 +1,4 @@
-config {
+script {
     profile('Eq') {
         pattern {
             match { $URI == 'http://foo.bar.baz' }

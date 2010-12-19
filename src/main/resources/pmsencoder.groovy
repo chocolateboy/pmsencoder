@@ -1,5 +1,5 @@
 /*
-    this is the default/builtin PMSEncoder script (i.e. configuration file). PMSEncoder loads it from
+    this is the default/builtin PMSEncoder script. PMSEncoder loads it from
     src/main/resources/pmsencoder.groovy, but it's also symlinked, for reference, from
     scripts/pmsencoder.groovy
 
@@ -12,7 +12,7 @@
     XXX: The scripting framework/DSL is constantly changing, so don't rely on anything here.
 */
 
-config {
+script {
     def nbcores = $PMS.getConfiguration().getNumberOfCpuCores()
 
     // default args for the default transcoder (MEncoder) - these can be redefined in a script

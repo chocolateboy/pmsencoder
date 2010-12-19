@@ -1,4 +1,4 @@
-config {
+script {
     profile ('ARD/ZDF') {
         pattern {
             match $URI: '^http://hstreaming\\.(ard|zdf)\\.de/.+?\\.mov$'

@@ -1,5 +1,5 @@
 // override the TED profile
-config {
+script {
     profile ('TED') {
         pattern {
             match $URI: '^http://feedproxy\\.google\\.com/~r/TEDTalks_video\\b'

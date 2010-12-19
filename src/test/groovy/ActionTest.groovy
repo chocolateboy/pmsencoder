@@ -3,14 +3,14 @@ package com.chocolatey.pmsencoder
 
 class ActionTest extends PMSEncoderTestCase {
     void testScrapeURI() {
-        def customConfig = this.getClass().getResource('/action.groovy')
+        def script = this.getClass().getResource('/action.groovy')
         def uri = 'http://action.com'
         def command = new Command([ $URI: uri ])
         def wantCommand = new Command(
             [ $URI: uri, $rfc: '2606' ], []
         )
 
-        matcher.load(customConfig)
+        matcher.load(script)
 
         assertMatch(
             command,       // supplied command
@@ -20,7 +20,7 @@ class ActionTest extends PMSEncoderTestCase {
     }
 
     void testStringifyValues() {
-        def customConfig = this.getClass().getResource('/action.groovy')
+        def script = this.getClass().getResource('/action.groovy')
         def uri = 'http://stringify.values.com'
         def command = new Command([ $URI: uri ])
         def wantCommand = new Command(
@@ -33,7 +33,7 @@ class ActionTest extends PMSEncoderTestCase {
             ]
         )
 
-        matcher.load(customConfig)
+        matcher.load(script)
 
         assertMatch(
             command,                 // supplied command
