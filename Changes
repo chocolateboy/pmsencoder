@@ -10,7 +10,7 @@
     - DSL: expose HTTP client and PMS
     - add target method to HTTP client to resolve redirects
     - more detailed logging
-    - simplify global overrides with a Default profile
+    - simplify global overrides with a default profile
     - add changelog
 
 1.1.0 2010-07-24

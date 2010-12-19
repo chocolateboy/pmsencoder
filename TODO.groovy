@@ -48,3 +48,40 @@
 
         private static final def URI = "URI"
 */
+
+/*
+    wire dependencies lazily so that we don't have to re-order/predeclare profiles
+
+    ditto replacements?
+
+    What if something now declares itself as coming after/before (e.g.) YouTube DL?
+
+    FIXME: need some sort of alias map for replacements:
+
+    if we have TED and YouTube:
+
+    profiles:
+
+        key:     profile
+        TED:     TED
+        YouTube: YouTube
+
+    - and then replace YouTube with YouTube DL:
+
+    profiles:
+
+        key:     profile
+        TED:     TED
+        YouTube: YouTube DL
+
+    aliases:
+
+        profile:    key
+        YouTube DL: YouTube
+
+    XXX We need a topological (rather than lexical) ordering for replacements
+
+    resolve all this in the validate/resolve method (currently Config.verifyDependencies) called from Config.match
+*/
+
+// use maven-external-dependency-plugin to obviate the need to locally install PMS and RegExPlus
