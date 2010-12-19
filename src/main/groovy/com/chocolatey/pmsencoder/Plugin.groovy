@@ -1,6 +1,7 @@
 @Typed
 package com.chocolatey.pmsencoder
 
+import groovy.swing.SwingBuilder
 import static groovy.io.FileType.FILES
 
 import javax.swing.JComponent
@@ -19,18 +20,24 @@ public class Plugin implements StartStopListener {
     private static final String VERSION = '1.2.0'
     private static final String PMSENCODER_SCRIPT_DIRECTORY = 'pmsencoder_script_directory'
     private static final String PMSENCODER_LOG_CONFIG = 'pmsencoder_log_config'
-
+    private int userScripts
+    private String scriptDirectory
+    private String currentDirectory
+    private URL defaultScript
     private PmsConfiguration configuration
     private PMS pms
+    private Engine pmsencoder
 
     public Plugin() {
         PMS.minimal('initializing PMSEncoder ' + VERSION)
         pms = PMS.get()
         configuration = PMS.getConfiguration()
+        currentDirectory = new File('').getAbsolutePath()
+        defaultScript = this.getClass().getResource('/pmsencoder.groovy')
 
         // get optional overrides from PMS.conf
         def customLogConfigPath = (configuration.getCustomProperty(PMSENCODER_LOG_CONFIG) as String)
-        def scriptDirectory = (configuration.getCustomProperty(PMSENCODER_SCRIPT_DIRECTORY) as String)
+        scriptDirectory = (configuration.getCustomProperty(PMSENCODER_SCRIPT_DIRECTORY) as String)
 
         // set up log4j
         def customLogConfig
@@ -69,17 +76,8 @@ public class Plugin implements StartStopListener {
             loadDefaultLogConfig()
         }
 
-        // load default script and user scripts
-        def matcher = new Matcher(pms)
-
-        try {
-            loadScripts(matcher, scriptDirectory)
-        } catch (Exception e) {
-            PMS.error('error loading scripts', e)
-        }
-
         // initialize the transcoding Engine
-        def pmsencoder = new Engine(configuration, matcher)
+        pmsencoder = new Engine(configuration)
 
         /*
          * FIXME: don't assume the position is fixed
@@ -89,22 +87,26 @@ public class Plugin implements StartStopListener {
         def extensions = pms.getExtensions()
         extensions.set(0, new WEB())
         registerPlayer(pmsencoder)
+
+        // load scripts and assign the matcher to the transcoder
+        createMatcher()
     }
 
-    private void registerPlayer(Engine pmsencoder) {
+    private void createMatcher() {
+        def matcher = new Matcher(pms)
+
+        userScripts = 0
+
         try {
-            def pmsRegisterPlayer = pms.getClass().getDeclaredMethod('registerPlayer', Player.class)
-            pmsRegisterPlayer.setAccessible(true)
-            pmsRegisterPlayer.invoke(pms, pmsencoder)
-        } catch (Throwable e) {
-            PMS.minimal('error calling PMS.registerPlayer: ' + e)
+            loadScripts(matcher)
+        } catch (Exception e) {
+            PMS.error('error loading scripts', e)
         }
+
+        pmsencoder.setMatcher(matcher)
     }
 
-    private void loadScripts(Matcher matcher, String scriptDirectory) {
-        def currentDirectory = new File('').getAbsolutePath()
-        def defaultScript = this.getClass().getResource('/pmsencoder.groovy')
-
+    private void loadScripts(Matcher matcher) {
         loadScript(matcher, defaultScript)
 
         if (scriptDirectory != null) {
@@ -130,8 +132,9 @@ public class Plugin implements StartStopListener {
                 def file = script as File
 
                 if (file.exists()) {
-                    PMS.minimal('loading script: ' + file)
+                    PMS.minimal('loading userscript: ' + file)
                     matcher.load(file)
+                    ++userScripts
                 }
             }
         } catch (Throwable e) {
@@ -139,14 +142,27 @@ public class Plugin implements StartStopListener {
         }
     }
 
-    @Override
-    public String name() {
-        return 'PMSEncoder plugin for PS3 Media Server'
+    private void registerPlayer(Engine pmsencoder) {
+        try {
+            def pmsRegisterPlayer = pms.getClass().getDeclaredMethod('registerPlayer', Player.class)
+            pmsRegisterPlayer.setAccessible(true)
+            pmsRegisterPlayer.invoke(pms, pmsencoder)
+        } catch (Throwable e) {
+            PMS.minimal('error calling PMS.registerPlayer: ' + e)
+        }
     }
 
     @Override
-    public JComponent config() { // no config GUI (though Griffon would make this bearable)
+    public JComponent config() {
+        if (userScripts > 0) {
+            createMatcher()
+        }
         return null
+    }
+
+    @Override
+    public String name() {
+        return 'PMSEncoder plugin for PS3 Media Server'
     }
 
     @Override

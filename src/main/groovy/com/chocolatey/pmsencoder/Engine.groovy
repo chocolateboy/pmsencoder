@@ -38,10 +38,13 @@ public class Engine extends MEncoderWebVideo {
         ID
     }
 
-    public Engine(PmsConfiguration configuration, Matcher matcher) {
+    public void setMatcher(Matcher matcher) {
+        this.matcher = matcher
+    }
+
+    public Engine(PmsConfiguration configuration) {
         super(configuration)
         this.configuration = configuration
-        this.matcher = matcher
         this.log = Logger.getLogger(this.getClass().getName())
     }
 
