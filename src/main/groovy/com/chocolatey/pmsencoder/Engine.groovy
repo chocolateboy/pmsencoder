@@ -19,7 +19,7 @@ import org.apache.log4j.Logger
 public class Engine extends MEncoderWebVideo {
     public static final String ID = 'pmsencoder'
     private static final boolean isWindows = PMS.get().isWindows()
-    private Matcher matcher
+    private Plugin plugin
     private final PmsConfiguration configuration
     private Logger log
 
@@ -38,13 +38,10 @@ public class Engine extends MEncoderWebVideo {
         ID
     }
 
-    public void setMatcher(Matcher matcher) {
-        this.matcher = matcher
-    }
-
-    public Engine(PmsConfiguration configuration) {
+    public Engine(PmsConfiguration configuration, Plugin plugin) {
         super(configuration)
         this.configuration = configuration
+        this.plugin = plugin
         this.log = Logger.getLogger(this.getClass().getName())
     }
 
@@ -123,7 +120,7 @@ public class Engine extends MEncoderWebVideo {
         log.info('invoking matcher for: ' + uri)
 
         try {
-            matcher.match(command)
+            plugin.match(command)
         } catch (Throwable e) {
             log.error('match error: ' + e)
             PMS.error('match error', e)

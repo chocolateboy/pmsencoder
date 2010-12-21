@@ -1,18 +1,18 @@
-1.2.0 TBC
-    - overhaul the DSL implementation so that it's evaluated at runtime rather than compile-time
-    - allow GStrings and arbitrary expressions to be used in the DSL
+1.2.0 2010-12-21
+    - DSL: overhaul the implementation so that it's evaluated at runtime rather than compile-time
+    - DSL: allow GStrings and arbitrary expressions to be used
     - allow command-lines to be set for a downloader, transcoder, or both
     - allow a custom log4jconfig to be used (e.g. custom logfile name/path)
     - allow a script directory to be used
     - YouTube fix
     - add support for profile dependencies
-    - enhanced and added pattern and action methods
+    - DSL: enhanced and added pattern and action methods
     - DSL: expose HTTP client and PMS
     - add target method to HTTP client to resolve redirects
     - more detailed logging
     - simplify global overrides with a default profile
     - add changelog
-    - clicking the plugin button on the General Configuration tab reloads scripts 
+    - scripts can be made hot-swappable
 
 1.1.0 2010-07-24
     - YouTube fix (change to the get_video API)

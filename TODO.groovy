@@ -11,10 +11,8 @@
         format: 'html' // default if xpath is defined
     )
 
-/* make scripts hot-swappable */
-
 /*
-    wrap profile/script evaluation in try/catch blocks so that errors can be recovered from
+    wrap profile evaluation in a try/catch block so errors don't affect the rest of the script
 */
 
 /*
@@ -26,20 +24,14 @@
 
 */
 
-// test profile extends: ...
+// 100% test coverage
 
 /*
     infinite loop/stack overflow in maven assembly plugin (in Plexus Archiver) with
     Groovy++ 0.2.26: https://groups.google.com/group/groovyplusplus/msg/a765fe77975650db
 */
 
-/*
-    script management:
-
-        simple: pmsencoder script directory rather than a single script
-        better: pmsencoder script repositories i.e. add/remove URIs of PMSEncoder script directories
-        disable/enable scripts through the Swing UI (cf. GreaseMonkey)
-*/
+// script management: disable/enable scripts through the Swing UI (cf. GreaseMonkey)
 
 /*
     fix the sigil mess - the whole thing is a workaround for the URI property conflicting with the class
@@ -83,5 +75,3 @@
 
     resolve all this in the validate/resolve method (currently Config.verifyDependencies) called from Config.match
 */
-
-// use maven-external-dependency-plugin to obviate the need to locally install PMS and RegExPlus

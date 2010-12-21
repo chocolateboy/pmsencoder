@@ -14,30 +14,68 @@ import net.pms.external.StartStopListener
 import net.pms.formats.Format
 import net.pms.PMS
 
+import no.geosoft.cc.io.FileListener
+import no.geosoft.cc.io.FileMonitor
+
 import org.apache.log4j.xml.DOMConfigurator
 
-public class Plugin implements StartStopListener {
+public class Plugin implements StartStopListener, FileListener {
     private static final String VERSION = '1.2.0'
-    private static final String PMSENCODER_SCRIPT_DIRECTORY = 'pmsencoder_script_directory'
-    private static final String PMSENCODER_LOG_CONFIG = 'pmsencoder_log_config'
-    private int userScripts
-    private String scriptDirectory
-    private String currentDirectory
-    private URL defaultScript
+    private static final String DEFAULT_SCRIPT_DIRECTORY = 'pmsencoder'
+    private static final String LOG_CONFIG = 'pmsencoder.log.config'
+    private static final String SCRIPT_DIRECTORY = 'pmsencoder.script.directory'
+    private static final String SCRIPT_POLL = 'pmsencoder.script.poll'
+    // 1 second is flaky - it results in overlapping file change events
+    private static final int MIN_SCRIPT_POLL_INTERVAL = 2
+    private Engine pmsencoder
+    private FileMonitor fileMonitor
+    private File scriptDirectory
+    private long scriptPollInterval
+    private Matcher matcher
     private PmsConfiguration configuration
     private PMS pms
-    private Engine pmsencoder
+    private URL defaultScript
 
     public Plugin() {
-        PMS.minimal('initializing PMSEncoder ' + VERSION)
+        info('initializing PMSEncoder ' + VERSION)
         pms = PMS.get()
         configuration = PMS.getConfiguration()
-        currentDirectory = new File('').getAbsolutePath()
         defaultScript = this.getClass().getResource('/pmsencoder.groovy')
 
         // get optional overrides from PMS.conf
-        def customLogConfigPath = (configuration.getCustomProperty(PMSENCODER_LOG_CONFIG) as String)
-        scriptDirectory = (configuration.getCustomProperty(PMSENCODER_SCRIPT_DIRECTORY) as String)
+        def customLogConfigPath = (configuration.getCustomProperty(LOG_CONFIG) as String)
+        def candidateScriptDirectory = (configuration.getCustomProperty(SCRIPT_DIRECTORY) as String)
+        def candidateScriptPollInterval = (configuration.getCustomProperty(SCRIPT_POLL) as int) ?: 0
+
+        if (candidateScriptDirectory != null) {
+            def candidateScriptDirectoryFile = new File(candidateScriptDirectory)
+
+            if (directoryExists(candidateScriptDirectoryFile)) {
+                scriptDirectory = candidateScriptDirectoryFile.getAbsoluteFile()
+            } else {
+                def absPath = candidateScriptDirectoryFile.getAbsolutePath()
+                error("invalid path for script directory ($absPath): no such directory", null)
+            }
+        } else {
+            def candidateScriptDirectoryFile = new File(DEFAULT_SCRIPT_DIRECTORY)
+
+            if (directoryExists(candidateScriptDirectoryFile)) {
+                scriptDirectory = candidateScriptDirectoryFile.getAbsoluteFile()
+            }
+        }
+
+        if (scriptDirectory != null) {
+            info("script directory: $scriptDirectory")
+
+            if (candidateScriptPollInterval > 0) {
+                if (candidateScriptPollInterval < MIN_SCRIPT_POLL_INTERVAL) {
+                    candidateScriptPollInterval = MIN_SCRIPT_POLL_INTERVAL
+                }
+                info("setting polling interval to $candidateScriptPollInterval seconds")
+                scriptPollInterval = (candidateScriptPollInterval * 1000) as long
+                monitorScriptDirectory()
+            }
+        }
 
         // set up log4j
         def customLogConfig
@@ -45,39 +83,43 @@ public class Plugin implements StartStopListener {
         if (customLogConfigPath != null) {
             def customLogConfigFile = new File(customLogConfigPath)
 
-            if (customLogConfigFile.exists()) {
-                customLogConfig = customLogConfigPath
+            if (fileExists(customLogConfigFile)) {
+                customLogConfig = customLogConfigFile.getAbsolutePath()
             } else {
-                PMS.error("invalid path for log4j config file ($customLogConfigPath): file doesn't exist", null)
+                def absPath = customLogConfigFile.getAbsolutePath()
+                error("invalid path for log4j config file ($absPath): no such file", null)
             }
         }
 
         Closure loadDefaultLogConfig = {
-            PMS.minimal('loading built-in log4j config file')
             def defaultLogConfig = this.getClass().getResource('/log4j.xml')
+            info("loading built-in log4j config file: $defaultLogConfig")
 
             try {
                 DOMConfigurator.configure(defaultLogConfig)
             } catch (Exception e) {
-                PMS.error("error loading built-in log4j config file ($defaultLogConfig)", e)
+                error("error loading built-in log4j config file ($defaultLogConfig)", e)
             }
         }
 
         if (customLogConfig != null) {
-            PMS.minimal("loading custom log4j config file: $customLogConfig")
+            info("loading custom log4j config file: $customLogConfig")
 
             try {
                 DOMConfigurator.configure(customLogConfig)
             } catch (Exception e) {
-                PMS.error("error loading log4j config file ($customLogConfig)", e)
+                error("error loading log4j config file ($customLogConfig)", e)
                 loadDefaultLogConfig()
             }
         } else {
             loadDefaultLogConfig()
         }
 
+        // make sure we have a matcher before we create the transcoder
+        createMatcher()
+
         // initialize the transcoding Engine
-        pmsencoder = new Engine(configuration)
+        pmsencoder = new Engine(configuration, this)
 
         /*
          * FIXME: don't assume the position is fixed
@@ -87,58 +129,74 @@ public class Plugin implements StartStopListener {
         def extensions = pms.getExtensions()
         extensions.set(0, new WEB())
         registerPlayer(pmsencoder)
+    }
 
-        // load scripts and assign the matcher to the transcoder
+    private boolean fileExists(File file) {
+        (file != null) && file.exists() && file.isFile()
+    }
+
+    private boolean directoryExists(File file) {
+        (file != null) && file.exists() && file.isDirectory()
+    }
+
+    private void info(String message) {
+        PMS.minimal("PMSEncoder: $message")
+    }
+
+    private void error(String message, Exception e) {
+        PMS.error("PMSEncoder: $message", e)
+    }
+
+    private void monitorScriptDirectory() {
+        fileMonitor = new FileMonitor(scriptPollInterval)
+        fileMonitor.addFile(scriptDirectory)
+        fileMonitor.addListener(this)
+    }
+
+    public void fileChanged(File file) {
+        info("$file has changed; reloading scripts")
         createMatcher()
     }
 
-    private void createMatcher() {
-        def matcher = new Matcher(pms)
-
-        userScripts = 0
+    private synchronized void createMatcher() {
+        matcher = new Matcher(pms)
 
         try {
-            loadScripts(matcher)
+            loadScripts()
         } catch (Exception e) {
-            PMS.error('error loading scripts', e)
+            error('error loading scripts', e)
         }
-
-        pmsencoder.setMatcher(matcher)
     }
 
-    private void loadScripts(Matcher matcher) {
-        loadScript(matcher, defaultScript)
+    private void loadScripts() {
+        loadScript(defaultScript)
 
-        if (scriptDirectory != null) {
-            PMS.minimal("loading scripts from: $scriptDirectory")
+        if (directoryExists(scriptDirectory)) {
+            info("loading scripts from: $scriptDirectory")
 
-            new File(scriptDirectory).eachFileRecurse(FILES) { File file ->
+            scriptDirectory.eachFileRecurse(FILES) { File file ->
                 if (file.getName().endsWith('.groovy')) {
-                    loadScript(matcher, file)
+                    loadScript(file)
                 }
             }
-        } else {
-            // loadScript checks for the file's existence
-            loadScript(matcher, new File('pmsencoder.groovy'))
         }
     }
 
-    private void loadScript(Matcher matcher, Object script) { // script is either a URL or a File
+    private void loadScript(URL script) {
+        info("loading built-in script: $script")
         try {
-            if (script instanceof URL) {
-                PMS.minimal('loading built-in script')
-                matcher.load(script as URL)
-            } else {
-                def file = script as File
+            matcher.load(script)
+        } catch (Exception e) {
+            error("can't load built-in script: $script", e)
+        }
+    }
 
-                if (file.exists()) {
-                    PMS.minimal('loading userscript: ' + file)
-                    matcher.load(file)
-                    ++userScripts
-                }
-            }
-        } catch (Throwable e) {
-            PMS.error("can't load PMSEncoder script: " + script, e)
+    private void loadScript(File script) {
+        info("loading user script: $script")
+        try {
+            matcher.load(script)
+        } catch (Exception e) {
+            error("can't load user script: $script", e)
         }
     }
 
@@ -147,16 +205,17 @@ public class Plugin implements StartStopListener {
             def pmsRegisterPlayer = pms.getClass().getDeclaredMethod('registerPlayer', Player.class)
             pmsRegisterPlayer.setAccessible(true)
             pmsRegisterPlayer.invoke(pms, pmsencoder)
-        } catch (Throwable e) {
-            PMS.minimal('error calling PMS.registerPlayer: ' + e)
+        } catch (Exception e) {
+            info('error calling PMS.registerPlayer: ' + e)
         }
+    }
+
+    public boolean match(Command command) {
+        matcher.match(command)
     }
 
     @Override
     public JComponent config() {
-        if (userScripts > 0) {
-            createMatcher()
-        }
         return null
     }
 
@@ -177,6 +236,8 @@ public class Plugin implements StartStopListener {
 
     @Override
     public void shutdown () {
-        // nothing to do
+        if (fileMonitor != null) {
+            fileMonitor.stop()
+        }
     }
 }
