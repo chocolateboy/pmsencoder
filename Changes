@@ -1,4 +1,4 @@
-1.2.0 2010-12-21
+1.2.0 2010-12-22
     - DSL: overhaul the implementation so that it's evaluated at runtime rather than compile-time
     - DSL: allow GStrings and arbitrary expressions to be used
     - allow command-lines to be set for a downloader, transcoder, or both
