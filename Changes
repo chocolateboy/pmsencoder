@@ -1,3 +1,6 @@
+1.2.1 Thu Dec 23 18:29:36 2010
+    - fix custom logfile issue - thanks Osirix X
+
 1.2.0 2010-12-22
     - DSL: overhaul the implementation so that it's evaluated at runtime rather than compile-time
     - DSL: allow GStrings and arbitrary expressions to be used
@@ -18,7 +21,7 @@
     - YouTube fix (change to the get_video API)
 
 1.0.1 2010-05-10
-    - bloatfix: don't keep HTTP cache around for longer than a block of actions 
+    - bloatfix: don't keep HTTP cache around for longer than a block of actions
 
 1.0.0 2010-05-10
     - initial release

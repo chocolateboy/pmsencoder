@@ -10,7 +10,7 @@ These instructions assume you have the [latest version](http://ps3mediaserver.or
 
 # Installation <a name="Install"></a>
 
-* download the [PMSEncoder jar file](http://github.com/downloads/chocolateboy/pmsencoder/pmsencoder-1.2.0.jar) and place it in the PMS `plugins` directory
+* download the [PMSEncoder jar file](http://github.com/downloads/chocolateboy/pmsencoder/pmsencoder-1.2.1.jar) and place it in the PMS `plugins` directory
 * shut down PMS and add `pmsencoder` to the front of the list of engines in PMS.conf e.g.
   * `engines = pmsencoder,mencoder,tsmuxer,mplayeraudio` &c.
 * restart PMS
@@ -64,7 +64,7 @@ For more details, discussion and troubleshooting tips, see the [wiki](http://wik
 
 # Version <a name="Version"></a>
 
-1.2.0
+1.2.1
 
 # License <a name="License"></a>
 
