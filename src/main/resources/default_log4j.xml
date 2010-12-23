@@ -2,18 +2,21 @@
 <!DOCTYPE log4j:configuration SYSTEM "log4j.dtd">
 
 <log4j:configuration xmlns:log4j="http://jakarta.apache.org/log4j/">
-    <appender name="console" class="org.apache.log4j.ConsoleAppender"> 
-        <param name="Target" value="System.out"/> 
-        <layout class="org.apache.log4j.PatternLayout"> 
-            <param name="ConversionPattern" value="%-5p %c{1} - %m%n"/> 
-        </layout> 
-    </appender> 
+    <appender name="console" class="org.apache.log4j.ConsoleAppender">
+        <param name="Target" value="System.out"/>
+        <layout class="org.apache.log4j.PatternLayout">
+            <param name="ConversionPattern" value="%-5p %c{1} - %m%n"/>
+        </layout>
+    </appender>
 
-    <appender name="logfile" class="org.apache.log4j.FileAppender">
+    <appender name="logfile" class="org.apache.log4j.RollingFileAppender">
         <param name="File" value="pmsencoder.log"/>
+        <param name="Append" value="false" />
+        <param name="MaxFileSize" value="1MB"/>
+        <param name="MaxBackupIndex" value="2"/>
         <layout class="org.apache.log4j.PatternLayout">
             <param name="ConversionPattern"
-                value="%d{yyyy-MM-dd HH:mm:ss} [%p|%c{1}|%M]: %m%n"/>
+                value="%d{yyyy-MM-dd HH:mm:ss} [%p|%c{1}|%M|%t]: %m%n"/>
         </layout>
     </appender>
 
@@ -22,7 +25,7 @@
     </category>
 
     <!-- Use DEBUG to see basic request/response info; Use TRACE to see headers for HttpURLClient. -->
-             
+
     <category name="groovyx.net.http.HttpURLClient">
         <priority value="DEBUG" />
     </category>
@@ -39,8 +42,8 @@
     </category>
     -->
 
-    <root> 
-        <priority value ="info" /> 
-        <appender-ref ref="logfile" /> 
+    <root>
+        <priority value="INFO" />
+        <appender-ref ref="logfile" />
     </root>
 </log4j:configuration>

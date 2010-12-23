@@ -12,7 +12,7 @@ abstract class PMSEncoderTestCase extends GroovyTestCase {
     protected PMS pms
 
     void setUp() {
-        def log4jConfig = this.getClass().getResource('/log4j_test.xml')
+        def log4jConfig = this.getClass().getResource('/test_log4j.xml')
         def pmsencoderConfig = this.getClass().getResource('/pmsencoder.groovy')
 
         new MockUp<PmsConfiguration>() {

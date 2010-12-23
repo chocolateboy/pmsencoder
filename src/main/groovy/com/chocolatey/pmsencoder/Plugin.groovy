@@ -1,7 +1,6 @@
 @Typed
 package com.chocolatey.pmsencoder
 
-import groovy.swing.SwingBuilder
 import static groovy.io.FileType.FILES
 
 import javax.swing.JComponent
@@ -92,7 +91,9 @@ public class Plugin implements StartStopListener, FileListener {
         }
 
         Closure loadDefaultLogConfig = {
-            def defaultLogConfig = this.getClass().getResource('/log4j.xml')
+            // XXX squashed bug - don't call this log4j.xml, as, by default,
+            // log4j attempts to load log4j.properties and log4j.xml automatically
+            def defaultLogConfig = this.getClass().getResource('/default_log4j.xml')
             info("loading built-in log4j config file: $defaultLogConfig")
 
             try {

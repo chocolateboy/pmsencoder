@@ -9,6 +9,14 @@
         </layout>
     </appender>
 
+    <appender name="logfile" class="org.apache.log4j.FileAppender">
+        <param name="File" value="pmsencoder.log"/>
+        <layout class="org.apache.log4j.PatternLayout">
+            <param name="ConversionPattern"
+                value="%d{yyyy-MM-dd HH:mm:ss} [%p|%c{1}|%M]: %m%n"/>
+        </layout>
+    </appender>
+
     <category name="groovyx.net.http">
         <priority value="DEBUG" />
     </category>
@@ -32,7 +40,7 @@
     -->
 
     <root>
-        <priority value="INFO" />
-        <appender-ref ref="console" />
+        <priority value ="info" />
+        <appender-ref ref="logfile" />
     </root>
 </log4j:configuration>

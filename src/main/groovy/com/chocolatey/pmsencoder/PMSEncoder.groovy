@@ -510,26 +510,6 @@ public class CommandDelegate extends ScriptDelegate {
 
     // DSL properties
 
-    // $COMMAND: read-only
-    protected Command get$COMMAND() {
-        command
-    }
-
-    // $HTTP: read-only
-    protected HTTPClient get$HTTP() {
-        http
-    }
-
-    // $STASH: read-only
-    protected final Stash get$STASH() {
-        command.stash
-    }
-
-    // $PARAMS: read-only
-    public OutputParams get$PARAMS() {
-        command.params
-    }
-
     // DSL accessor ($ARGS): read-only
     protected List<String> get$ARGS() {
         command.args
@@ -540,6 +520,11 @@ public class CommandDelegate extends ScriptDelegate {
     // FIXME: test this!
     protected List<String> set$ARGS(List<String> args) {
         command.args = args.collect { it.toString() } // handle GStrings
+    }
+
+    // $COMMAND: read-only
+    protected Command get$COMMAND() {
+        command
     }
 
     // DSL accessor ($DOWNLOADER): read-only
@@ -567,6 +552,31 @@ public class CommandDelegate extends ScriptDelegate {
         command.downloader = list.collect { it.toString() }
     }
 
+    // $HTTP: read-only
+    protected HTTPClient get$HTTP() {
+        http
+    }
+
+    // $LOGGER: read-only
+    protected org.apache.log4j.Logger get$LOGGER() {
+        log
+    }
+
+    // DSL accessor ($MATCHES): read-only
+    protected List<String> get$MATCHES() {
+        command.matches
+    }
+
+    // $PARAMS: read-only
+    public OutputParams get$PARAMS() {
+        command.params
+    }
+
+    // $STASH: read-only
+    protected final Stash get$STASH() {
+        command.stash
+    }
+
     // DSL accessor ($TRANSCODER): read-only
     protected List<String> get$TRANSCODER() {
         command.transcoder
@@ -577,11 +587,6 @@ public class CommandDelegate extends ScriptDelegate {
     // FIXME: test this!
     protected List<String> set$TRANSCODER(List<String> transcoder) {
         command.transcoder = transcoder.collect { it.toString() } // handle GStrings
-    }
-
-    // DSL accessor ($MATCHES): read-only
-    protected List<String> get$MATCHES() {
-        command.matches
     }
 
     // DSL getter
@@ -640,21 +645,20 @@ class ProfileValidationDelegate extends ScriptDelegate {
     }
 
     // DSL method
-
-    private void pattern(Closure closure) throws PMSEncoderException {
-        if (this.patternBlock == null) {
-            this.patternBlock = closure
-        } else {
-            throw new PMSEncoderException("invalid profile ($name): multiple pattern blocks defined")
-        }
-    }
-
-    // DSL method
     private void action(Closure closure) throws PMSEncoderException {
         if (this.actionBlock == null) {
             this.actionBlock = closure
         } else {
             throw new PMSEncoderException("invalid profile ($name): multiple action blocks defined")
+        }
+    }
+
+    // DSL method
+    private void pattern(Closure closure) throws PMSEncoderException {
+        if (this.patternBlock == null) {
+            this.patternBlock = closure
+        } else {
+            throw new PMSEncoderException("invalid profile ($name): multiple pattern blocks defined")
         }
     }
 
@@ -793,6 +797,8 @@ class Pattern extends CommandDelegate {
         only committed if the whole pattern block succeeds. This is handled
         up the callstack (in Profile.match)
     */
+
+    // DSL method
     @Override // for documentation; Groovy doesn't require it
     @Typed(TypePolicy.DYNAMIC) // XXX try to handle GStrings
     boolean scrape(String regex, Map<String, String> options = [:]) {
