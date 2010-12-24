@@ -168,12 +168,11 @@ public class Engine extends MEncoderWebVideo {
         } else {
             def cmdArray = new String[ transcoderArgs.size() ]
             transcoderArgs.toArray(cmdArray)
-            log.info('transcoder command: ' + Arrays.toString(cmdArray))
             pw = new ProcessWrapperImpl(cmdArray, params)
-        }
-
-        if ((downloaderArgs != null) && !isWindows) {
-            handleDownloadUnix(pw, downloaderArgs, downloaderOutputBasename)
+            if ((downloaderArgs != null) && !isWindows) {
+                handleDownloadUnix(pw, downloaderArgs, downloaderOutputBasename)
+            }
+            log.info('transcoder command: ' + Arrays.toString(cmdArray))
         }
 
         // create the transcoder's mkfifo process
