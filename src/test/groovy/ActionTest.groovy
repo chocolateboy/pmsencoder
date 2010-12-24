@@ -41,4 +41,24 @@ class ActionTest extends PMSEncoderTestCase {
             [ 'Stringify Values' ],  // expected matches
         )
     }
+
+    // this went missing at some stage - make sure it stays put
+    void testSetString() {
+        def script = this.getClass().getResource('/action.groovy')
+        def uri = 'http://set.string.com'
+        def command = new Command([ $URI: uri ])
+        def wantCommand = new Command(
+            [ $URI: uri ],
+            [ '-nocache' ]
+        )
+
+        matcher.load(script)
+
+        assertMatch(
+            command,           // supplied command
+            wantCommand,       // expected command
+            [ 'Set String' ],  // expected matches
+        )
+    }
+
 }

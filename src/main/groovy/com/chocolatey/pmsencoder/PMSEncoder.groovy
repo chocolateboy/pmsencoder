@@ -838,6 +838,12 @@ class Action extends CommandDelegate {
         map.each { name, value -> setArg(name.toString(), value.toString()) }
     }
 
+    // DSL method
+    @Typed(TypePolicy.DYNAMIC) // XXX try to handle GStrings
+    void set(String name) {
+        setArg(name.toString(), null)
+    }
+
     // set a transcoder option - create it if it doesn't exist
     // DSL method
     @Typed(TypePolicy.MIXED) // XXX try to handle GStrings

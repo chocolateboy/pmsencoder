@@ -22,4 +22,14 @@ script {
             set '-quux': null
         }
     }
+
+    profile ('Set String') {
+        pattern {
+            domain 'set.string.com'
+        }
+
+        action {
+            set '-nocache'
+        }
+    }
 }

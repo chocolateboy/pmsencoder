@@ -81,7 +81,7 @@ public class Engine extends MEncoderWebVideo {
     private void mkfifo(ProcessWrapperImpl pw, ProcessWrapper process) {
         process.runInNewThread()
         pw.attachProcess(process)
-        sleepFor(150)
+        sleepFor(200)
     }
 
     @Override
@@ -172,6 +172,10 @@ public class Engine extends MEncoderWebVideo {
             pw = new ProcessWrapperImpl(cmdArray, params)
         }
 
+        if ((downloaderArgs != null) && !isWindows) {
+            handleDownloadUnix(pw, downloaderArgs, downloaderOutputBasename)
+        }
+
         // create the transcoder's mkfifo process
         // note: we could set this thread running before calling the match() method
         def pipe = mkfifo(pw, new PipeProcess(transcoderOutputBasename))
@@ -181,12 +185,8 @@ public class Engine extends MEncoderWebVideo {
         // create a mkfifo process
         params.input_pipes[0] = pipe
 
-        if ((downloaderArgs != null) && !isWindows) {
-            handleDownloadUnix(pw, downloaderArgs, downloaderOutputBasename)
-        }
-
         pw.runInNewThread()
-        sleepFor(100)
+        sleepFor(200)
         return pw
     }
 
