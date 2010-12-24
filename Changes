@@ -1,5 +1,6 @@
 1.2.1 Thu Dec 23 18:29:36 2010
     - fix custom logfile issue - thanks Osirix X
+    - DSL: expose log4j logger
 
 1.2.0 2010-12-22
     - DSL: overhaul the implementation so that it's evaluated at runtime rather than compile-time
