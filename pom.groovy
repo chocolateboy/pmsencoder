@@ -2,7 +2,7 @@ project {
     modelVersion '4.0.0'
     groupId 'com.chocolatey.pmsencoder'
     artifactId 'pmsencoder'
-    version '1.2.1'
+    version '1.2.2'
     name 'PMSEncoder'
     description 'A plugin for PS3 Media Server that adds support for scriptable web video streaming.'
 

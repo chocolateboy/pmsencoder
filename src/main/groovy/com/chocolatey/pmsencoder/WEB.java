@@ -1,7 +1,5 @@
 package com.chocolatey.pmsencoder;
 
-import com.chocolatey.pmsencoder.Engine;
-
 import java.util.ArrayList;
 
 import net.pms.encoders.Player;

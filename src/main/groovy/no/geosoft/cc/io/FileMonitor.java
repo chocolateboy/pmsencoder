@@ -18,7 +18,6 @@ package no.geosoft.cc.io;
 
 import java.util.*;
 import java.io.File;
-import java.lang.Math;
 import java.lang.ref.WeakReference;
 
 /**
