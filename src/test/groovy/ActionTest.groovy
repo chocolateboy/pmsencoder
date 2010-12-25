@@ -3,62 +3,39 @@ package com.chocolatey.pmsencoder
 
 class ActionTest extends PMSEncoderTestCase {
     void testScrapeURI() {
-        def script = this.getClass().getResource('/action.groovy')
         def uri = 'http://action.com'
-        def command = new Command([ $URI: uri ])
-        def wantCommand = new Command(
-            [ $URI: uri, $rfc: '2606' ], []
-        )
-
-        matcher.load(script)
-
-        assertMatch(
-            command,       // supplied command
-            wantCommand,   // expected command
-            [ 'Scrape' ],  // expected matches
-        )
+        assertMatch([
+            script: '/action.groovy',
+            uri:    uri,
+            wantStash: [
+                $URI: uri,
+                $rfc: '2606'
+            ],
+            matches: [ 'Scrape' ]
+        ])
     }
 
     void testStringifyValues() {
-        def script = this.getClass().getResource('/action.groovy')
-        def uri = 'http://stringify.values.com'
-        def command = new Command([ $URI: uri ])
-        def wantCommand = new Command(
-            [ $URI: uri ],
-            [
+        assertMatch([
+            script: '/action.groovy',
+            uri:    'http://stringify.values.com',
+            wantArgs: [
                 '-foo',  '42',
                 '-bar',  '3.1415927',
                 '-baz',  'true',
                 '-quux', 'null'
-            ]
-        )
-
-        matcher.load(script)
-
-        assertMatch(
-            command,                 // supplied command
-            wantCommand,             // expected command
-            [ 'Stringify Values' ],  // expected matches
-        )
+            ],
+            matches: [ 'Stringify Values' ]
+        ])
     }
 
     // this went missing at some stage - make sure it stays put
     void testSetString() {
-        def script = this.getClass().getResource('/action.groovy')
-        def uri = 'http://set.string.com'
-        def command = new Command([ $URI: uri ])
-        def wantCommand = new Command(
-            [ $URI: uri ],
-            [ '-nocache' ]
-        )
-
-        matcher.load(script)
-
-        assertMatch(
-            command,           // supplied command
-            wantCommand,       // expected command
-            [ 'Set String' ],  // expected matches
-        )
+        assertMatch([
+            script:   '/action.groovy',
+            uri:      'http://set.string.com',
+            wantArgs: [ '-nocache' ],
+            matches:  [ 'Set String' ]
+        ])
     }
-
 }

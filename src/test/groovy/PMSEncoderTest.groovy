@@ -5,35 +5,34 @@ import net.pms.PMS
 
 class PMSEncoderTest extends PMSEncoderTestCase {
     void testCommandClone() {
-        def command = new Command([ foo: "bar" ], [ "baz", "quux" ])
-        assertNotNull(command)
+        def command = new Command([ foo: 'bar' ], [ 'baz', 'quux' ])
+        assert command != null
         def newCommand = new Command(command)
-        assertNotNull(newCommand)
+        assert newCommand != null
 
-        assertNotSame(command.stash, newCommand.stash)
-        assertNotSame(command.args, newCommand.args)
-        assertNotSame(command, newCommand)
-        assertEquals([ foo: "bar" ], newCommand.stash)
-        assertEquals([ "baz", "quux" ], newCommand.args)
+        assert !command.stash.is(newCommand.stash)
+        assert !command.args.is(newCommand.args)
+        assert !command.is(newCommand)
+        assert newCommand.stash == [ $foo: 'bar' ]
+        assert newCommand.args == [ 'baz', 'quux' ]
     }
 
     void testStashClone() {
-        def stash = new Stash([ foo: "bar" ])
-        assertNotNull(stash)
+        def stash = new Stash([ foo: 'bar' ])
+        assert stash != null
         def newStash = new Stash(stash)
-        assertNotNull(newStash)
-
-        assertNotSame(stash, newStash)
-        assertEquals([ foo: "bar" ], newStash)
+        assert newStash != null
+        assert !stash.is(newStash)
+        assert newStash == [ $foo: 'bar' ]
     }
 
     void testProfileValidationDelegateInitalState() {
         def script = new Script(pms)
-        def delegate = new ProfileValidationDelegate(script, "Test Profile")
+        def delegate = new ProfileValidationDelegate(script, 'Test Profile')
 
-        assertNotNull(delegate)
-        assertEquals("Test Profile", delegate.name)
-        assertNull(delegate.patternBlock)
-        assertNull(delegate.actionBlock)
+        assert delegate != null
+        assert delegate.name == 'Test Profile'
+        assert delegate.patternBlock == null
+        assert delegate.actionBlock == null
     }
 }

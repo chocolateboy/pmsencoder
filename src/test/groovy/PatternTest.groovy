@@ -9,91 +9,54 @@ class PatternTest extends PMSEncoderTestCase {
     }
 
     void testPatternMatchBlock() {
-        def uri = 'http://foo.bar.baz'
-        def command = new Command([ $URI: uri ])
-        def wantCommand = new Command(
-            [ $URI: uri, eq: uri ], []
-        )
+        def uri =  'http://foo.bar.baz'
 
-
-        assertMatch(
-            command,       // supplied command
-            wantCommand,   // expected command
-            [ 'Eq' ],      // expected matches
-        )
+        assertMatch([
+            uri: uri,
+            wantStash: [ $URI: uri, $eq: uri ],
+            matches: [ 'Eq' ]
+        ])
     }
 
     void testPatternMatchKeyString() {
-        def uri = 'http://key.string.com'
-        def command = new Command([ $URI: uri ])
-        def wantCommand = new Command(
-            [ $URI: uri ], []
-        )
-
-        assertMatch(
-            command,          // supplied command
-            wantCommand,      // expected command
-            [ 'Key String' ], // expected matches
-        )
+        assertMatch([
+            uri: 'http://key.string.com',
+            matches: [ 'Key String' ]
+        ])
     }
 
     void testPatternMatchKeyList() {
-        def uri = 'http://key.list.com'
-        def command = new Command([ $URI: uri ])
-        def wantCommand = new Command(
-            [ $URI: uri ], []
-        )
-
-        assertMatch(
-            command,        // supplied command
-            wantCommand,    // expected command
-            [ 'Key List' ], // expected matches
-        )
+        assertMatch([
+            uri: 'http://key.list.com',
+            matches: [ 'Key List' ]
+        ])
     }
 
     void testPatternMatchStringString() {
-        def uri = 'http://string.string.com'
-        def command = new Command([ $URI: uri ])
-        def wantCommand = new Command(
-            [ $URI: uri ], []
-        )
-
-        assertMatch(
-            command,             // supplied command
-            wantCommand,         // expected command
-            [ 'String String' ], // expected matches
-        )
+        assertMatch([
+            uri: 'http://string.string.com',
+            matches: [ 'String String' ]
+        ])
     }
 
     void testPatternMatchStringList() {
-        def uri = 'http://string.list.com'
-        def command = new Command([ $URI: uri ])
-        def wantCommand = new Command(
-            [ $URI: uri ], []
-        )
-
-        assertMatch(
-            command,           // supplied command
-            wantCommand,       // expected command
-            [ 'String List' ], // expected matches
-        )
+        assertMatch([
+            uri: 'http://string.list.com',
+            matches: [ 'String List' ]
+        ])
     }
 
-    void testMatches() {
+    void assertMatch() {
         def uri = 'http://trailers.apple.com/movies/fox_searchlight/127hours/127hours-tlr1_h720p.mov'
-        def command = new Command([ $URI: uri ])
-        def wantCommand = new Command(
-            [ $URI: uri, profile: 'Apple 3' ], [ '-ofps', '24', '-user-agent', 'QuickTime/7.6.2' ]
-        )
-
-        assertMatch(
-            command,       // supplied command
-            wantCommand,   // expected command
-            [              // expected matches
+        assertMatch([
+            uri: uri,
+            wantStash: [ $URI: uri, $profile: 'Apple 3' ],
+            wantArgs: [ '-ofps', '24', '-user-agent', 'QuickTime/7.6.2' ],
+            matches: [
                 'Apple Trailers',
                 'Apple Trailers HD',
                 'Apple 3'
-            ],
-        )
+            ]
+        ])
     }
 }

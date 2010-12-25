@@ -18,7 +18,7 @@ abstract class PMSEncoderTestCase extends GroovyTestCase {
         new MockUp<PmsConfiguration>() {
             @Mock
             public int getNumberOfCpuCores() { 3 }
-        };
+        }
 
         new MockUp<PMS>() {
             static final PmsConfiguration pmsConfig = new PmsConfiguration()
@@ -33,7 +33,7 @@ abstract class PMSEncoderTestCase extends GroovyTestCase {
 
             @Mock
             public static PmsConfiguration getConfiguration() { pmsConfig }
-        };
+        }
 
         pms = PMS.get()
 
@@ -42,15 +42,72 @@ abstract class PMSEncoderTestCase extends GroovyTestCase {
         matcher.load(pmsencoderConfig)
     }
 
-    protected void assertMatch(
-        Command command,
-        Command expectedCommand,
-        List<String> expectedMatches,
-        boolean useDefaultArgs = false
-    ) {
+    protected void assertMatch(Map<String, Object> map) {
+        URL script
+
+        if (map['script'] != null) {
+            if (map['script'] instanceof URL) {
+                script = map['script']
+            } else {
+                script = this.getClass().getResource(map['script'] as String)
+            }
+        }
+
+        Stash stash
+        String uri = map['uri']
+
+        if (uri != null) {
+            stash = [ $URI: uri ]
+        } else if (map['stash'] != null) {
+            stash = map['stash']
+        }
+
+        assert stash != null
+
+        List<String> args = map['args'] ?: []
+        List<String> downloader = map['downloader']
+
+        def wantArgs = map['wantArgs'] ?: args
+        def wantStash = map['wantStash'] ?: stash
+
+        List<String> matches = map['matches'] ?: []
+
+        boolean useDefaultArgs = map['useDefaultArgs'] ?: false
+
+        if (script != null) {
+            matcher.load(script)
+        }
+
+        def command = new Command(stash, args)
         matcher.match(command, useDefaultArgs)
-        assertEquals(expectedCommand.stash, command.stash)
-        assertEquals(expectedCommand.args, command.args)
-        assertEquals(expectedMatches, command.matches)
+
+        /*
+           XXX
+
+            Groovy(++) bug: strongly-typing the wantStash and wantArgs closures
+            results in an exception when the closure contains a String =~ String expression
+            (i.e. returns a Matcher):
+
+                java.lang.ClassCastException: java.util.regex.Matcher cannot be cast to java.lang.Boolean
+
+            This contradicts TFM.
+
+            Loosely-typing them as mere Closures works around this.
+        */
+
+        if (wantStash instanceof Closure) {
+            assert (wantStash as Closure).call(command.stash)
+        } else {
+            assert command.stash == wantStash
+        }
+
+        if (wantArgs instanceof Closure) {
+            assert (wantArgs as Closure).call(command.args)
+        } else {
+            assert command.args == wantArgs
+        }
+
+        assert matches == command.matches
+        assert downloader == command.downloader
     }
 }

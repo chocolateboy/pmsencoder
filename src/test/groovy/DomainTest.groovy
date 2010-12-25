@@ -2,71 +2,51 @@
 package com.chocolatey.pmsencoder
 
 class DomainTest extends PMSEncoderTestCase {
-    private URL script = this.getClass().getResource('/domain.groovy')
+    void setUp() {
+        super.setUp()
+        def script = this.getClass().getResource('/domain.groovy')
+        matcher.load(script)
+    }
 
     void testDomainString() {
-        def uri = 'http://www.domain-string.com'
-        def command = new Command([ $URI: uri ])
-
-        matcher.load(script)
-        // bypass Groovy's annoyingly loose definition of true
-        assertSame(true, matcher.match(command, false)) // false: don't use default transcoder args
-
-        assert command.matches == [ 'Domain String' ]
+        assertMatch([
+            uri: 'http://www.domain-string.com',
+            matches: [ 'Domain String' ]
+        ])
     }
 
     void testDomainList() {
-        def uri = 'http://www.domain-list.com'
-        def command = new Command([ $URI: uri ])
-
-        matcher.load(script)
-        // bypass Groovy's annoyingly loose definition of true
-        assertSame(true, matcher.match(command, false)) // false: don't use default transcoder args
-
-        assert command.matches == [ 'Domain List' ]
+        assertMatch([
+            uri: 'http://www.domain-list.com',
+            matches: [ 'Domain List' ]
+        ])
     }
 
     void testDomainsString() {
-        def uri = 'http://www.domains-string.com'
-        def command = new Command([ $URI: uri ])
-
-        matcher.load(script)
-        // bypass Groovy's annoyingly loose definition of true
-        assertSame(true, matcher.match(command, false)) // false: don't use default transcoder args
-
-        assert command.matches == [ 'Domains String' ]
+        assertMatch([
+            uri: 'http://www.domains-string.com',
+            matches: [ 'Domains String' ]
+        ])
     }
 
     void testDomainsList() {
-        def uri = 'http://www.domains-list.com'
-        def command = new Command([ $URI: uri ])
-
-        matcher.load(script)
-        // bypass Groovy's annoyingly loose definition of true
-        assertSame(true, matcher.match(command, false)) // false: don't use default transcoder args
-
-        assert command.matches == [ 'Domains List' ]
+        assertMatch([
+            uri: 'http://www.domains-list.com',
+            matches: [ 'Domains List' ]
+        ])
     }
 
     void testGotDot() {
-        def uri = 'http://www.dot.com'
-        def command = new Command([ $URI: uri ])
-
-        matcher.load(script)
-        // bypass Groovy's annoyingly loose definition of true
-        assertSame(true, matcher.match(command, false)) // false: don't use default transcoder args
-
-        assert command.matches == [ 'Got Dot' ]
+        assertMatch([
+            uri: 'http://www.dot.com',
+            matches: [ 'Got Dot' ]
+        ])
     }
 
     void testNotDot() {
-        def uri = 'http://www.dotacom'
-        def command = new Command([ $URI: uri ])
-
-        matcher.load(script)
-        // bypass Groovy's annoyingly loose definition of true
-        assertSame(false, matcher.match(command, false)) // false: don't use default transcoder args
-
-        assert command.matches == []
+        assertMatch([
+            uri: 'http://www.dotacom',
+            matches: []
+        ])
     }
 }

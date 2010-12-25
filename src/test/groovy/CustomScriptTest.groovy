@@ -3,163 +3,95 @@ package com.chocolatey.pmsencoder
 
 class CustomScriptTest extends PMSEncoderTestCase {
     void testOverrideDefaultArgs() {
-        def script = this.getClass().getResource('/default_mencoder_args.groovy')
-        def uri = 'http://www.example.com'
-        def command = new Command([ $URI: uri ])
-        def wantCommand = new Command([ $URI: uri ], [ '-foo', '-bar', '-baz', '-quux' ])
-
-        matcher.load(script)
-
-        assertMatch(
-            command,      // supplied command
-            wantCommand,  // expected command
-            [],           // expected matches
-            true          // use default MEncoder args
-        )
+        def uri = 
+        assertMatch([
+            script:         '/default_mencoder_args.groovy',
+            uri:            'http://www.example.com',
+            wantArgs:       [ '-foo', '-bar', '-baz', '-quux' ],
+            useDefaultArgs: true
+        ])
     }
 
     // confirm that the default TED profile works
     void testProfile() {
-        /// XXX clone doesn't work
-        def TEDArgs = new ArrayList<String>(matcher.script.$DEFAULT_TRANSCODER_ARGS)
-        def index = TEDArgs.findIndexOf { it == '25' }
-
-        assert index > -1 // power assert!
+        def TEDArgs = new ArrayList<String>(matcher.script.$DEFAULT_TRANSCODER_ARGS) // XXX clone doesn't work
+        def index = TEDArgs.findIndexOf { it == '25' } // fps
+        assert index > -1
         TEDArgs[index] = '24'
 
-        def uri = 'http://feedproxy.google.com/~r/TEDTalks_video'
-        def command = new Command([ $URI: uri ])
-        def wantCommand = new Command([ $URI: uri ], TEDArgs)
-
-        assertMatch(
-            command,      // supplied command
-            wantCommand,  // expected command
-            [ 'TED' ],    // expected matches
-            true          // use default args
-        )
+        assertMatch([
+            uri:            'http://feedproxy.google.com/~r/TEDTalks_video',
+            wantArgs:       TEDArgs,
+            matches:        [ 'TED' ],
+            useDefaultArgs: true
+        ])
     }
 
     // now confirm that it can be overridden
     void testProfileReplace() {
-        def script = this.getClass().getResource('/profile_replace.groovy')
-        def uri = 'http://feedproxy.google.com/~r/TEDTalks_video'
-        def command = new Command([ $URI: uri ])
         def TEDArgs = new ArrayList<String>(matcher.script.$DEFAULT_TRANSCODER_ARGS)
-        def wantArgs = (TEDArgs + [ '-foo', 'bar' ]) as List<String> // FIXME: type-inference fail (or use Scala)
-        def wantCommand = new Command([ $URI: uri + '/foo/bar.baz' ], wantArgs)
+        def uri = 'http://feedproxy.google.com/~r/TEDTalks_video'
+        List<String> wantArgs = TEDArgs + [ '-foo', 'bar' ] // type-inference fail
 
-        matcher.load(script)
-
-        assertMatch(
-            command,      // supplied command
-            wantCommand,  // expected command
-            [ 'TED' ],    // expected matches
-            true          // use default args
-        )
+        assertMatch([
+            script:        '/profile_replace.groovy',
+            uri:           uri,
+            wantStash:      [ $URI: uri + '/foo/bar.baz' ],
+            wantArgs:       wantArgs,
+            matches:        [ 'TED' ],
+            useDefaultArgs: true
+        ])
     }
 
     void testProfileAppend() {
-        def script = this.getClass().getResource('/profile_append.groovy')
-        def uri = 'http://www.example.com'
-        def command = new Command([ $URI: uri ])
-        def wantCommand = new Command([ $URI: uri ], [ '-an', 'example' ])
-
-        matcher.load(script)
-
-        assertMatch(
-            command,       // supplied command
-            wantCommand,   // expected command
-            [ 'Example' ], // expected matches
-        )
+        assertMatch([
+            script:   '/profile_append.groovy',
+            uri:      'http://www.example.com',
+            wantArgs: [ '-an', 'example' ],
+            matches:  [ 'Example' ]
+        ])
     }
 
     void testGStrings() {
-        def script = this.getClass().getResource('/gstrings.groovy')
-        def uri = 'http://www.example.com'
-        def command = new Command([ $URI: uri ])
-        def wantCommand = new Command(
-            [
-                action:  'Hello, world!',
-                domain:  'example',
-                key:     'key',
-                n:       '41',
-                pattern: 'Hello, world!',
-                $URI:    'http://www.example.com/example/key/value/42',
-                value:   'value'
+        assertMatch([
+            script:    '/gstrings.groovy',
+            uri:       'http://www.example.com',
+            wantStash: [
+                $action:  'Hello, world!',
+                $domain:  'example',
+                $key:     'key',
+                $n:       '41',
+                $pattern: 'Hello, world!',
+                $URI:     'http://www.example.com/example/key/value/42',
+                $value:   'value'
             ],
-            [ '-key', 'key', '-value', 'value' ]
-        )
-
-        matcher.load(script)
-
-        assertMatch(
-            command,        // supplied command
-            wantCommand,    // expected command
-            [ 'GStrings' ], // expected matches
-        )
+            wantArgs:  [ '-key', 'key', '-value', 'value' ],
+            matches :  [ 'GStrings' ]
+        ])
     }
 
     void testGString() {
-        def script = this.getClass().getResource('/gstring_scope.groovy')
-        def uri = 'http://www.example.com'
-        def command = new Command([ $URI: uri ])
-        def wantCommand = new Command([ $URI: uri ], [ 'config3', 'profile3', 'pattern3', 'action3' ])
-
-        matcher.load(script)
-
-        assertMatch(
-            command,             // supplied command
-            wantCommand,         // expected command
-            [ 'GString Scope' ], // expected matches
-        )
-    }
-
-    void testInterpolationInDefaultMEncoderArgs() {
-        def script = this.getClass().getResource('/gstring_scope.groovy')
-        def uri = 'http://www.example.com'
-        def command = new Command([ $URI: uri ])
-        def wantArgs = [
-            '-prefer-ipv4',
-            '-oac', 'lavc',
-            '-of', 'lavf',
-            '-lavfopts', 'format=dvd',
-            '-ovc', 'lavc',
-            // make sure nbcores is interpolated here as 3 in threads=3
-            '-lavcopts', "vcodec=mpeg2video:vbitrate=4096:threads=3:acodec=ac3:abitrate=128",
-            '-ofps', '25',
-            '-cache', '16384',
-            '-vf', 'harddup'
-        ]
-
-        def wantCommand = new Command([ $URI: uri ], wantArgs)
-
-        assertMatch(
-            command,       // supplied command
-            wantCommand,   // expected command
-            [],            // expected matches
-            true           // use default args
-        )
+        assertMatch([
+            script:   '/gstring_scope.groovy',
+            uri:      'http://www.example.com',
+            wantArgs: [ 'config3', 'profile3', 'pattern3', 'action3' ],
+            matches:  [ 'GString Scope' ]
+        ])
     }
 
     void testDefaultProfileOverride() {
-        def script = this.getClass().getResource('/profile_default.groovy')
-        def uri = 'http://www.example.com'
-        def command = new Command([ $URI: uri ])
         def wantArgs = new ArrayList<String>(matcher.script.$DEFAULT_TRANSCODER_ARGS)
         def index = wantArgs.findIndexOf { it == '-lavcopts' }
-
-        assert index > -1 // power assert!
+        assert index > -1
         // make sure nbcores is interpolated here as 3 in threads=3
         wantArgs[ index + 1 ] = 'vcodec=mpeg2video:vbitrate=4096:threads=3:acodec=ac3:abitrate=384'
 
-        def wantCommand = new Command([ $URI: uri ], wantArgs)
-        matcher.load(script)
-
-        assertMatch(
-            command,       // supplied command
-            wantCommand,   // expected command
-            [ 'Default' ], // expected matches
-            true           // use default args
-        )
+        assertMatch([
+            script:         '/profile_default.groovy',
+            uri:            'http://www.example.com',
+            wantArgs:       wantArgs,
+            matches:        [ 'Default' ],
+            useDefaultArgs: true,
+        ])
     }
 }

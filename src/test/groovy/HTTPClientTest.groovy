@@ -14,22 +14,24 @@ class HTTPClientTest extends PMSEncoderTestCase {
     private HTTPClient http = new HTTPClient()
 
     void testHead() {
-        assertFalse(http.head('http://www.example.com/nosuchfile.com'))
-        assertTrue(http.head('http://www.example.com'))
+        assert http.head('http://www.example.com/nosuchfile.com') == false
+        assert http.head('http://www.example.com') == true
     }
 
     void testGet() {
-        assertNull(http.get('http://www.example.com/nosuchfile.com'))
         def example = http.get('http://www.example.com')
-        assertNotNull(example)
-        assertThat(example, instanceOf(String.class))
-        assert example =~ 'RFC\\s+2606'
+
+        assert http.get('http://www.example.com/nosuchfile.com') == null
+        assert example != null
+        assert example instanceof String
+        assert example =~ /RFC\s+2606/
     }
 
     void testTarget() {
-        assertNull(http.target('http://www.example.com/nosuchfile.com'))
         def target = http.target('http://www.sun.com')
-        assertNotNull(target)
+
+        assert http.target('http://www.example.com/nosuchfile.com') == null
+        assert target != null
         assert target =~ '\\.oracle\\.com/'
     }
 }
