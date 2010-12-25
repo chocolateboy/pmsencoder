@@ -75,5 +75,3 @@
 
     resolve all this in the validate/resolve method (currently Config.verifyDependencies) called from Config.match
 */
-
-// implement/test the String/List interface for $TRANSCODER

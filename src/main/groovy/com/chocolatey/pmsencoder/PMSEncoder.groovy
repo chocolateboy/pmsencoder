@@ -583,10 +583,11 @@ public class CommandDelegate extends ScriptDelegate {
     }
 
     // DSL accessor ($TRANSCODER): read-write
+    // see $DOWNLOADER above for implementation notes
     @Typed(TypePolicy.DYNAMIC) // try to handle GStrings
-    // FIXME: test this!
-    protected List<String> set$TRANSCODER(List<String> transcoder) {
-        command.transcoder = transcoder.collect { it.toString() } // handle GStrings
+    protected List<String> set$TRANSCODER(Object transcoder) {
+        def list = ((transcoder instanceof List) ? transcoder : transcoder.toString().tokenize()) as List
+        command.transcoder = list.collect { it.toString() }
     }
 
     // DSL getter

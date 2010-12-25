@@ -66,6 +66,7 @@ abstract class PMSEncoderTestCase extends GroovyTestCase {
 
         List<String> args = map['args'] ?: []
         List<String> downloader = map['downloader']
+        List<String> transcoder = map['transcoder']
 
         def wantArgs = map['wantArgs'] ?: args
         def wantStash = map['wantStash'] ?: stash
@@ -109,5 +110,6 @@ abstract class PMSEncoderTestCase extends GroovyTestCase {
 
         assert matches == command.matches
         assert downloader == command.downloader
+        assert transcoder == command.transcoder
     }
 }
