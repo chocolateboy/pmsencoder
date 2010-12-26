@@ -715,6 +715,22 @@ class Pattern extends CommandDelegate {
 
     // DSL method
     @Typed(TypePolicy.DYNAMIC) // XXX try to handle GStrings
+    void protocol(String scheme) {
+        if (!matchString($STASH['$URI'], "^${scheme}://")) {
+            throw STOP_MATCHING
+        }
+    }
+
+    // DSL method
+    @Typed(TypePolicy.DYNAMIC) // XXX try to handle GStrings
+    void protocol(List<String> schemes) {
+        if (!(schemes.any { scheme -> matchString($STASH['$URI'], "^${scheme}://") })) {
+            throw STOP_MATCHING
+        }
+    }
+
+    // DSL method
+    @Typed(TypePolicy.DYNAMIC) // XXX try to handle GStrings
     void match(Map<String, Object> map) {
         map.each { name, value ->
             def list = (value instanceof List) ? value as List : [ value ]

@@ -1,3 +1,8 @@
+1.2.4 Sun Dec 26 08:23:02 2010
+    - DSL: add Pattern.protocol() matcher
+    - DSL: allow $DOWNLOADER_OUT to be set (e.g. for SopCast)
+    - add SopCast example script
+
 1.2.3 Sun Dec 26 06:04:53 2010
     - support many more protocols including sop:// and dvb://
 

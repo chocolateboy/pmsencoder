@@ -153,7 +153,7 @@ public class Engine extends MEncoderWebVideo {
             } else {
                 // XXX ffs: http://jira.codehaus.org/browse/GROOVY-2225
                 transcoderArgs.add(0, (isWindows ? executable().replaceAll(~'/', '\\\\') : executable()))
-                transcoderArgs.add(isWindows ? '-' : downloaderOutputPath)
+                transcoderArgs.add(newStash.get('$DOWNLOADER_OUT'))
             }
         }
 
