@@ -21,4 +21,42 @@ public class WEB extends net.pms.formats.WEB {
 
         return profiles;
     }
+
+    @Override
+    public String [] getId() {
+        return new String[] {
+            "br",
+            "cue",
+            "dvb",
+            "dvd",
+            "dvdnav",
+            "ffmpeg",
+            "file",
+            "ftp",
+            "http",
+            "http_proxy",
+            "https",
+            "icyx",
+            "mf",
+            "mms",
+            "mmsh",
+            "mmshttp",
+            "mmst",
+            "mmsu",
+            "mpst",
+            "noicyx",
+            "pvr",
+            "rtp",
+            "rtsp",
+            "screen",
+            "sdp",
+            "smb",
+            "sop",
+            "tivo",
+            "tv",
+            "udp",
+            "unsv",
+            "vcd"
+        };
+    }
 }

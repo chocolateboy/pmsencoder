@@ -1,3 +1,6 @@
+1.2.3 Sun Dec 26 06:04:53 2010
+    - support many more protocols including sop:// and dvb://
+
 1.2.2 Sat Dec 25 11:29:24 2010
     - DSL: restore Action.set(String)
 
