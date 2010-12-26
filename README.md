@@ -21,7 +21,7 @@ To upgrade to a new version of the plugin, simply replace the old jar file in th
 
 ## Uninstalling <a name="Uninstall"></a>
 
-To uninstall PMSEncoder, remove the jar file from the plugins directory and remove `pmsencoder,` from the list of engines in
+To uninstall PMSEncoder, remove the jar file from the `plugins` directory and remove `pmsencoder,` from the list of engines in
 `PMS.conf`.
 
 ## Building <a name="Build"></a>
