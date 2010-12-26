@@ -8,7 +8,7 @@ script {
         }
 
         action {
-            $DOWNLOADER = "$PYTHON $YOUTUBE_DL --max-quality 37 -o $DOWNLOADER_OUT ${$URI}"
+            $DOWNLOADER = "$PYTHON $YOUTUBE_DL --max-quality 22 --quiet -o $DOWNLOADER_OUT ${$URI}"
         }
     }
 }

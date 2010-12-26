@@ -1,3 +1,8 @@
+1.2.5 Sun Dec 26 21:32:44 2010
+    - DSL: make Action.remove() DWYM
+    - DSL: remove $DOWNLOADER_OUT assignment hack
+    - remove SopCast example script
+
 1.2.4 Sun Dec 26 08:23:02 2010
     - DSL: add Pattern.protocol() matcher
     - DSL: allow $DOWNLOADER_OUT to be set (e.g. for SopCast)

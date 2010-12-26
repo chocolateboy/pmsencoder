@@ -181,7 +181,7 @@ class Matcher extends Logger {
         def matched = script.match(command) // we could use the @Delegate annotation, but this is cleaner/clearer
 
         if (matched) {
-            log.debug("command: $command")
+            log.trace("command: $command")
         }
 
         return matched
@@ -383,7 +383,7 @@ class Profile extends Logger {
     boolean runPatternBlock(Pattern delegate) {
         if (patternBlock == null) {
             // unconditionally match
-            log.debug("no pattern block supplied: matched OK")
+            log.trace("no pattern block supplied: matched OK")
         } else {
             // pattern methods short-circuit matching on failure by throwing a MatchFailureException,
             // so we need to wrap this in a try/catch block
@@ -391,16 +391,18 @@ class Profile extends Logger {
             try {
                 delegate.with(patternBlock)
             } catch (MatchFailureException e) {
-                log.debug("pattern block: caught match exception")
+                log.trace("pattern block: caught match exception")
                 // one of the match methods failed, so the whole block failed
+                log.info("match $name: failure")
                 return false
             }
 
             // success simply means "no match failure exception was thrown" - this also handles cases where the
             // pattern block is empty
-            log.debug("pattern block: matched OK")
+            log.trace("pattern block: matched OK")
         }
 
+        log.info("match $name: success")
         return true
     }
 
@@ -624,11 +626,11 @@ public class CommandDelegate extends ScriptDelegate {
         log.info("matching content of $uri against $regex")
 
         if (RegexHelper.match(document, regex, newStash)) {
-            log.info("success")
+            log.info('success')
             newStash.each { name, value -> command.let(name, value) }
             scraped = true
         } else {
-            log.info("failure")
+            log.info('failure')
         }
 
         return scraped
@@ -772,12 +774,12 @@ class Pattern extends CommandDelegate {
     // DSL method
     @Typed(TypePolicy.DYNAMIC) // XXX try to handle GStrings
     void match(Closure closure) {
-        log.info("running match block")
+        log.info('running match block')
 
         if (closure()) {
-            log.info("success")
+            log.info('success')
         } else {
-            log.info("failure")
+            log.info('failure')
             throw STOP_MATCHING
         }
     }
@@ -792,7 +794,7 @@ class Pattern extends CommandDelegate {
             log.info("matching $name against $value")
 
             if (RegexHelper.match(name.toString(), value.toString(), $STASH)) {
-                log.info("success")
+                log.info('success')
                 return true // abort default failure below
             } else {
                 log.info("failure")
@@ -981,7 +983,7 @@ class Action extends CommandDelegate {
                         $COMMAND.let('$URI', stream_uri)
                         return true
                     } else {
-                        log.info("failure")
+                        log.info('failure')
                         return false
                     }
                 }
@@ -1008,26 +1010,57 @@ class Action extends CommandDelegate {
     }
 
     // private helper method containing code common to replace and remove
-    private boolean splice(List<String> args, String optionName, List<String> replaceList, int andFollowing = 0) {
-        def index = args.indexOf(optionName)
+    private boolean splice(String optionName, List<String> replaceList, int andFollowing) {
+        def index = $ARGS.indexOf(optionName)
 
         if (index == -1) {
-            log.warn("invalid splice: can't find $optionName in $args")
+            log.debug("invalid splice: can't find $optionName in ${$ARGS}")
             return false
         } else {
-            log.info("setting ${args[ index .. (index + andFollowing) ]} to $replaceList")
-            args[ index .. (index + andFollowing) ] = replaceList
+            log.trace("setting ${$ARGS[ index .. (index + andFollowing) ]} to $replaceList")
+            $ARGS[ index .. (index + andFollowing) ] = replaceList
             return true
         }
     }
 
+    // DSL method: remove a single option name and its corresponding value if it has one
+    void remove(String optionName) {
+        assert optionName != null
+
+        def index = $ARGS.findIndexOf { it == optionName }
+
+        if (index >= 0) {
+            def andFollowing = 0
+            def lastIndex = $ARGS.size() - 1
+            def nextIndex = index + 1
+
+            if (nextIndex <= lastIndex) {
+                def nextArg = $ARGS[ nextIndex ]
+
+                if ((nextArg != null) && (nextArg != '') && (nextArg.substring(0, 1) != '-')) {
+                    log.info("removing: $optionName $nextArg")
+                    andFollowing = 1
+                } else {
+                    log.info("removing: $optionName")
+                }
+            }
+
+            splice(optionName, [], andFollowing)
+        }
+    }
+
+    // DSL method: remove multiple option names and their corresponding values if they have one
+    void remove(List<String> optionNames) {
+        optionNames.each { remove(it.toString()) }
+    }
+
     // DSL method: remove an option (and optionally the following n arguments) from the command's arg list
-    void remove(String optionName, int andFollowing = 0) {
-        splice($ARGS, optionName, [], andFollowing)
+    void remove(String optionName, int andFollowing) {
+        splice(optionName.toString(), [], andFollowing)
     }
 
     // DSL method: replace an option (and optionally the following n arguments) with the supplied arg list
-    void replace(String optionName, List<String> replaceList, int andFollowing = 0) {
-        splice($ARGS, optionName, replaceList, andFollowing)
+    void replace(String optionName, List<String> replaceList, int andFollowing) {
+        splice(optionName.toString(), replaceList, andFollowing)
     }
 }
