@@ -17,7 +17,7 @@ These instructions assume you have the [latest version](http://ps3mediaserver.or
 
 ## Upgrading <a name="Upgrade"></a>
 
-To upgrade to a new version of the plugin, simply replace the old jar file with the new version in the `plugins` directory, and restart PMS.
+To upgrade to a new version of the plugin, simply replace the old jar file in the `plugins` directory with the [new version](http://github.com/downloads/chocolateboy/pmsencoder/pmsencoder-1.2.3.jar) and restart PMS.
 
 ## Uninstalling <a name="Uninstall"></a>
 
