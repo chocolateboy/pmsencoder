@@ -73,27 +73,28 @@ script {
         pattern { match { false } }
     }
 
-    // perform the actual YouTube handling if the metadata has been extracted.
-    // separating the profiles into metadata and implementation allows scripts to
-    // override just this profile without having to rescrape the page to match on
-    // the uploader &c.
-    //
-    // it also simplifies custom matchers e.g. check for 'YouTube Medatata' in $MATCHES
-    // rather than repeating the regex
-
-    profile ('YouTube') {
+    // extract metadata about the video for other profiles
+    profile ('YouTube Metadata') {
+        // extract the resource's video_id from the URI of the standard YouTube page
         pattern {
-            match { $youtube_video_id != null }
+            match $URI: '^http://(?:\\w+\\.)?youtube\\.com/watch\\?v=(?<youtube_video_id>[^&]+)'
         }
 
-        // Now, with $video_id and $t defined, call the builtin YouTube handler.
-        // Note: the parentheses are required for a no-arg action
         action {
-            youtube()
+            // fix the URI to bypass age verification
+            // make sure URI is sigilized to prevent clashes with the class
+            def youtube_scrape_uri = "${$URI}&has_verified=1"
+
+            // extract the resource's sekrit identifier ($t) from the HTML
+            scrape '&t=(?<youtube_t>[^&]+)', [ uri: youtube_scrape_uri ]
+
+            // extract the uploader ("creator") so that scripts can use it
+            // scrape '"creator"\\s*:\\s*"(?<youtube_creator>[^"]+)"', [ uri: youtube_scrape_uri ]
+            scrape "'VIDEO_USERNAME'\\s*:\\s*'(?<youtube_uploader>[^']+)'", [ uri: youtube_scrape_uri ]
         }
     }
 
-    profile ('YouTube-DL Compatible', before: 'YouTube') {
+    profile ('YouTube-DL Compatible', after: 'YouTube Metadata') {
         pattern {
             // match any of the sites youtube-dl supports - copied from the source
             match $URI: [
@@ -115,24 +116,23 @@ script {
         }
     }
 
-    // extract metadata about the video for other profiles
-    profile ('YouTube Metadata', before: 'YouTube-DL Compatible') {
-        // extract the resource's video_id from the URI of the standard YouTube page
+    // perform the actual YouTube handling if the metadata has been extracted.
+    // separating the profiles into metadata and implementation allows scripts to
+    // override just this profile without having to rescrape the page to match on
+    // the uploader &c.
+    //
+    // it also simplifies custom matchers e.g. check for 'YouTube Medatata' in $MATCHES
+    // rather than repeating the regex
+
+    profile ('YouTube', after: 'YouTube-DL Compatible') {
         pattern {
-            match $URI: '^http://(?:\\w+\\.)?youtube\\.com/watch\\?v=(?<youtube_video_id>[^&]+)'
+            match { $youtube_video_id != null }
         }
 
+        // Now, with $video_id and $t defined, call the builtin YouTube handler.
+        // Note: the parentheses are required for a no-arg action
         action {
-            // fix the URI to bypass age verification
-            def youtube_scrape_uri = "${$URI}&has_verified=1"
-
-            // extract the resource's sekrit identifier ($t) from the HTML
-            // make sure URI is sigilized to prevent clashes with the class
-            scrape '&t=(?<youtube_t>[^&]+)', [ uri: youtube_scrape_uri ]
-
-            // extract the uploader ("creator") so that scripts can use it
-            // scrape '"creator"\\s*:\\s*"(?<youtube_creator>[^"]+)"', [ uri: youtube_scrape_uri ]
-            scrape "'VIDEO_USERNAME'\\s*:\\s*'(?<youtube_uploader>[^']+)'", [ uri: youtube_scrape_uri ]
+            youtube()
         }
     }
 
@@ -169,25 +169,7 @@ script {
         }
     }
 
-    profile ('GameTrailers') {
-        pattern {
-            domain 'gametrailers.com'
-        }
-
-        action {
-            /*
-                The order is important here! Make sure we scrape the variables before we set the URI.
-                extract some values from the HTML
-            */
-            scrape '\\bmov_game_id\\s*=\\s*(?<gametrailers_movie_id>\\d+)'
-            scrape '\\bhttp://www\\.gametrailers\\.com/download/\\d+/(?<gametrailers_filename>t_[^.]+)\\.wmv\\b'
-
-            // now use them to rewrite the URI
-            $URI = "http://trailers-ak.gametrailers.com/gt_vault/${gametrailers_movie_id}/${gametrailers_filename}.flv"
-        }
-    }
-
-    profile ('GameTrailers (Revert PMS Workaround)', before: 'GameTrailers') {
+    profile ('GameTrailers (Revert PMS Workaround)') {
         /*
            convert:
 
@@ -206,6 +188,24 @@ script {
         // 2) and use it to restore the correct web page URI
         action {
            let $URI: "http://www.gametrailers.com/player/${gametrailers_page_id}.html"
+        }
+    }
+
+    profile ('GameTrailers', after: 'GameTrailers (Revert PMS Workaround)') {
+        pattern {
+            domain 'gametrailers.com'
+        }
+
+        action {
+            def gmi = scrape('\\bmov_game_id\\s*=\\s*(?<gametrailers_movie_id>\\d+)')
+            def gfl = scrape('\\bhttp://www\\.gametrailers\\.com/download/\\d+/(?<gametrailers_filename>t_[^.]+)\\.wmv\\b')
+
+            if (gmi && gfl) {
+                $URI = "http://trailers-ak.gametrailers.com/gt_vault/${gametrailers_movie_id}/${gametrailers_filename}.flv"
+            } else if (scrape('\\bvar\\s+mov_id\\s*=\\s*(?<gametrailers_mov_id>\\d+)')) {
+                def scrapeURI = "http://www.gametrailers.com/neo/?page=xml.mediaplayer.Mediagen&movieId=${gametrailers_mov_id}&hd=1"
+                scrape '<src>\\s*(?<URI>\\S+)\\s*</src>', [ uri: scrapeURI ]
+            }
         }
     }
 }

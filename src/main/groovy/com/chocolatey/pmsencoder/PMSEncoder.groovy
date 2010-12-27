@@ -59,10 +59,7 @@ public class Stash extends LinkedHashMap<java.lang.String, java.lang.String> {
 }
 
 /*
- * this object encapsulates the input/output parameters passed from/to the PMS transcode launcher (Engine.java).
- * Input parameters are stored in the Stash object's key/value pairs, specifically the executable, uri and output
- * fields; and the output (a command) is returned via the same stash (i.e. the executable and URI can be overridden)
- * as well as in a list of strings accessible via the args field
+ * this object encapsulates the per-request state passed from/to the PMS transcode launcher (Engine.java).
  */
 public class Command extends Logger {
     Stash stash
@@ -71,6 +68,7 @@ public class Command extends Logger {
     OutputParams params
     List <String> transcoder
     List <String> downloader
+    boolean logStashAssignments = true
 
     private Command(Stash stash, List<String> args, List<String> matches) {
         this.stash = stash
@@ -130,7 +128,9 @@ public class Command extends Logger {
     @Typed(TypePolicy.MIXED) // XXX try to handle GStrings
     public String let(String name, String value) {
         if ((stash[name] == null) || (stash[name] != value.toString())) {
-            log.info("setting $name to $value")
+            if (logStashAssignments) {
+                log.info("setting $name to $value")
+            }
             stash[name] = value
         }
 
@@ -205,7 +205,7 @@ class Script extends Logger {
     private void verifyDependencies() {
         def vertices = profiles.values().toList()
 
-        def sane = vertices.every { Vertex vertex ->
+        def verifiedVertices = vertices.every { Vertex vertex ->
             def valid = true
 
             try {
@@ -218,7 +218,7 @@ class Script extends Logger {
             return valid
         }
 
-        if (sane) {
+        if (verifiedVertices) {
             DAG.topologicalSort(vertices) // in-place
             orderedProfiles = vertices.collect { (it.node as Reference<Profile>).get() }
         } else {
@@ -240,7 +240,7 @@ class Script extends Logger {
             orderedProfiles.each { profile ->
                 if (profile.match(command)) {
                     // XXX make sure we take the name from the profile itself
-                    // rather than the map key - the latter may have been usurped
+                    // rather than the Map key - the latter may have been usurped
                     // by a profile with a different name
                     command.matches << profile.name
                 }
@@ -420,6 +420,7 @@ class Profile extends Logger {
 
     boolean match(Command command) {
         def newCommand = new Command(command)
+        newCommand.setLogStashAssignments(false) // disable (i.e. defer) stash-assignment logging in the Pattern block
         // the pattern block has its own command object (which is initially the same as the action block's).
         // if the match succeeds, then the pattern block's stash is merged into the action block's stash.
         // this ensures that a partial match (i.e. a failed match) with side-effects/bindings doesn't contaminate
