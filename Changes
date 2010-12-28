@@ -1,3 +1,10 @@
+1.2.6 TBC
+    - DSL: add $HOOK, allowing an arbitrary, independent command to be run
+      - add hook.groovy
+    - tweak log levels to allow a less verbose logfile to be configured
+    - refactor process management code
+    - fix Onion News Network feed URI
+
 1.2.5 Sun Dec 26 21:32:44 2010
     - DSL: make Action.remove() DWYM
     - DSL: remove $DOWNLOADER_OUT assignment hack

@@ -20,6 +20,17 @@
         </layout>
     </appender>
 
+    <root>
+        <priority value="INFO" />
+        <appender-ref ref="logfile" />
+    </root>
+
+    <!-- set these 3 priorities to INFO if you prefer a less noisy logfile -->
+
+    <category name="com.chocolatey.pmsencoder">
+        <priority value="DEBUG" />
+    </category>
+
     <category name="groovyx.net.http">
         <priority value="DEBUG" />
     </category>
@@ -41,9 +52,4 @@
         <priority value="DEBUG" />
     </category>
     -->
-
-    <root>
-        <priority value="INFO" />
-        <appender-ref ref="logfile" />
-    </root>
 </log4j:configuration>

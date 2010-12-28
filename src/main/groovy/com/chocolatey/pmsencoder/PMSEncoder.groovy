@@ -66,17 +66,15 @@ public class Command extends Logger {
     List<String> args
     List<String> matches
     OutputParams params
-    List <String> transcoder
+    List<String> hook
     List <String> downloader
+    List <String> transcoder
     boolean logStashAssignments = true
 
     private Command(Stash stash, List<String> args, List<String> matches) {
         this.stash = stash
         this.args = args
         this.matches = matches
-        this.params = null
-        this.transcoder = null
-        this.downloader = null
     }
 
     public Command() {
@@ -121,7 +119,7 @@ public class Command extends Logger {
     public java.lang.String toString() {
         // can't stringify params until this patch has been applied:
         // https://code.google.com/p/ps3mediaserver/issues/detail?id=863
-        "{ stash: $stash, args: $args, matches: $matches, downloader: $downloader, transcoder: $transcoder }".toString()
+        "{ stash: $stash, args: $args, matches: $matches, hook: $hook, downloader: $downloader, transcoder: $transcoder }".toString()
     }
 
     // setter implementation with logged stash assignments
@@ -129,7 +127,7 @@ public class Command extends Logger {
     public String let(String name, String value) {
         if ((stash[name] == null) || (stash[name] != value.toString())) {
             if (logStashAssignments) {
-                log.info("setting $name to $value")
+                log.debug("setting $name to $value")
             }
             stash[name] = value
         }
@@ -191,7 +189,7 @@ class Matcher extends Logger {
 class Script extends Logger {
     private Map<String, Vertex> profiles = [:] // defaults to LinkedHashMap
     private boolean verified = false
-    private List<Profile> orderedProfiles = null
+    private List<Profile> orderedProfiles
 
     // DSL fields (mutable)
     public List<String> $DEFAULT_TRANSCODER_ARGS = []
@@ -229,7 +227,7 @@ class Script extends Logger {
     }
 
     boolean match(Command command) {
-        log.info("matching URI: ${command.stash['$URI']}")
+        log.debug("matching URI: ${command.stash['$URI']}")
 
         if (verified == false) {
             verifyDependencies()
@@ -383,7 +381,7 @@ class Profile extends Logger {
     boolean runPatternBlock(Pattern delegate) {
         if (patternBlock == null) {
             // unconditionally match
-            log.trace("no pattern block supplied: matched OK")
+            log.trace('no pattern block supplied: matched OK')
         } else {
             // pattern methods short-circuit matching on failure by throwing a MatchFailureException,
             // so we need to wrap this in a try/catch block
@@ -391,18 +389,18 @@ class Profile extends Logger {
             try {
                 delegate.with(patternBlock)
             } catch (MatchFailureException e) {
-                log.trace("pattern block: caught match exception")
+                log.trace('pattern block: caught match exception')
                 // one of the match methods failed, so the whole block failed
-                log.info("match $name: failure")
+                log.debug("match $name: failure")
                 return false
             }
 
             // success simply means "no match failure exception was thrown" - this also handles cases where the
             // pattern block is empty
-            log.trace("pattern block: matched OK")
+            log.trace('pattern block: matched OK')
         }
 
-        log.info("match $name: success")
+        log.debug("match $name: success")
         return true
     }
 
@@ -428,7 +426,7 @@ class Profile extends Logger {
         // completed successfully
         def pattern = new Pattern(script, newCommand)
 
-        log.info("matching profile: $name")
+        log.debug("matching profile: $name")
 
         // returns true if all matches in the block succeed, false otherwise 
         if (runPatternBlock(pattern)) {
@@ -555,6 +553,19 @@ public class CommandDelegate extends ScriptDelegate {
         command.downloader = list.collect { it.toString() }
     }
 
+    // DSL accessor ($HOOK): read-only
+    protected List<String> get$HOOK() {
+        command.hook
+    }
+
+    // DSL accessor ($HOOK): read-write
+    // see $DOWNLOADER above for implementation notes
+    @Typed(TypePolicy.DYNAMIC) // try to handle GStrings
+    protected List<String> set$HOOK(Object hook) {
+        def list = ((hook instanceof List) ? hook : hook.toString().tokenize()) as List
+        command.hook = list.collect { it.toString() }
+    }
+
     // $HTTP: read-only
     protected HTTPClient get$HTTP() {
         http
@@ -614,7 +625,7 @@ public class CommandDelegate extends ScriptDelegate {
         def scraped = false
 
         if (document == null) {
-            log.info("getting $uri")
+            log.debug("getting $uri")
             assert http != null
             document = cache[uri] = http.get(uri)
         }
@@ -624,14 +635,14 @@ public class CommandDelegate extends ScriptDelegate {
             return scraped
         }
 
-        log.info("matching content of $uri against $regex")
+        log.debug("matching content of $uri against $regex")
 
         if (RegexHelper.match(document, regex, newStash)) {
-            log.info('success')
+            log.debug('success')
             newStash.each { name, value -> command.let(name, value) }
             scraped = true
         } else {
-            log.info('failure')
+            log.debug('failure')
         }
 
         return scraped
@@ -639,8 +650,8 @@ public class CommandDelegate extends ScriptDelegate {
 }
 
 class ProfileValidationDelegate extends ScriptDelegate {
-    public Closure patternBlock = null
-    public Closure actionBlock = null
+    public Closure patternBlock
+    public Closure actionBlock
     public String name
 
     ProfileValidationDelegate(Script script, String name) {
@@ -775,12 +786,12 @@ class Pattern extends CommandDelegate {
     // DSL method
     @Typed(TypePolicy.DYNAMIC) // XXX try to handle GStrings
     void match(Closure closure) {
-        log.info('running match block')
+        log.debug('running match block')
 
         if (closure()) {
-            log.info('success')
+            log.debug('success')
         } else {
-            log.info('failure')
+            log.debug('failure')
             throw STOP_MATCHING
         }
     }
@@ -792,13 +803,13 @@ class Pattern extends CommandDelegate {
         } else if (value == null) {
             log.error('invalid match: value is not defined')
         } else {
-            log.info("matching $name against $value")
+            log.debug("matching $name against $value")
 
             if (RegexHelper.match(name.toString(), value.toString(), $STASH)) {
-                log.info('success')
+                log.debug('success')
                 return true // abort default failure below
             } else {
-                log.info("failure")
+                log.debug("failure")
             }
         }
 
@@ -874,7 +885,7 @@ class Action extends CommandDelegate {
 
         if (index == -1) {
             if (value != null) {
-                log.info("adding $name $value")
+                log.debug("adding $name $value")
                 /*
                     XXX squashed bug: careful not to perform operations on $STASH or $COMMAND.args
                     that return and subsequenly operate on a new value
@@ -885,11 +896,11 @@ class Action extends CommandDelegate {
                 */
                 $ARGS << name << value
             } else {
-                log.info("adding $name")
+                log.debug("adding $name")
                 $ARGS << name
             }
         } else if (value != null) {
-            log.info("setting $name to $value")
+            log.debug("setting $name to $value")
             $ARGS[ index + 1 ] = value
         }
     }
@@ -909,7 +920,7 @@ class Action extends CommandDelegate {
 
             if (index != -1) {
                 map.each { search, replace ->
-                    log.info("replacing $search with $replace in $name")
+                    log.debug("replacing $search with $replace in $name")
                     // TODO support named captures
                     def value = $ARGS[ index + 1 ]
 
@@ -971,20 +982,20 @@ class Action extends CommandDelegate {
         if (formats.size() > 0) {
             def fmt_url_map = getFormatURLMap(video_id)
             if (fmt_url_map != null) {
-                log.trace("fmt_url_map: " + fmt_url_map)
+                log.trace('fmt_url_map: ' + fmt_url_map)
 
                 found = formats.any { fmt ->
-                    log.info("checking fmt_url_map for $fmt")
+                    log.debug("checking fmt_url_map for $fmt")
                     def stream_uri = fmt_url_map[fmt.toString()]
 
                     if (stream_uri != null) {
                         // set the new URI
-                        log.info('success')
+                        log.debug('success')
                         $COMMAND.let('$youtube_fmt', fmt)
                         $COMMAND.let('$URI', stream_uri)
                         return true
                     } else {
-                        log.info('failure')
+                        log.debug('failure')
                         return false
                     }
                 }
@@ -1039,10 +1050,10 @@ class Action extends CommandDelegate {
                 def nextArg = $ARGS[ nextIndex ]
 
                 if ((nextArg != null) && (nextArg != '') && (nextArg.substring(0, 1) != '-')) {
-                    log.info("removing: $optionName $nextArg")
+                    log.debug("removing: $optionName $nextArg")
                     andFollowing = 1
                 } else {
-                    log.info("removing: $optionName")
+                    log.debug("removing: $optionName")
                 }
             }
 
