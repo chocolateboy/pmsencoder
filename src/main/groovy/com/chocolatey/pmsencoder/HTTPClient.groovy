@@ -35,6 +35,7 @@ class HTTPClient extends Logger {
         }
     }
 
+    // TODO: return a Map on success (ignore headers with multiple values?)
     @Typed(TypePolicy.MIXED)
     public boolean head(String uri) {
         http.request(uri, HEAD, TEXT) { req ->

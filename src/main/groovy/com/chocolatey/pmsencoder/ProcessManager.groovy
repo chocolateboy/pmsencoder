@@ -23,9 +23,10 @@ private class ProcessManager {
         log = Logger.getLogger(this.getClass().getName())
         attachedProcesses = new ArrayList<ProcessWrapper>()
         // modify the output params object *before* the match so it can optionally be customized
+        log.info("minimum buffer size: " + params.minFileSize)
         outputParams.minBufferSize = params.minFileSize
         outputParams.secondread_minsize = 100000
-        outputParams.log = true // send the command's stdout/stderr to debug.log
+        outputParams.log = true // for documentation only as it's done automatically for pipe-writing processes
     }
 
     private String[] listToArray(List<String> list) {

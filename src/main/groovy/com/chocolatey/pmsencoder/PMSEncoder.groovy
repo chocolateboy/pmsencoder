@@ -149,26 +149,26 @@ class Matcher extends Logger {
         this.script = new Script(pms)
     }
 
-    void load(String path, String fileName = path) {
-        load(new File(path), fileName)
+    void load(String path, String filename = path) {
+        load(new File(path), filename)
     }
 
-    void load(URL url, String fileName = url.toString()) {
-        load(url.openStream(), fileName)
+    void load(URL url, String filename = url.toString()) {
+        load(url.openStream(), filename)
     }
 
-    void load(File file, String fileName = file.getPath()) {
-        load(new FileInputStream(file), fileName)
+    void load(File file, String filename = file.getPath()) {
+        load(new FileInputStream(file), filename)
     }
 
-    void load(InputStream stream, String fileName) {
-        load(new InputStreamReader(stream), fileName)
+    void load(InputStream stream, String filename) {
+        load(new InputStreamReader(stream), filename)
     }
 
-    void load(Reader reader, String fileName) {
+    void load(Reader reader, String filename) {
         def binding = new Binding(script: script.&script)
         def groovy = new GroovyShell(binding)
-        groovy.evaluate(reader, fileName)
+        groovy.evaluate(reader, filename)
     }
 
     @Typed(TypePolicy.DYNAMIC) // XXX needed to handle GStrings
@@ -475,12 +475,12 @@ public class ScriptDelegate extends Logger {
 
     // DSL properties
 
-    // $SCRIPT: read-only
+    // $SCRIPT: getter
     protected final Script get$SCRIPT() {
         script
     }
 
-    // $PMS: read-only
+    // $PMS: getter
     protected final PMS get$PMS() {
         script.$PMS
     }
@@ -519,24 +519,31 @@ public class CommandDelegate extends ScriptDelegate {
 
     // DSL properties
 
-    // DSL accessor ($ARGS): read-only
+    // DSL accessor ($ARGS): getter
     protected List<String> get$ARGS() {
         command.args
     }
 
-    // DSL accessor ($ARGS): read-write
+    // handle values that can be a String or a List.
+    // split the former along whitespace and return the latter as-is
     @Typed(TypePolicy.DYNAMIC) // try to handle GStrings
-    // FIXME: test this!
-    protected List<String> set$ARGS(List<String> args) {
-        command.args = args.collect { it.toString() } // handle GStrings
+    private List<String> stringList(Object stringOrList) {
+        def list = ((stringOrList instanceof List) ? stringOrList : stringOrList.toString().tokenize()) as List
+        return list.collect { it.toString() }
     }
 
-    // $COMMAND: read-only
+    // DSL accessor ($ARGS): setter
+    // see $DOWNLOADER below for implementation notes
+    protected List<String> set$ARGS(Object args) {
+        command.args = stringList(args)
+    }
+
+    // $COMMAND: getter
     protected Command get$COMMAND() {
         command
     }
 
-    // DSL accessor ($DOWNLOADER): read-only
+    // DSL accessor ($DOWNLOADER): getter
     protected List<String> get$DOWNLOADER() {
         command.downloader
     }
@@ -554,62 +561,56 @@ public class CommandDelegate extends ScriptDelegate {
         workaround: define just one setter and determine the type with instanceof
     */
 
-    // DSL accessor ($DOWNLOADER): read-write
-    @Typed(TypePolicy.DYNAMIC) // try to handle GStrings
+    // DSL accessor ($DOWNLOADER): setter
     protected List<String> set$DOWNLOADER(Object downloader) {
-        def list = ((downloader instanceof List) ? downloader : downloader.toString().tokenize()) as List
-        command.downloader = list.collect { it.toString() }
+        command.downloader = stringList(downloader)
     }
 
-    // DSL accessor ($HOOK): read-only
+    // DSL accessor ($HOOK): getter
     protected List<String> get$HOOK() {
         command.hook
     }
 
-    // DSL accessor ($HOOK): read-write
+    // DSL accessor ($HOOK): setter
     // see $DOWNLOADER above for implementation notes
-    @Typed(TypePolicy.DYNAMIC) // try to handle GStrings
     protected List<String> set$HOOK(Object hook) {
-        def list = ((hook instanceof List) ? hook : hook.toString().tokenize()) as List
-        command.hook = list.collect { it.toString() }
+        command.hook = stringList(hook)
     }
 
-    // $HTTP: read-only
+    // $HTTP: getter
     protected HTTPClient get$HTTP() {
         http
     }
 
-    // $LOGGER: read-only
+    // $LOGGER: getter
     protected org.apache.log4j.Logger get$LOGGER() {
         log
     }
 
-    // DSL accessor ($MATCHES): read-only
+    // DSL accessor ($MATCHES): getter
     protected List<String> get$MATCHES() {
         command.matches
     }
 
-    // $PARAMS: read-only
+    // $PARAMS: getter
     public OutputParams get$PARAMS() {
         command.params
     }
 
-    // $STASH: read-only
+    // $STASH: getter
     protected final Stash get$STASH() {
         command.stash
     }
 
-    // DSL accessor ($TRANSCODER): read-only
+    // DSL accessor ($TRANSCODER): getter
     protected List<String> get$TRANSCODER() {
         command.transcoder
     }
 
-    // DSL accessor ($TRANSCODER): read-write
+    // DSL accessor ($TRANSCODER): setter
     // see $DOWNLOADER above for implementation notes
-    @Typed(TypePolicy.DYNAMIC) // try to handle GStrings
     protected List<String> set$TRANSCODER(Object transcoder) {
-        def list = ((transcoder instanceof List) ? transcoder : transcoder.toString().tokenize()) as List
-        command.transcoder = list.collect { it.toString() }
+        command.transcoder = stringList(transcoder)
     }
 
     // DSL getter
@@ -619,6 +620,7 @@ public class CommandDelegate extends ScriptDelegate {
 
     // DSL setter
     protected String propertyMissing(String name, Object value) {
+        assert value != null
         command.let(name, value.toString())
     }
 

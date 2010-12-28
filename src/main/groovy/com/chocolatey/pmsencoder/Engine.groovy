@@ -14,14 +14,27 @@ public class Engine extends MEncoderWebVideo {
     public static final boolean isWindows = PMS.get().isWindows()
     private Plugin plugin
     private Logger log
+    private final static ThreadLocal threadLocal = new ThreadLocal<String>();
 
     final PmsConfiguration configuration
     public static final String ID = 'pmsencoder'
 
+    private long currentThreadId() {
+        Thread.currentThread().getId()
+    }
+
     @Override
     public String mimeType() {
-        'video/mpeg'
-        // 'video/mp4'
+        def mimeType = threadLocal.get()
+
+        if (mimeType != null) { // transcode thread
+            log.debug('thread id: ' + currentThreadId())
+            log.info("getting custom mime type: $mimeType")
+            threadLocal.remove() // remove it to prevent memory leaks
+            return mimeType
+        } else {
+            return 'video/mpeg'
+        }
     }
 
     @Override
@@ -52,12 +65,11 @@ public class Engine extends MEncoderWebVideo {
     public ProcessWrapper launchTranscode(String uri, DLNAMediaInfo media, OutputParams params)
     throws IOException {
         def processManager = new ProcessManager(this, params)
-        // FIXME: should really use a synchronized counter to ensure
-        // concurrent requests don't use the same filenames
-        def now = System.currentTimeMillis()
-        def transcoderOutputBasename = 'pmsencoder_transcoder_out_' + now // always used (read by PMS)
+        def threadId = currentThreadId() // make sure concurrent threads don't use the same filename
+        def uniqueId = System.currentTimeMillis() + '_' + threadId
+        def transcoderOutputBasename = "pmsencoder_transcoder_out_${uniqueId}" // always used (read by PMS)
         def transcoderOutputPath = processManager.getFifoPath(transcoderOutputBasename)
-        def downloaderOutputBasename = 'pmsencoder_downloader_out_' + now
+        def downloaderOutputBasename = "pmsencoder_downloader_out_${uniqueId}"
         def downloaderOutputPath = isWindows ? '-' : processManager.getFifoPath(downloaderOutputBasename)
 
         // whatever happens, we need a transcoder output FIFO (even if there's a match error, we carry
@@ -75,9 +87,6 @@ public class Engine extends MEncoderWebVideo {
         oldStash.put('$MENCODER_MT', configuration.getMencoderMTPath())
         oldStash.put('$TRANSCODER_OUT', transcoderOutputPath)
         oldStash.put('$URI', uri)
-
-        oldArgs.add('-o')
-        oldArgs.add(transcoderOutputPath)
 
         log.info('invoking matcher for: ' + uri)
 
@@ -103,6 +112,16 @@ public class Engine extends MEncoderWebVideo {
             log.info(nMatches + ' matches (' + matches + ') for: ' + uri)
         }
 
+        def mimeType = newStash.get('$MIME_TYPE')
+
+        if (mimeType != null) {
+            log.debug('thread id: ' + threadId)
+            log.info("setting custom mime-type: $mimeType")
+            threadLocal.set(mimeType)
+        } else {
+            threadLocal.remove() // remove it to prevent memory leaks
+        }
+
         def hookArgs = command.getHook()
         def downloaderArgs = command.getDownloader()
         def transcoderArgs = command.getTranscoder()
@@ -111,10 +130,13 @@ public class Engine extends MEncoderWebVideo {
             processManager.handleHook(hookArgs)
         }
 
-        if (transcoderArgs == null) { // using MEncoder: prepend the executable and append the URI/downloader FIFO
+        // using MEncoder: prepend the executable, the output file, and the input file/URI
+        if (transcoderArgs == null) {
             def transcoderInput = (downloaderArgs == null) ? newStash.get('$URI') : downloaderOutputPath
             transcoderArgs = newArgs
             transcoderArgs.add(0, executable())
+            transcoderArgs.add('-o')
+            transcoderArgs.add(transcoderOutputPath)
             transcoderArgs.add(transcoderInput)
         }
 

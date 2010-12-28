@@ -100,6 +100,7 @@ class MatcherTest extends PMSEncoderTestCase {
                     '$URI',
                     '$youtube_video_id',
                     '$youtube_t',
+                    '$youtube_title',
                     '$youtube_uploader',
                     '$youtube_dl_compatible',
                     '$youtube_uri',

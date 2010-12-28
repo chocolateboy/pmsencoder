@@ -88,9 +88,9 @@ script {
             // extract the resource's sekrit identifier ($t) from the HTML
             scrape '&t=(?<youtube_t>[^&]+)', [ uri: youtube_scrape_uri ]
 
-            // extract the uploader ("creator") so that scripts can use it
-            // scrape '"creator"\\s*:\\s*"(?<youtube_creator>[^"]+)"', [ uri: youtube_scrape_uri ]
-            scrape "'VIDEO_USERNAME'\\s*:\\s*'(?<youtube_uploader>[^']+)'", [ uri: youtube_scrape_uri ]
+            // extract the title and uploader ("creator") so that scripts can use them
+            scrape '<meta\\s+name="title"\\s+content="(?<youtube_title>[^"]+)">', [ uri: youtube_scrape_uri ]
+            scrape '\\bdata-subscription-username="(?<youtube_uploader>[^"]+)"', [ uri: youtube_scrape_uri ]
         }
     }
 
