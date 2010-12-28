@@ -8,6 +8,8 @@ import org.apache.avalon.fortress.util.dag.Vertex
 import org.apache.avalon.fortress.util.dag.DirectedAcyclicGraphVerifier as DAG
 import org.apache.avalon.fortress.util.dag.CyclicDependencyException
 
+import org.apache.log4j.Level
+
 // if these extend Exception (rather than RuntimeException) Groovy(++?) wraps them in
 // InvokerInvocationException, which causes all kinds of tedium.
 // For the time being: extend RuntimeException - even though they're both checked
@@ -69,7 +71,7 @@ public class Command extends Logger {
     List<String> hook
     List <String> downloader
     List <String> transcoder
-    boolean logStashAssignments = true
+    Level stashAssignmentLogLevel = Level.DEBUG
 
     private Command(Stash stash, List<String> args, List<String> matches) {
         this.stash = stash
@@ -126,8 +128,8 @@ public class Command extends Logger {
     @Typed(TypePolicy.MIXED) // XXX try to handle GStrings
     public String let(String name, String value) {
         if ((stash[name] == null) || (stash[name] != value.toString())) {
-            if (logStashAssignments) {
-                log.debug("setting $name to $value")
+            if (stashAssignmentLogLevel != null) {
+                log.log(stashAssignmentLogLevel, "setting $name to $value")
             }
             stash[name] = value
         }
@@ -418,7 +420,13 @@ class Profile extends Logger {
 
     boolean match(Command command) {
         def newCommand = new Command(command)
-        newCommand.setLogStashAssignments(false) // disable (i.e. defer) stash-assignment logging in the Pattern block
+
+        // avoid clogging up the logfile with pattern-block assignments. If the pattern doesn't match,
+        // the assigments are irrelevant; and if it does match, the assignments are logged (below)
+        // as the pattern's temporary stash is merged into the command stash. Rather than suppressing these
+        // assignments completely, log them at the lowest (TRACE) level
+        newCommand.setStashAssignmentLogLevel(Level.TRACE)
+
         // the pattern block has its own command object (which is initially the same as the action block's).
         // if the match succeeds, then the pattern block's stash is merged into the action block's stash.
         // this ensures that a partial match (i.e. a failed match) with side-effects/bindings doesn't contaminate
@@ -847,6 +855,18 @@ class Action extends CommandDelegate {
         super(script, command)
     }
 
+    boolean isOption(String arg) {
+        // a rare use case for Groovy's annoyingly lax definition of false.
+        // and it's not really a use case because it requires two lines of
+        // explanation: null and an empty string evaluate as false
+
+        if (arg) {
+           return arg ==~ /^-[^0-9].*$/
+        } else {
+            return false
+        }
+    }
+
     /*
         1) get the URI pointed to by options['uri'] or stash['$URI'] (if it hasn't already been retrieved)
         2) perform a regex match against the document
@@ -906,13 +926,12 @@ class Action extends CommandDelegate {
     }
 
     /*
-        perform a search-and-replace in the value of a transcoder option
-        TODO: signature: handle null, a single map and an array of maps
+        perform a string search-and-replace in the value of a transcoder option.
     */
 
     // DSL method
     @Typed(TypePolicy.MIXED) // XXX try to handle GStrings
-    void tr(Map<String, Map<String, String>> replaceMap) {
+    void replace(Map<String, Map<String, String>> replaceMap) {
         // the sort order is predictable (for tests) as long as we (and Groovy) use LinkedHashMap
         replaceMap.each { name, map ->
             // squashed bug (see  above): take care to $ARGS in-place
@@ -1021,18 +1040,9 @@ class Action extends CommandDelegate {
         $COMMAND.args = args + $ARGS
     }
 
-    // private helper method containing code common to replace and remove
-    private boolean splice(String optionName, List<String> replaceList, int andFollowing) {
-        def index = $ARGS.indexOf(optionName)
-
-        if (index == -1) {
-            log.debug("invalid splice: can't find $optionName in ${$ARGS}")
-            return false
-        } else {
-            log.trace("setting ${$ARGS[ index .. (index + andFollowing) ]} to $replaceList")
-            $ARGS[ index .. (index + andFollowing) ] = replaceList
-            return true
-        }
+    // DSL method: remove multiple option names and their corresponding values if they have one
+    void remove(List<String> optionNames) {
+        optionNames.each { remove(it.toString()) }
     }
 
     // DSL method: remove a single option name and its corresponding value if it has one
@@ -1042,37 +1052,21 @@ class Action extends CommandDelegate {
         def index = $ARGS.findIndexOf { it == optionName }
 
         if (index >= 0) {
-            def andFollowing = 0
             def lastIndex = $ARGS.size() - 1
             def nextIndex = index + 1
 
             if (nextIndex <= lastIndex) {
                 def nextArg = $ARGS[ nextIndex ]
 
-                if ((nextArg != null) && (nextArg != '') && (nextArg.substring(0, 1) != '-')) {
-                    log.debug("removing: $optionName $nextArg")
-                    andFollowing = 1
-                } else {
+                if (isOption(nextArg)) {
                     log.debug("removing: $optionName")
+                } else {
+                    log.debug("removing: $optionName $nextArg")
+                    $ARGS.remove(nextIndex) // remove this first so the index is preserved for the option name
                 }
             }
 
-            splice(optionName, [], andFollowing)
+            $ARGS.remove(index)
         }
-    }
-
-    // DSL method: remove multiple option names and their corresponding values if they have one
-    void remove(List<String> optionNames) {
-        optionNames.each { remove(it.toString()) }
-    }
-
-    // DSL method: remove an option (and optionally the following n arguments) from the command's arg list
-    void remove(String optionName, int andFollowing) {
-        splice(optionName.toString(), [], andFollowing)
-    }
-
-    // DSL method: replace an option (and optionally the following n arguments) with the supplied arg list
-    void replace(String optionName, List<String> replaceList, int andFollowing) {
-        splice(optionName.toString(), replaceList, andFollowing)
     }
 }

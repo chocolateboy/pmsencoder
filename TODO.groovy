@@ -75,3 +75,9 @@
 
     resolve all this in the validate/resolve method (currently Config.verifyDependencies) called from Config.match
 */
+
+/*
+  investigate adding seek support for YouTube videos:
+
+      http://stackoverflow.com/questions/3302384/youtubes-hd-video-streaming-server-technology
+*/

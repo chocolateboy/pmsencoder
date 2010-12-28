@@ -64,7 +64,7 @@ script {
 
             profile ('Default') {
                 action {
-                    tr '-lavcopts': [ 'abitrate=\\d+': 'abitrate=384' ]
+                    replace '-lavcopts': [ 'abitrate=\\d+': 'abitrate=384' ]
                 }
             }
     */
@@ -111,7 +111,7 @@ script {
         }
 
         action {
-            // FIXME: update this
+            // XXX: keep this up-to-date
             $youtube_dl_compatible = '2010.12.09' // version the regexes were copied from
         }
     }
@@ -155,7 +155,7 @@ script {
         }
 
         action {
-            tr '-lavcopts': [ '4096': '5086' ] // increase the bitrate
+            replace '-lavcopts': [ '4096': '5086' ] // increase the bitrate
         }
     }
 

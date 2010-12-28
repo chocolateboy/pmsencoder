@@ -8,39 +8,40 @@ class RemoveTest extends PMSEncoderTestCase {
         matcher.load(script)
     }
 
-    void testSmartRemoveName() {
+    void testRemoveName() {
         assertMatch([
-            uri: 'http://smart.remove.name',
+            uri: 'http://remove.name',
             args: [ '-foo', '-bar', '-baz', '-quux' ],
-            matches: [ 'Smart Remove Name' ],
+            matches: [ 'Remove Name' ],
             wantArgs: [ '-foo', '-baz', '-quux' ]
         ])
     }
 
-    void testSmartRemoveValue() {
+    void testRemoveValue() {
         assertMatch([
-            uri: 'http://smart.remove.value',
+            uri: 'http://remove.value',
             args: [ '-foo', '-bar', 'baz', '-quux' ],
-            matches: [ 'Smart Remove Value' ],
+            matches: [ 'Remove Value' ],
             wantArgs: [ '-foo', '-quux' ]
         ])
     }
 
-    void testRemoveNWithOption() {
+    void testDigitValue() {
         assertMatch([
-            uri: 'http://remove.n',
-            args: [ '-foo', '-bar', '-baz', '-quux' ],
-            matches: [ 'Remove N' ],
-            wantArgs: [ '-quux' ]
+            uri: 'http://digit.value',
+            args: [ '-foo', '-bar', '-42', '-quux' ],
+            matches: [ 'Digit Value' ],
+            wantArgs: [ '-foo', '-quux' ]
         ])
     }
 
-    void testRemoveNWithoutOption() {
+    void testHyphenValue() {
         assertMatch([
-            uri: 'http://remove.n',
-            args: [ '-foo', '-bar', 'baz', '-quux' ],
-            matches: [ 'Remove N' ],
-            wantArgs: [ '-quux' ]
+            uri: 'http://hyphen.value',
+            args: [ '-foo', '-output', '-', '-quux' ],
+            matches: [ 'Hyphen Value' ],
+            wantArgs: [ '-foo', '-quux' ]
         ])
     }
+
 }

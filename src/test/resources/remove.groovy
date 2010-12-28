@@ -1,7 +1,7 @@
 script {
-    profile('Smart Remove Name') {
+    profile('Remove Name') {
         pattern {
-            domain 'smart.remove.name'
+            domain 'remove.name'
         }
 
         action {
@@ -10,9 +10,9 @@ script {
         }
     }
 
-    profile('Smart Remove Value') {
+    profile('Remove Value') {
         pattern {
-            domain 'smart.remove.value'
+            domain 'remove.value'
         }
 
         action {
@@ -21,14 +21,26 @@ script {
         }
     }
 
-    profile('Remove N') {
+    profile('Digit Value') {
         pattern {
-            domain 'remove.n'
+            domain 'digit.value'
         }
 
         action {
-            // -foo -bar baz -quux -> -quux
-            remove('-foo', 2)
+            // -foo -bar -42 -quux -> -foo -quux
+            remove '-bar'
         }
     }
+
+    profile('Hyphen Value') {
+        pattern {
+            domain 'hyphen.value'
+        }
+
+        action {
+            // -foo -ouput - -quux -> -foo -quux
+            remove '-output'
+        }
+    }
+
 }
