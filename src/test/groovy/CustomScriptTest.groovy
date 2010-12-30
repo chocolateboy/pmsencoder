@@ -12,34 +12,15 @@ class CustomScriptTest extends PMSEncoderTestCase {
         ])
     }
 
-    // confirm that the default TED profile works
-    void testProfile() {
-        def TEDArgs = new ArrayList<String>(matcher.script.$DEFAULT_TRANSCODER_ARGS) // XXX clone doesn't work
-        def index = TEDArgs.findIndexOf { it == '25' } // fps
-        assert index > -1
-        TEDArgs[index] = '24'
-
-        assertMatch([
-            uri:            'http://feedproxy.google.com/~r/TEDTalks_video',
-            wantArgs:       TEDArgs,
-            matches:        [ 'TED' ],
-            useDefaultArgs: true
-        ])
-    }
-
-    // now confirm that it can be overridden
+    // confirm that a profile (YouTube) can be overridden
     void testProfileReplace() {
-        def TEDArgs = new ArrayList<String>(matcher.script.$DEFAULT_TRANSCODER_ARGS)
-        def uri = 'http://feedproxy.google.com/~r/TEDTalks_video'
-        List<String> wantArgs = TEDArgs + [ '-foo', 'bar' ] // type-inference fail
-
+        def uri = 'http://www.gametrailers.com/video/action-trailer-littlebigplanet-2/708893'
         assertMatch([
             script:        '/profile_replace.groovy',
             uri:           uri,
-            wantStash:      [ $URI: uri + '/foo/bar.baz' ],
-            wantArgs:       wantArgs,
-            matches:        [ 'TED' ],
-            useDefaultArgs: true
+            wantArgs:       [ '-game', 'trailers' ],
+            matches:        [ 'GameTrailers' ],
+            useDefaultArgs: false
         ])
     }
 

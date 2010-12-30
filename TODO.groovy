@@ -46,3 +46,11 @@
 
       http://stackoverflow.com/questions/3302384/youtubes-hd-video-streaming-server-technology
 */
+
+    // Pattern.reject() complement to match
+
+    reject 'Foo'
+    reject ([ 'Foo', 'Bar' ])
+    reject $URI: '^http://whatever'
+    reject { ... }
+

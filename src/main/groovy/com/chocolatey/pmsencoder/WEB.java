@@ -48,8 +48,8 @@ public class WEB extends net.pms.formats.WEB {
 
         if (type == VIDEO) {
             for (String engine: PMS.getConfiguration().getEnginesAsList(PMS.get().getRegistry())) {
-                if (engine.equals(Engine.ID)) {
-                    profiles.add(0, Engine.class);
+                if (engine.equals(PMSEncoder.ID)) {
+                    profiles.add(0, PMSEncoder.class);
                     break; // ignore duplicates
                 }
             }

@@ -15,10 +15,10 @@ private class ProcessManager {
     List<ProcessWrapper> attachedProcesses
     Logger log
     OutputParams outputParams
-    private Engine engine
+    private PMSEncoder pmsencoder
 
-    ProcessManager(Engine engine, OutputParams params) {
-        this.engine = engine
+    ProcessManager(PMSEncoder pmsencoder, OutputParams params) {
+        this.pmsencoder = pmsencoder
         this.outputParams = params
         log = Logger.getLogger(this.getClass().getName())
         attachedProcesses = new ArrayList<ProcessWrapper>()
@@ -53,7 +53,7 @@ private class ProcessManager {
 
     public String getFifoPath(String basename) {
         try {
-            return engine.isWindows ?
+            return pmsencoder.isWindows ?
                 '\\\\.\\pipe\\' + basename :
                 (new File(PMS.getConfiguration().getTempFolder(), basename)).getCanonicalPath()
         } catch (IOException e) {
@@ -73,7 +73,7 @@ private class ProcessManager {
     public void handleHook(List<String> hookArgs) {
         def cmdArray = listToArray(hookArgs)
         // PMS doesn't require input from this process - so use new OutputParams
-        def params = new OutputParams(engine.getConfiguration())
+        def params = new OutputParams(pmsencoder.getConfiguration())
 
         params.log = true
 
@@ -105,7 +105,7 @@ private class ProcessManager {
         def cmdArray = listToArray(downloaderArgs)
 
         // PMS doesn't require input from this process - so use new OutputParams
-        def params = new OutputParams(engine.getConfiguration())
+        def params = new OutputParams(pmsencoder.getConfiguration())
         params.log = true
 
         def downloaderProcess = new ProcessWrapperImpl(cmdArray, params) // may modify cmdArray[0]

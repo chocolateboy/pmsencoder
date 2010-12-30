@@ -1,13 +1,12 @@
-// override the TED profile
+// override the GameTrailers profile
 script {
-    profile ('TED') {
+    profile ('GameTrailers') {
         pattern {
-            match $URI: '^http://feedproxy\\.google\\.com/~r/TEDTalks_video\\b'
+            domain 'gametrailers.com'
         }
 
         action {
-            set '-foo': 'bar'
-            let $URI: "${$URI}/foo/bar.baz"
+            set '-game': 'trailers'
         }
     }
 }

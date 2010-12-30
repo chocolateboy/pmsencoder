@@ -123,14 +123,6 @@ class MatcherTest extends PMSEncoderTestCase {
         ])
     }
 
-    void testTED() {
-        assertMatch([
-            uri: 'http://feedproxy.google.com/~r/TEDTalks_video/~3/EOXWNNyoC3E/843',
-            wantArgs: [ '-ofps', '24' ],
-            matches: [ 'TED' ]
-        ])
-    }
-
     void testGameTrailers() {
         def page_id = '48298'
         def movie_id = '5162'

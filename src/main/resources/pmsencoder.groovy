@@ -141,16 +141,6 @@ script {
         }
     }
 
-    profile ('TED') {
-        pattern {
-            match $URI: '^http://feedproxy\\.google\\.com/~r/TEDTalks_video\\b'
-        }
-
-        action {
-            set '-ofps': '24'
-        }
-    }
-
     profile ('GameTrailers (Revert PMS Workaround)') {
         /*
            convert:
@@ -188,6 +178,19 @@ script {
                 def scrapeURI = "http://www.gametrailers.com/neo/?page=xml.mediaplayer.Mediagen&movieId=${gametrailers_mov_id}&hd=1"
                 scrape '<src>\\s*(?<URI>\\S+)\\s*</src>', [ uri: scrapeURI ]
             }
+        }
+    }
+
+    profile ('Onion News Network') {
+        pattern {
+            domain 'theonion.com'
+        }
+
+        action {
+            // chase redirects (if possible)
+            // and work around MEncoder's recently-broken caching
+            $URI = 'ffmpeg://' + ($HTTP.target($URI) ?: $URI)
+            set '-ofps': '30000/1001'
         }
     }
 }

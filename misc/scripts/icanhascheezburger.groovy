@@ -1,4 +1,4 @@
-// this needs to be a BEGIN script
+// this needs to precede 'YouTube Metadata' i.e. it needs to be in a BEGIN script
 script {
     def ICHC = 'I Can Has Cheezburger'
     def IPAD_USER_AGENT = 'Mozilla/5.0 (iPad; U; CPU OS 3_2 like Mac OS X; en-us) ' +

@@ -30,7 +30,7 @@ public class Plugin implements StartStopListener, FileListener {
     private static final String END_NAME = 'END.groovy'
 
     // 1 second is flaky - it results in overlapping file change events
-    private Engine pmsencoder
+    private PMSEncoder pmsencoder
     private FileMonitor fileMonitor
     private File scriptDirectory
     private long scriptPollInterval
@@ -129,8 +129,8 @@ public class Plugin implements StartStopListener, FileListener {
         // make sure we have a matcher before we create the transcoder
         createMatcher()
 
-        // initialize the transcoding Engine
-        pmsencoder = new Engine(configuration, this)
+        // initialize the transcoding engine
+        pmsencoder = new PMSEncoder(configuration, this)
 
         /*
          * FIXME: don't assume the position is fixed
@@ -228,7 +228,7 @@ public class Plugin implements StartStopListener, FileListener {
         }
     }
 
-    private void registerPlayer(Engine pmsencoder) {
+    private void registerPlayer(PMSEncoder pmsencoder) {
         try {
             def pmsRegisterPlayer = pms.getClass().getDeclaredMethod('registerPlayer', Player.class)
             pmsRegisterPlayer.setAccessible(true)

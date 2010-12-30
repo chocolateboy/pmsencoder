@@ -10,7 +10,7 @@ import net.pms.PMS
 
 import org.apache.log4j.Logger
 
-public class Engine extends MEncoderWebVideo {
+public class PMSEncoder extends MEncoderWebVideo {
     public static final boolean isWindows = PMS.get().isWindows()
     private Plugin plugin
     private Logger log
@@ -54,7 +54,7 @@ public class Engine extends MEncoderWebVideo {
         ID
     }
 
-    public Engine(PmsConfiguration configuration, Plugin plugin) {
+    public PMSEncoder(PmsConfiguration configuration, Plugin plugin) {
         super(configuration)
         this.configuration = configuration
         this.plugin = plugin
