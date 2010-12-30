@@ -55,24 +55,6 @@ script {
         5    // 240p
     ]
 
-    /*
-        this is placed here (i.e. first) as a convenience so that scripts can create/override
-        settings common to all other profiles without modifying $DEFAULT_TRANSCODER_ARGS e.g.:
-
-            // set the default audio bitrate to 348 Kbps
-            // (see src/test/resources/profile_default.groovy)
-
-            profile ('Default') {
-                action {
-                    replace '-lavcopts': [ 'abitrate=\\d+': 'abitrate=384' ]
-                }
-            }
-    */
-
-    profile ('Default') {
-        pattern { match { false } }
-    }
-
     // extract metadata about the video for other profiles
     profile ('YouTube Metadata') {
         // extract the resource's video_id from the URI of the standard YouTube page

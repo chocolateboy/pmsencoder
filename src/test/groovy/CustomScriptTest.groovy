@@ -78,20 +78,4 @@ class CustomScriptTest extends PMSEncoderTestCase {
             matches:  [ 'GString Scope' ]
         ])
     }
-
-    void testDefaultProfileOverride() {
-        def wantArgs = new ArrayList<String>(matcher.script.$DEFAULT_TRANSCODER_ARGS)
-        def index = wantArgs.findIndexOf { it == '-lavcopts' }
-        assert index > -1
-        // make sure nbcores is interpolated here as 3 in threads=3
-        wantArgs[ index + 1 ] = 'vcodec=mpeg2video:vbitrate=4096:threads=3:acodec=ac3:abitrate=384'
-
-        assertMatch([
-            script:         '/profile_default.groovy',
-            uri:            'http://www.example.com',
-            wantArgs:       wantArgs,
-            matches:        [ 'Default' ],
-            useDefaultArgs: true,
-        ])
-    }
 }

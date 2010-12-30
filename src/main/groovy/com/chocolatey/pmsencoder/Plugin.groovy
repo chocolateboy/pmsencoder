@@ -33,13 +33,17 @@ public class Plugin implements StartStopListener, FileListener {
     private Matcher matcher
     private PmsConfiguration configuration
     private PMS pms
+    private URL beginScript
     private URL defaultScript
+    private URL endScript
 
     public Plugin() {
         info('initializing PMSEncoder ' + VERSION)
         pms = PMS.get()
         configuration = PMS.getConfiguration()
+        beginScript = this.getClass().getResource('/begin.groovy')
         defaultScript = this.getClass().getResource('/pmsencoder.groovy')
+        endScript = this.getClass().getResource('/end.groovy')
 
         // get optional overrides from PMS.conf
         def customLogConfigPath = (configuration.getCustomProperty(LOG_CONFIG) as String)
@@ -169,10 +173,12 @@ public class Plugin implements StartStopListener, FileListener {
         }
     }
 
+    // we don't need to load the begin/end scripts if there are no user scripts:
+    // they're not used by the default script
     private void loadScripts() {
-        loadScript(defaultScript)
-
         if (directoryExists(scriptDirectory)) {
+            loadScript(beginScript)
+            loadScript(defaultScript)
             info("loading scripts from: $scriptDirectory")
 
             scriptDirectory.eachFileRecurse(FILES) { File file ->
@@ -180,6 +186,10 @@ public class Plugin implements StartStopListener, FileListener {
                     loadScript(file)
                 }
             }
+
+            loadScript(endScript)
+        } else {
+            loadScript(defaultScript)
         }
     }
 
