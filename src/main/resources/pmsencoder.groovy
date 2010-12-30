@@ -76,7 +76,7 @@ script {
         }
     }
 
-    profile ('YouTube-DL Compatible', after: 'YouTube Metadata') {
+    profile ('YouTube-DL Compatible') {
         pattern {
             // match any of the sites youtube-dl supports - copied from the source
             match $URI: [
@@ -106,7 +106,7 @@ script {
     // it also simplifies custom matchers e.g. check for 'YouTube Medatata' in $MATCHES
     // rather than repeating the regex
 
-    profile ('YouTube', after: 'YouTube-DL Compatible') {
+    profile ('YouTube') {
         pattern {
             match { $youtube_video_id != null }
         }
@@ -130,7 +130,7 @@ script {
         }
     }
 
-    profile ('Apple Trailers HD', after: 'Apple Trailers') {
+    profile ('Apple Trailers HD') {
         pattern {
             match 'Apple Trailers'
             match $URI: '(_h720p\\.mov|\\.m4v)$'
@@ -173,7 +173,7 @@ script {
         }
     }
 
-    profile ('GameTrailers', after: 'GameTrailers (Revert PMS Workaround)') {
+    profile ('GameTrailers') {
         pattern {
             domain 'gametrailers.com'
         }

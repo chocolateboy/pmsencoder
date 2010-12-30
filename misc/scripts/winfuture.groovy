@@ -9,7 +9,7 @@ script {
         }
     }
 
-    profile ('WinFuture', after: 'Redirect') {
+    profile ('WinFuture') {
         pattern {
             domain 'winfuture.de'
         }

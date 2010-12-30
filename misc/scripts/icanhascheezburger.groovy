@@ -1,3 +1,4 @@
+// this needs to be a BEGIN script
 script {
     def ICHC = 'I Can Has Cheezburger'
     def IPAD_USER_AGENT = 'Mozilla/5.0 (iPad; U; CPU OS 3_2 like Mac OS X; en-us) ' +
@@ -10,7 +11,7 @@ script {
         }
     }
 
-    profile ('I Can Has YouTube', before: 'YouTube Metadata', after: ICHC) {
+    profile ('I Can Has YouTube') {
         pattern {
             match ICHC
             scrape '\\bhttp://www\\.youtube\\.com/v/(?<video_id>[^&?]+)'
@@ -21,7 +22,7 @@ script {
         }
     }
 
-    profile ('I Can Has Viddler', after: ICHC) {
+    profile ('I Can Has Viddler') {
         pattern {
             match ICHC
             scrape "\\bsrc='(?<URI>http://www\\.viddler\\.com/file/\\w+/html5mobile/)'"

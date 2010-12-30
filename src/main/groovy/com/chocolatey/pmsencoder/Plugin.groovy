@@ -19,13 +19,17 @@ import no.geosoft.cc.io.FileMonitor
 import org.apache.log4j.xml.DOMConfigurator
 
 public class Plugin implements StartStopListener, FileListener {
-    private static final String VERSION = '1.2.5'
+    private static final String VERSION = '1.3.0'
     private static final String DEFAULT_SCRIPT_DIRECTORY = 'pmsencoder'
     private static final String LOG_CONFIG = 'pmsencoder.log.config'
     private static final String SCRIPT_DIRECTORY = 'pmsencoder.script.directory'
     private static final String SCRIPT_POLL = 'pmsencoder.script.poll'
-    // 1 second is flaky - it results in overlapping file change events
     private static final int MIN_SCRIPT_POLL_INTERVAL = 2
+    private static final String BEGIN_NAME = 'BEGIN.groovy'
+    private static final String DEFAULT_NAME = 'DEFAULT.groovy'
+    private static final String END_NAME = 'END.groovy'
+
+    // 1 second is flaky - it results in overlapping file change events
     private Engine pmsencoder
     private FileMonitor fileMonitor
     private File scriptDirectory
@@ -33,17 +37,16 @@ public class Plugin implements StartStopListener, FileListener {
     private Matcher matcher
     private PmsConfiguration configuration
     private PMS pms
-    private URL beginScript
+    private File beginFile
+    private File defaultFile
+    private File endFile
     private URL defaultScript
-    private URL endScript
 
     public Plugin() {
         info('initializing PMSEncoder ' + VERSION)
         pms = PMS.get()
         configuration = PMS.getConfiguration()
-        beginScript = this.getClass().getResource('/begin.groovy')
         defaultScript = this.getClass().getResource('/pmsencoder.groovy')
-        endScript = this.getClass().getResource('/end.groovy')
 
         // get optional overrides from PMS.conf
         def customLogConfigPath = (configuration.getCustomProperty(LOG_CONFIG) as String)
@@ -69,6 +72,9 @@ public class Plugin implements StartStopListener, FileListener {
 
         if (scriptDirectory != null) {
             info("script directory: $scriptDirectory")
+            beginFile = new File(scriptDirectory, BEGIN_NAME)
+            defaultFile = new File(scriptDirectory, DEFAULT_NAME)
+            endFile = new File(scriptDirectory, END_NAME)
 
             if (candidateScriptPollInterval > 0) {
                 if (candidateScriptPollInterval < MIN_SCRIPT_POLL_INTERVAL) {
@@ -177,17 +183,28 @@ public class Plugin implements StartStopListener, FileListener {
     // they're not used by the default script
     private void loadScripts() {
         if (directoryExists(scriptDirectory)) {
-            loadScript(beginScript)
-            loadScript(defaultScript)
+            if (fileExists(beginFile)) {
+                loadScript(beginFile)
+            }
+
+            if (fileExists(defaultFile)) {
+                loadScript(defaultFile)
+            } else {
+                loadScript(defaultScript)
+            }
+
             info("loading scripts from: $scriptDirectory")
 
             scriptDirectory.eachFileRecurse(FILES) { File file ->
-                if (file.getName().endsWith('.groovy')) {
+                def filename = file.getName()
+                if (filename.endsWith('.groovy') && !(filename in [ BEGIN_NAME, DEFAULT_NAME, END_NAME ])) {
                     loadScript(file)
                 }
             }
 
-            loadScript(endScript)
+            if (fileExists(endFile)) {
+                loadScript(endFile)
+            }
         } else {
             loadScript(defaultScript)
         }

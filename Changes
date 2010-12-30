@@ -1,8 +1,10 @@
-1.3.0 TBC
+1.3.0 Thu Dec 30 09:02:14 2010
+    - Incompatibility: profile dependencies (before, after) have been removed
+        - if it exists, BEGIN.groovy is executed first
+        - if it exists, END.groovy is executed last
     - DSL: add $HOOK, allowing an arbitrary, independent command to be run
     - DSL: $MIME_TYPE: allow a per-response Content-Type header
     - DSL: $ARGS, $DOWNLOADER, $HOOK, and $TRANSCODER all now take a string as well as a list
-    - DSL: replace 'Default' profile with awk-style BEGIN and END profiles
     - DSL: rename Action.tr() -> Action.replace()
     - DSL: smarter option value detection in Action.remove()
     - DSL: remove unused Action methods

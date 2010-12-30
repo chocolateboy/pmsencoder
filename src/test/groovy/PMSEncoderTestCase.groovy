@@ -13,7 +13,7 @@ abstract class PMSEncoderTestCase extends GroovyTestCase {
 
     void setUp() {
         def log4jConfig = this.getClass().getResource('/test_log4j.xml')
-        def pmsencoderConfig = this.getClass().getResource('/pmsencoder.groovy')
+        def defaultScript = this.getClass().getResource('/pmsencoder.groovy')
 
         new MockUp<PmsConfiguration>() {
             @Mock
@@ -39,17 +39,28 @@ abstract class PMSEncoderTestCase extends GroovyTestCase {
 
         DOMConfigurator.configure(log4jConfig)
         matcher = new Matcher(pms)
-        matcher.load(pmsencoderConfig)
+        matcher.load(defaultScript)
     }
 
     protected void assertMatch(Map<String, Object> map) {
-        URL script
+        List<URL> scripts
 
         if (map['script'] != null) {
-            if (map['script'] instanceof URL) {
-                script = map['script']
-            } else {
-                script = this.getClass().getResource(map['script'] as String)
+            if (!(map['script'] instanceof List)) {
+                map['script'] = [ map['script'] ]
+            }
+
+            scripts = map['script'].collect {
+                def url
+
+                if (it instanceof URL) {
+                    url = it
+                } else {
+                    url = this.getClass().getResource(it as String)
+                }
+
+                assert url != null
+                return url
             }
         }
 
@@ -76,8 +87,11 @@ abstract class PMSEncoderTestCase extends GroovyTestCase {
 
         boolean useDefaultArgs = map['useDefaultArgs'] ?: false
 
-        if (script != null) {
-            matcher.load(script)
+        if (scripts != null) {
+            scripts.each {
+                assert it != null
+                matcher.load(it)
+            }
         }
 
         def command = new Command(stash, args)
