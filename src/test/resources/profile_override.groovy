@@ -1,12 +1,12 @@
 // override the GameTrailers profile
 script {
-    profile ('GameTrailers Replacement', replaces: 'GameTrailers') {
+    profile ('GameTrailers') {
         pattern {
             domain 'gametrailers.com'
         }
 
         action {
-            set '-gametrailers': 'replacement'
+            set '-game': 'trailers'
         }
     }
 }

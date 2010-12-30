@@ -1,9 +1,8 @@
 @Typed
 package com.chocolatey.pmsencoder
 
-class CustomScriptTest extends PMSEncoderTestCase {
+class ProfileTest extends PMSEncoderTestCase {
     void testOverrideDefaultArgs() {
-        def uri = 
         assertMatch([
             script:         '/default_mencoder_args.groovy',
             uri:            'http://www.example.com',
@@ -12,11 +11,11 @@ class CustomScriptTest extends PMSEncoderTestCase {
         ])
     }
 
-    // confirm that a profile (YouTube) can be overridden
-    void testProfileReplace() {
+    // confirm that a profile (GameTrailers) can be overridden
+    void testProfileOverride() {
         def uri = 'http://www.gametrailers.com/video/action-trailer-littlebigplanet-2/708893'
         assertMatch([
-            script:        '/profile_replace.groovy',
+            script:        '/profile_override.groovy',
             uri:           uri,
             wantArgs:       [ '-game', 'trailers' ],
             matches:        [ 'GameTrailers' ],
@@ -24,12 +23,33 @@ class CustomScriptTest extends PMSEncoderTestCase {
         ])
     }
 
-    void testProfileAppend() {
+    // ditto, but using the 'replaces' keyword and a different profile name
+    void testProfileReplace() {
+        def uri = 'http://www.gametrailers.com/video/action-trailer-littlebigplanet-2/708893'
         assertMatch([
-            script:   '/profile_append.groovy',
-            uri:      'http://www.example.com',
-            wantArgs: [ '-an', 'example' ],
-            matches:  [ 'Example' ]
+            script:        '/profile_replace.groovy',
+            uri:           uri,
+            wantArgs:       [ '-gametrailers', 'replacement' ],
+            matches:        [ 'GameTrailers Replacement' ],
+            useDefaultArgs: false
+        ])
+    }
+
+    void testInheritPattern() {
+        assertMatch([
+            script:   '/profile_extend.groovy',
+            uri:      'http://inherit.pattern',
+            wantArgs: [ '-base', '-inherit', 'pattern' ],
+            matches:  [ 'Base', 'Inherit Pattern' ]
+        ])
+    }
+
+    void testInheritAction() {
+        assertMatch([
+            script:   '/profile_extend.groovy',
+            uri:      'http://inherit.action',
+            wantArgs: [ '-base' ],
+            matches:  [ 'Inherit Action' ]
         ])
     }
 

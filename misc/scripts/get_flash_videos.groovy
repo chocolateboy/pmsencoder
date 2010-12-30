@@ -4,7 +4,8 @@ script {
 
     profile ('Get Flash Videos') {
         pattern {
-            domains([ 'wimp.com' ]) // , ...
+            // videofeed.Web,Test,Wimp=http://www.wimp.com/rss/
+            domains([ 'wimp.com' ]) // &c.
         }
 
         action {

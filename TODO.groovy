@@ -12,10 +12,6 @@
     )
 
 /*
-    wrap profile evaluation in a try/catch block so errors don't affect the rest of the script
-*/
-
-/*
     document the outstanding issue with e.g. "${URI}&has_verified" barfing:
 
         java.net.URISyntaxException: Illegal character in path at index 5: class java.net.URI&has_verified=1
@@ -23,8 +19,6 @@
     investigate using a custom GroovyShell without URI autoimported
 
 */
-
-// 100% test coverage
 
 /*
     infinite loop/stack overflow in maven assembly plugin (in Plexus Archiver) with
@@ -46,11 +40,3 @@
 
       http://stackoverflow.com/questions/3302384/youtubes-hd-video-streaming-server-technology
 */
-
-    // Pattern.reject() complement to match
-
-    reject 'Foo'
-    reject ([ 'Foo', 'Bar' ])
-    reject $URI: '^http://whatever'
-    reject { ... }
-

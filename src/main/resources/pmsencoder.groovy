@@ -163,6 +163,7 @@ script {
         }
     }
 
+    // videofeed.Web,Test,GameTrailers=http://www.gametrailers.com/rssgenerate.php?s1=&favplats[ps3]=ps3&quality[hd]=on&agegate[no]=on&orderby=newest&limit=100
     profile ('GameTrailers') {
         pattern {
             domain 'gametrailers.com'

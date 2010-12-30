@@ -37,7 +37,6 @@ class Script extends Logger {
     }
 
     // DSL method
-    @Typed(TypePolicy.MIXED) // Groovy++ doesn't support delegation
     // a Profile consists of a name, a pattern block and an action block - all
     // determined when the script is loaded/compiled
     // XXX more annoying DDWIM magic: Groovy reorders the arguments
@@ -67,10 +66,10 @@ class Script extends Logger {
             profile.extractBlocks(closure)
 
             if (extendz != null) {
-                if (profile[extendz] == null) {
+                if (profiles[extendz] == null) {
                     log.error("attempt to extend a nonexistent profile: $extendz")
                 } else {
-                    def base = (profiles[extendz].node as Reference<Profile>).get()
+                    def base = profiles[extendz]
                     profile.assignPatternBlockIfNull(base)
                     profile.assignActionBlockIfNull(base)
                 }

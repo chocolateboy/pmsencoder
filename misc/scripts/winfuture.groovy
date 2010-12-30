@@ -1,3 +1,4 @@
+// videofeed.Web,Test,WinFuture=http://rss.feedsportal.com/c/617/f/448481/index.rss
 script {
     profile ('Redirect') {
         pattern {
