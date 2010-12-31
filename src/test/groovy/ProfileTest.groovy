@@ -6,7 +6,7 @@ class ProfileTest extends PMSEncoderTestCase {
         assertMatch([
             script:         '/default_mencoder_args.groovy',
             uri:            'http://www.example.com',
-            wantArgs:       [ '-foo', '-bar', '-baz', '-quux' ],
+            wantArgs:       [ '-default', '-mencoder', '-args' ],
             useDefaultArgs: true
         ])
     }

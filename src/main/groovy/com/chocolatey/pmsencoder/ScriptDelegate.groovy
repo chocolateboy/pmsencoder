@@ -14,6 +14,7 @@ public class ScriptDelegate extends Logger {
     // DSL properties
 
     // $SCRIPT: getter
+    // XXX do we need to expose this?
     protected final Script get$SCRIPT() {
         script
     }
@@ -23,14 +24,14 @@ public class ScriptDelegate extends Logger {
         script.$PMS
     }
 
-    // DSL getter: $DEFAULT_TRANSCODER_ARGS
-    protected List<String> get$DEFAULT_TRANSCODER_ARGS() {
-        script.$DEFAULT_TRANSCODER_ARGS
+    // DSL getter: $DEFAULT_MENCODER_ARGS
+    protected List<String> get$DEFAULT_MENCODER_ARGS() {
+        script.$DEFAULT_MENCODER_ARGS
     }
 
-    // DSL setter: $DEFAULT_TRANSCODER_ARGS
-    protected List<String> get$DEFAULT_TRANSCODER_ARGS(List<String> args) {
-        script.$DEFAULT_TRANSCODER_ARGS = args
+    // DSL setter: $DEFAULT_MENCODER_ARGS
+    protected List<String> get$DEFAULT_MENCODER_ARGS(List<String> args) {
+        script.$DEFAULT_MENCODER_ARGS = args
     }
 
     // DSL getter: $YOUTUBE_ACCEPT
@@ -43,4 +44,3 @@ public class ScriptDelegate extends Logger {
         script.$YOUTUBE_ACCEPT = args
     }
 }
-

@@ -4,6 +4,9 @@ package com.chocolatey.pmsencoder
 import net.pms.io.OutputParams
 
 // i.e. a delegate with access to a Command
+// XXX some (most? all?) of these DSL properties could just be exposed/documented as-is i.e.
+// log.info(..), http.get(...) &c.
+// XXX: also, several probably shouldn't be exposed: $MATCHES, $STASH, $COMMAND &c.
 public class CommandDelegate extends ScriptDelegate {
     private Command command
     private final Map<String, String> cache = [:] // only needed/used by scrape()
@@ -52,8 +55,8 @@ public class CommandDelegate extends ScriptDelegate {
         Groovy/Groovy++ always uses List<String> and complains at runtime that
         it can't cast a GString into List<String>:
 
-        Cannot cast object '/usr/bin/downloader string http://www.downloader-string.com'
-        with class 'org.codehaus.groovy.runtime.GStringImpl' to class 'java.util.List'
+            Cannot cast object '/usr/bin/downloader string http://www.downloader-string.com'
+            with class 'org.codehaus.groovy.runtime.GStringImpl' to class 'java.util.List'
 
         workaround: define just one setter and determine the type with instanceof
     */

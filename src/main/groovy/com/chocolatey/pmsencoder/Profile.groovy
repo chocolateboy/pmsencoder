@@ -3,13 +3,11 @@ package com.chocolatey.pmsencoder
 
 import org.apache.log4j.Level
 
-// this holds a reference to the pattern and action, and isn't delegated to at runtime
+// this holds a reference to the pattern and action blocks, and isn't delegated to
 class Profile extends Logger {
     private final Script script
     protected Closure patternBlock
     protected Closure actionBlock
-    List<String> predecessors
-    List<String> successors
 
     public final String name
 
@@ -74,9 +72,9 @@ class Profile extends Logger {
     boolean match(Command command) {
         def newCommand = new Command(command)
 
-        // avoid clogging up the logfile with pattern-block assignments. If the pattern doesn't match,
+        // avoid clogging up the logfile with pattern-block stash assignments. If the pattern doesn't match,
         // the assigments are irrelevant; and if it does match, the assignments are logged (below)
-        // as the pattern's temporary stash is merged into the command stash. Rather than suppressing these
+        // when the pattern's temporary stash is merged into the command stash. Rather than suppressing these
         // assignments completely, log them at the lowest (TRACE) level
         newCommand.setStashAssignmentLogLevel(Level.TRACE)
 
@@ -92,7 +90,7 @@ class Profile extends Logger {
         // returns true if all matches in the block succeed, false otherwise 
         if (runPatternBlock(pattern)) {
             // we can now merge any side-effects (currently only modifications to the stash).
-            // first merge (with logging)
+            // first: merge (with logging)
             newCommand.stash.each { name, value -> command.let(name, value) }
             // now run the actions
             def action = new Action(script, command)
@@ -117,4 +115,3 @@ class Profile extends Logger {
         }
     }
 }
-

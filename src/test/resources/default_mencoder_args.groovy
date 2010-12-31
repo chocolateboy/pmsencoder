@@ -1,3 +1,3 @@
 script {
-    $DEFAULT_TRANSCODER_ARGS = [ '-foo', '-bar', '-baz', '-quux' ]
+    $DEFAULT_MENCODER_ARGS = [ '-default', '-mencoder', '-args' ]
 }

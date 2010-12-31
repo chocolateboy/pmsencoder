@@ -59,6 +59,7 @@ public class Command extends Logger {
         this.args == other.args &&
         this.matches == other.matches &&
         this.params == other.params &&
+        this.hook == other.hook &&
         this.downloader == other.downloader &&
         this.transcoder == other.transcoder
     }
@@ -82,4 +83,3 @@ public class Command extends Logger {
         return value // for chaining: foo = bar = baz i.e. foo = (bar = baz)
     }
 }
-

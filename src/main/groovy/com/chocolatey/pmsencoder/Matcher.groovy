@@ -7,7 +7,7 @@ class Matcher extends Logger {
     // FIXME: this is only public for a (single) test
     // 1) Script has the same scope as Matcher so they could be merged,
     // but we don't want to expose load()
-    // 2) the script "globals" (e.g. $DEFAULT_TRANSCODER_ARGS) could be moved here
+    // 2) the script "globals" (e.g. $DEFAULT_MENCODER_ARGS) could be moved here
     public final Script script
 
     Matcher(PMS pms) {
@@ -41,7 +41,7 @@ class Matcher extends Logger {
     boolean match(Command command, boolean useDefault = true) {
         if (useDefault) {
             // watch out: there's a GString about
-            script.$DEFAULT_TRANSCODER_ARGS.each { command.args << it.toString() }
+            script.$DEFAULT_MENCODER_ARGS.each { command.args << it.toString() }
         }
 
         def matched = script.match(command) // we could use the @Delegate annotation, but this is cleaner/clearer

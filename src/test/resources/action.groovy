@@ -12,24 +12,34 @@ script {
     profile ('Stringify Values') {
         // verify that these values are all stringified
         pattern {
-            match { $URI == 'http://stringify.values.com' }
+            domain 'stringify.values'
         }
 
         action {
             set '-foo':  42
             set '-bar':  3.1415927
             set '-baz':  true
-            set '-quux': null
+            set '-quux': null // but not this
         }
     }
 
     profile ('Set String') {
         pattern {
-            domain 'set.string.com'
+            domain 'set.string'
         }
 
         action {
             set '-nocache'
+        }
+    }
+
+    profile ('Set Map') {
+        pattern {
+            domain 'set.map'
+        }
+
+        action {
+            set '-foo':  42, '-bar':  3.1415927, '-baz': true, '-quux': null
         }
     }
 }

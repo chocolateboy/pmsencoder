@@ -7,7 +7,7 @@ class Script extends Logger {
     // this is the default Map type, but let's be explicit for documentation purposes
     private Map<String, Profile> profiles = new LinkedHashMap<String, Profile>()
     // DSL fields (mutable)
-    public List<String> $DEFAULT_TRANSCODER_ARGS = []
+    public List<String> $DEFAULT_MENCODER_ARGS = []
     public List<Integer> $YOUTUBE_ACCEPT = []
     public PMS $PMS
 
@@ -58,7 +58,7 @@ class Script extends Logger {
             }
         }
 
-        Profile profile = new Profile(name, this)
+        def profile = new Profile(name, this)
 
         try {
             // run the profile block at compile-time to extract its pattern and action blocks,

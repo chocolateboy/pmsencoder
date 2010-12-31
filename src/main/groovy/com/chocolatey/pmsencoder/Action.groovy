@@ -38,7 +38,7 @@ class Action extends CommandDelegate {
     @Typed(TypePolicy.DYNAMIC) // XXX try to handle GStrings
     void set(Map<String, String> map) {
         // the sort order is predictable (for tests) as long as we (and Groovy) use LinkedHashMap
-        map.each { name, value -> setArg(name.toString(), value.toString()) }
+        map.each { name, value -> setArg(name.toString(), (value == null ? null : value.toString())) }
     }
 
     // DSL method

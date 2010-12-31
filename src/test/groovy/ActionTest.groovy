@@ -18,12 +18,12 @@ class ActionTest extends PMSEncoderTestCase {
     void testStringifyValues() {
         assertMatch([
             script: '/action.groovy',
-            uri:    'http://stringify.values.com',
+            uri:    'http://stringify.values',
             wantArgs: [
                 '-foo',  '42',
                 '-bar',  '3.1415927',
                 '-baz',  'true',
-                '-quux', 'null'
+                '-quux'
             ],
             matches: [ 'Stringify Values' ]
         ])
@@ -33,9 +33,23 @@ class ActionTest extends PMSEncoderTestCase {
     void testSetString() {
         assertMatch([
             script:   '/action.groovy',
-            uri:      'http://set.string.com',
+            uri:      'http://set.string',
             wantArgs: [ '-nocache' ],
             matches:  [ 'Set String' ]
+        ])
+    }
+
+    void testSetMap() {
+        assertMatch([
+            script: '/action.groovy',
+            uri:    'http://set.map',
+            wantArgs: [
+                '-foo',  '42',
+                '-bar',  '3.1415927',
+                '-baz',  'true',
+                '-quux'
+            ],
+            matches: [ 'Set Map' ]
         ])
     }
 }

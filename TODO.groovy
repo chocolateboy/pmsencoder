@@ -40,3 +40,25 @@
 
       http://stackoverflow.com/questions/3302384/youtubes-hd-video-streaming-server-technology
 */
+
+// WEB.groovy:
+
+videofeed {
+    uri  = 'http://example.com/rss'
+    icon = 'http://example.com/rss.jpg'
+    path = '/Web/Foo/Bar/Baz'
+}
+
+videostream {
+    uri  = 'mms://example.com/stream'
+    icon = 'http://example.com/rss.jpg'
+    path = 'Quux' // relative path: relative to the previous path i.e. /Web/Foo/Bar/Baz/Quux
+}
+
+// use the user-specified folder, rather than appending the feed name, so feeds can be merged:
+root = 'Web'
+
+videofeed ('YouTube/Favourites') {
+    uri ([ 'http://youtube.com/api/whatever?1-50', 'http://youtube.com/api/whatever?50-100' ])
+    icon = 'http://example.com/rss.jpg'
+}

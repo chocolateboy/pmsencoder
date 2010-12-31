@@ -15,6 +15,7 @@ public class PMSEncoder extends MEncoderWebVideo {
     private Plugin plugin
     private Logger log
     private final static ThreadLocal threadLocal = new ThreadLocal<String>();
+    private static final String DEFAULT_MIME_TYPE = 'video/mpeg'
 
     final PmsConfiguration configuration
     public static final String ID = 'pmsencoder'
@@ -33,7 +34,7 @@ public class PMSEncoder extends MEncoderWebVideo {
             threadLocal.remove() // remove it to prevent memory leaks
             return mimeType
         } else {
-            return 'video/mpeg'
+            return DEFAULT_MIME_TYPE
         }
     }
 
@@ -42,11 +43,14 @@ public class PMSEncoder extends MEncoderWebVideo {
         'PMSEncoder'
     }
 
+    // XXX ffs: http://jira.codehaus.org/browse/GROOVY-2225
+    private String normalizePath(String path) {
+        return isWindows ? path.replaceAll(~'/', '\\\\') : path
+    }
+
     @Override
     public String executable() {
-        def executable = super.executable()
-        // XXX ffs: http://jira.codehaus.org/browse/GROOVY-2225
-        return isWindows ? executable.replaceAll(~'/', '\\\\') : executable
+        normalizePath(super.executable())
     }
 
     @Override
@@ -83,8 +87,9 @@ public class PMSEncoder extends MEncoderWebVideo {
         command.setParams(params)
 
         oldStash.put('$DOWNLOADER_OUT', downloaderOutputPath)
-        oldStash.put('$MENCODER', configuration.getMencoderPath())
-        oldStash.put('$MENCODER_MT', configuration.getMencoderMTPath())
+        oldStash.put('$FFMPEG', normalizePath(configuration.getFfmpegPath()))
+        oldStash.put('$MENCODER', normalizePath(configuration.getMencoderPath()))
+        oldStash.put('$MENCODER_MT', normalizePath(configuration.getMencoderMTPath()))
         oldStash.put('$TRANSCODER_OUT', transcoderOutputPath)
         oldStash.put('$URI', uri)
 

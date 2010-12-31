@@ -1,6 +1,6 @@
 script {
     def PYTHON = '/usr/bin/python'
-    def YOUTUBE_DL = '/path/to/youtube-dl'
+    def YOUTUBE_DL = '/usr/bin/youtube-dl'
 
     profile ('YouTube-DL', replaces: 'YouTube') { // replace it with a profile that works for all YouTube-DL sites
         pattern {

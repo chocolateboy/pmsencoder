@@ -1,12 +1,19 @@
-1.3.1 TBC
-    - fix + tests for Profile replaces: + Profile extends:
+1.4.0 TBC
+    - Incompatibility:
+        - DSL: change $DEFAULT_TRANSCODER_ARGS back to $DEFAULT_MENCODER_ARGS
+    - DSL: expose $FFMPEG path
+    - DSL: fix + test for null values in Action.set(Map)
+    - DSL: fix + tests for Profile replaces: + Profile extends:
+    - add blip9tv script
     - restore cleaned-up SopCast example
 
 1.3.0 Thu Dec 30 20:49:38 2010
     - Incompatibility: profile dependencies (before, after) have been removed
-        - if it exists, BEGIN.groovy is executed first
+        - profiles are matched in the order in which they are loaded
+        - if it exists, BEGIN.groovy is loaded first
         - if it exists, DEFAULT.groovy replaces the builtin pmsencoder.groovy
-        - if it exists, END.groovy is executed last
+        - if they exist, user scripts are loaded
+        - if it exists, END.groovy is loaded last
     - DSL: add $HOOK, allowing an arbitrary, independent command to be run
     - DSL: $MIME_TYPE: allow a per-response Content-Type header
     - DSL: add Pattern.reject complement to Pattern.match

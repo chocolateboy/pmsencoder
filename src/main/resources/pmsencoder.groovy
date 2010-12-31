@@ -16,7 +16,7 @@ script {
     def nbcores = $PMS.getConfiguration().getNumberOfCpuCores()
 
     // default args for the default transcoder (MEncoder) - these can be redefined in a script
-    $DEFAULT_TRANSCODER_ARGS = [
+    $DEFAULT_MENCODER_ARGS = [
         '-prefer-ipv4',
         '-oac', 'lavc',
         '-of', 'lavf',
