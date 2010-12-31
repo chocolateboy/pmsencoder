@@ -1,4 +1,3 @@
-// override the GameTrailers profile
 script {
     profile ('Base') {
         pattern {

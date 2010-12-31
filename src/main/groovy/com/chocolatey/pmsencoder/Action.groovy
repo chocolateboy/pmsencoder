@@ -9,7 +9,7 @@ class Action extends CommandDelegate {
 
     boolean isOption(String arg) {
         // a rare use case for Groovy's annoyingly lax definition of false.
-        // and it's not really a use case because it requires two lines of
+        // and it's not really a use case because it requires three lines of
         // explanation: null and an empty string evaluate as false
 
         if (arg) {
@@ -86,7 +86,7 @@ class Action extends CommandDelegate {
     void replace(Map<String, Map<String, String>> replaceMap) {
         // the sort order is predictable (for tests) as long as we (and Groovy) use LinkedHashMap
         replaceMap.each { name, map ->
-            // squashed bug (see  above): take care to $ARGS in-place
+            // squashed bug (see  above): take care to modify $ARGS in-place
             def index = $ARGS.findIndexOf { it == name }
 
             if (index != -1) {
@@ -107,7 +107,7 @@ class Action extends CommandDelegate {
     private Map<String, String> getFormatURLMap(String video_id) {
         def fmt_url_map = [:]
 
-        def found =  [ '&el=embedded', '&el=detailspage', '&el=vevo' , '' ].any { String param ->
+        def found = [ '&el=embedded', '&el=detailspage', '&el=vevo' , '' ].any { String param ->
             def uri = "http://www.youtube.com/get_video_info?video_id=${video_id}${param}&ps=default&eurl=&gl=US&hl=en"
             def regex = '\\bfmt_url_map=(?<youtube_fmt_url_map>[^&]+)'
             def newStash = new Stash()
@@ -130,12 +130,6 @@ class Action extends CommandDelegate {
 
         return found ? fmt_url_map : null
     }
-
-    /*
-        given (in the stash) the $youtube_video_id and $youtube_t values of a YouTube stream URI
-        (i.e. the direct link to a video), construct the full URI with various $fmt values in
-        succession and set the stash $URI value to the first one that's valid (based on a HEAD request)
-    */
 
     // DSL method
     @Typed(TypePolicy.MIXED) // XXX try to handle GStrings

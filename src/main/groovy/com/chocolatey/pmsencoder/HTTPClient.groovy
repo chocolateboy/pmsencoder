@@ -1,14 +1,3 @@
-/*
-    XXX get and head need to be dynamic for now, due to a bug in the MIXED
-    typing, which causes head to return true instead of false, with
-    hilarious consequences
-
-    mixed_head and_mixed_get are included so that the test suite can check to
-    see if a fix has been committed
-
-    see src/test/groovy/HTTPClientTest.groovy
-*/
-
 @Typed
 package com.chocolatey.pmsencoder
 
@@ -59,7 +48,7 @@ class HTTPClient extends Logger {
     private String getTargetURI(HttpContext cxt) {
         def hostURI = (cxt.getAttribute(ExecutionContext.HTTP_TARGET_HOST) as HttpHost).toURI()
         def finalRequest = cxt.getAttribute(ExecutionContext.HTTP_REQUEST) as HttpUriRequest
-        def targetURI
+        def targetURI = null
 
         try {
             def hostURL = new URI(hostURI).toURL()

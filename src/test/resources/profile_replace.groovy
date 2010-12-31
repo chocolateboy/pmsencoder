@@ -1,4 +1,4 @@
-// override the GameTrailers profile
+// replace the GameTrailers profile
 script {
     profile ('GameTrailers Replacement', replaces: 'GameTrailers') {
         pattern {

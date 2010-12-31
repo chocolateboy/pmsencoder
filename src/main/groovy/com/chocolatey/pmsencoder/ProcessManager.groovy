@@ -10,8 +10,8 @@ import net.pms.PMS
 import org.apache.log4j.Logger
 
 private class ProcessManager {
-    final long LAUNCH_TRANSCODE_SLEEP = 200
-    final long MKFIFO_SLEEP = 200
+    static final long LAUNCH_TRANSCODE_SLEEP = 200
+    static final long MKFIFO_SLEEP = 200
     List<ProcessWrapper> attachedProcesses
     Logger log
     OutputParams outputParams
@@ -84,10 +84,7 @@ private class ProcessManager {
         attachedProcesses << hookProcess
     }
 
-    public ProcessWrapperImpl handleDownloadWindows(
-        List<String> downloaderArgs,
-        List<String> transcoderArgs
-    ) {
+    public ProcessWrapperImpl handleDownloadWindows(List<String> downloaderArgs, List<String> transcoderArgs) {
         def cmdList = ([ "cmd.exe", "/C" ] + downloaderArgs + "|" + transcoderArgs) as List<String>
         def cmdArray = listToArray(cmdList)
         def pw = new ProcessWrapperImpl(cmdArray, outputParams) // may modify cmdArray[0]
@@ -96,10 +93,7 @@ private class ProcessManager {
         return pw
     }
 
-    public void handleDownloadUnix(
-        List<String> downloaderArgs,
-        String downloaderOutputBasename
-    ) {
+    public void handleDownloadUnix(List<String> downloaderArgs, String downloaderOutputBasename) {
         def downloaderOutputPipe = mkfifo(new PipeProcess(downloaderOutputBasename))
         attachedProcesses << downloaderOutputPipe.getPipeProcess()
         def cmdArray = listToArray(downloaderArgs)
