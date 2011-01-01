@@ -4,7 +4,7 @@ package com.chocolatey.pmsencoder
 import org.apache.log4j.Level
 
 // this holds a reference to the pattern and action blocks, and isn't delegated to
-class Profile extends Logger {
+class Profile implements LoggerMixin {
     private final Script script
     protected Closure patternBlock
     protected Closure actionBlock
@@ -16,7 +16,6 @@ class Profile extends Logger {
         this.script = script
     }
 
-    @Typed(TypePolicy.MIXED) // Groovy++ doesn't support delegation
     void extractBlocks(Closure closure) {
         def delegate = new ProfileValidationDelegate(script, name)
         // wrapper method: runs the closure then validates the result, raising an exception if anything is amiss
@@ -30,7 +29,6 @@ class Profile extends Logger {
     // pulled out of the match method below so that type-softening is isolated
     // note: keep it here rather than making it a method in Pattern: trying to keep the delegates
     // clean (cf. Ruby's BlankSlate)
-    @Typed(TypePolicy.MIXED) // Groovy++ doesn't support delegation
     boolean runPatternBlock(Pattern delegate) {
         if (patternBlock == null) {
             // unconditionally match
@@ -40,7 +38,9 @@ class Profile extends Logger {
             // so we need to wrap this in a try/catch block
 
             try {
-                delegate.with(patternBlock)
+                patternBlock.delegate = delegate
+                patternBlock.resolveStrategy = Closure.DELEGATE_FIRST
+                patternBlock()
             } catch (MatchFailureException e) {
                 log.trace('pattern block: caught match exception')
                 // one of the match methods failed, so the whole block failed
@@ -60,10 +60,11 @@ class Profile extends Logger {
     // pulled out of the match method below so that type-softening is isolated
     // note: keep it here rather than making it a method in Action: trying to keep the delegates
     // clean (cf. Ruby's BlankSlate)
-    @Typed(TypePolicy.MIXED) // Groovy++ doesn't support delegation
     boolean runActionBlock(Action delegate) {
         if (actionBlock != null) {
-            delegate.with(actionBlock)
+            actionBlock.delegate = delegate
+            actionBlock.resolveStrategy = Closure.DELEGATE_FIRST
+            actionBlock()
         } else {
             return true
         }
@@ -87,14 +88,17 @@ class Profile extends Logger {
 
         log.debug("matching profile: $name")
 
-        // returns true if all matches in the block succeed, false otherwise 
+        // returns true if all matches in the block succeed, false otherwise
         if (runPatternBlock(pattern)) {
             // we can now merge any side-effects (currently only modifications to the stash).
             // first: merge (with logging)
             newCommand.stash.each { name, value -> command.let(name, value) }
             // now run the actions
+            log.trace("running action block for: $name")
             def action = new Action(script, command)
+            assert action != null
             runActionBlock(action)
+            log.trace("finished action block for: $name")
             return true
         } else {
             return false

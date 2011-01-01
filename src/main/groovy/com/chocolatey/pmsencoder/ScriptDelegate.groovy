@@ -4,7 +4,7 @@ package com.chocolatey.pmsencoder
 import net.pms.PMS
 
 // i.e. a delegate with access to a Script
-public class ScriptDelegate extends Logger {
+public class ScriptDelegate implements LoggerMixin {
     private Script script
 
     public ScriptDelegate(Script script) {
@@ -12,12 +12,6 @@ public class ScriptDelegate extends Logger {
     }
 
     // DSL properties
-
-    // $SCRIPT: getter
-    // XXX do we need to expose this?
-    protected final Script get$SCRIPT() {
-        script
-    }
 
     // $PMS: getter
     protected final PMS get$PMS() {
@@ -30,8 +24,8 @@ public class ScriptDelegate extends Logger {
     }
 
     // DSL setter: $DEFAULT_MENCODER_ARGS
-    protected List<String> get$DEFAULT_MENCODER_ARGS(List<String> args) {
-        script.$DEFAULT_MENCODER_ARGS = args
+    protected List<String> set$DEFAULT_MENCODER_ARGS(List args) {
+        script.$DEFAULT_MENCODER_ARGS = args.collect { it.toString() }
     }
 
     // DSL getter: $YOUTUBE_ACCEPT
@@ -40,7 +34,7 @@ public class ScriptDelegate extends Logger {
     }
 
     // DSL setter: $YOUTUBE_ACCEPT
-    protected List<String> get$YOUTUBE_ACCEPT(List<String> args) {
-        script.$YOUTUBE_ACCEPT = args
+    protected List<String> get$YOUTUBE_ACCEPT(List args) {
+        script.$YOUTUBE_ACCEPT = args.collect { it.toString() }
     }
 }

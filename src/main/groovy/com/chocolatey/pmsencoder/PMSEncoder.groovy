@@ -8,12 +8,9 @@ import net.pms.io.OutputParams
 import net.pms.io.ProcessWrapper
 import net.pms.PMS
 
-import org.apache.log4j.Logger
-
-public class PMSEncoder extends MEncoderWebVideo {
+public class PMSEncoder extends MEncoderWebVideo implements LoggerMixin {
     public static final boolean isWindows = PMS.get().isWindows()
     private Plugin plugin
-    private Logger log
     private final static ThreadLocal threadLocal = new ThreadLocal<String>();
     private static final String DEFAULT_MIME_TYPE = 'video/mpeg'
 
@@ -43,7 +40,6 @@ public class PMSEncoder extends MEncoderWebVideo {
         'PMSEncoder'
     }
 
-    // XXX ffs: http://jira.codehaus.org/browse/GROOVY-2225
     private String normalizePath(String path) {
         return isWindows ? path.replaceAll(~'/', '\\\\') : path
     }
@@ -62,7 +58,6 @@ public class PMSEncoder extends MEncoderWebVideo {
         super(configuration)
         this.configuration = configuration
         this.plugin = plugin
-        this.log = Logger.getLogger(this.getClass().getName())
     }
 
     @Override

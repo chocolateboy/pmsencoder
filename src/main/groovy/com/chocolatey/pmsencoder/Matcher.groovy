@@ -3,7 +3,7 @@ package com.chocolatey.pmsencoder
 
 import net.pms.PMS
 
-class Matcher extends Logger {
+class Matcher implements LoggerMixin {
     // FIXME: this is only public for a (single) test
     // 1) Script has the same scope as Matcher so they could be merged,
     // but we don't want to expose load()
@@ -37,11 +37,13 @@ class Matcher extends Logger {
         groovy.evaluate(reader, filename)
     }
 
-    @Typed(TypePolicy.DYNAMIC) // XXX needed to handle GStrings
+    // for now, this needs to be dynamically-typed
+    @Typed(TypePolicy.DYNAMIC)
     boolean match(Command command, boolean useDefault = true) {
         if (useDefault) {
-            // watch out: there's a GString about
-            script.$DEFAULT_MENCODER_ARGS.each { command.args << it.toString() }
+            script.$DEFAULT_MENCODER_ARGS.each {
+                command.args << it.toString()
+            }
         }
 
         def matched = script.match(command) // we could use the @Delegate annotation, but this is cleaner/clearer

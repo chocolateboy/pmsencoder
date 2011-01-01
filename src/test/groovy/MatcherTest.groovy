@@ -16,9 +16,9 @@ class MatcherTest extends PMSEncoderTestCase {
         noMatch()
     }
 
-    void testInterpolationInDefaultTrancoderArgs() {
+    void testInterpolationInDefaultMencoderArgs() {
         assertMatch([
-            uri:      'http://www.example.com',
+            uri: 'http://www.example.com',
             wantArgs: [
                 '-prefer-ipv4',
                 '-oac', 'lavc',
@@ -107,16 +107,16 @@ class MatcherTest extends PMSEncoderTestCase {
                     '$youtube_fmt'
                 ]
 
-                def video_id = stash['$youtube_video_id']
+                def video_id = stash.get('$youtube_video_id')
                 assert video_id == '_OBlgSz8sSM'
 
-                def t = stash['$youtube_t']
+                def t = stash.get('$youtube_t')
                 // the mysterious $t token changes frequently, but always seems to end in a URL-encoded "="
                 assert t =~ /.*%3D$/
-                assert stash['$youtube_uploader'] == 'HDCYT'
-                assert stash['$youtube_fmt'] == fmt
-                assert stash['$youtube_uri'] == uri
-                assert stash['$URI'] =~ '\\.youtube\\.com/videoplayback\\?'
+                assert stash.get('$youtube_uploader') == 'HDCYT'
+                assert stash.get('$youtube_fmt') == fmt
+                assert stash.get('$youtube_uri') == uri
+                assert stash.get('$URI') =~ '\\.youtube\\.com/videoplayback\\?'
                 return true
             },
             wantArgs: []

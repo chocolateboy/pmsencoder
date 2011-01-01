@@ -13,7 +13,7 @@ import static groovyx.net.http.ContentType.TEXT
 import static groovyx.net.http.Method.GET
 import static groovyx.net.http.Method.HEAD
 
-class HTTPClient extends Logger {
+class HTTPClient implements LoggerMixin {
     private HTTPBuilder http = new HTTPBuilder()
 
     @Typed(TypePolicy.MIXED)

@@ -3,7 +3,7 @@ package com.chocolatey.pmsencoder
 
 import net.pms.PMS
 
-class Script extends Logger {
+class Script implements LoggerMixin {
     // this is the default Map type, but let's be explicit for documentation purposes
     private Map<String, Profile> profiles = new LinkedHashMap<String, Profile>()
     // DSL fields (mutable)
@@ -16,7 +16,8 @@ class Script extends Logger {
     }
 
     boolean match(Command command) {
-        log.debug("matching URI: ${command.stash['$URI']}")
+        def uri = command.stash.get('$URI')
+        log.debug("matching URI: $uri")
 
         profiles.values().each { profile ->
             if (profile.match(command)) {
@@ -31,9 +32,10 @@ class Script extends Logger {
     }
 
     // DSL method
-    @Typed(TypePolicy.MIXED) // Groovy++ doesn't support delegation
-    void script(Closure closure) {
-        this.with(closure) // run at script compile-time
+    void script(Closure closure) { // run at script compile-time
+        closure.delegate = this
+        closure.resolveStrategy = Closure.DELEGATE_FIRST
+        closure()
     }
 
     // DSL method

@@ -8,15 +8,15 @@ import org.apache.log4j.Level
 /*
  * this object encapsulates the per-request state passed from/to the PMS transcode launcher (PMSEncoder.java).
  */
-public class Command extends Logger {
+public class Command implements LoggerMixin {
     Stash stash
+    OutputParams params
+    Level stashAssignmentLogLevel = Level.DEBUG
     List<String> args
     List<String> matches
-    OutputParams params
     List<String> hook
-    List <String> downloader
-    List <String> transcoder
-    Level stashAssignmentLogLevel = Level.DEBUG
+    List<String> downloader
+    List<String> transcoder
 
     private Command(Stash stash, List<String> args, List<String> matches) {
         this.stash = stash
@@ -71,13 +71,12 @@ public class Command extends Logger {
     }
 
     // setter implementation with logged stash assignments
-    @Typed(TypePolicy.MIXED) // XXX try to handle GStrings
-    public String let(String name, String value) {
-        if ((stash[name] == null) || (stash[name] != value.toString())) {
+    public String let(Object name, Object value) {
+        if ((stash.get(name) == null) || (stash.get(name) != value.toString())) {
             if (stashAssignmentLogLevel != null) {
                 log.log(stashAssignmentLogLevel, "setting $name to $value")
             }
-            stash[name] = value
+            stash.put(name, value)
         }
 
         return value // for chaining: foo = bar = baz i.e. foo = (bar = baz)

@@ -1,13 +1,11 @@
-package com.chocolatey.pmsencoder;
+@Typed
+package com.chocolatey.pmsencoder
 
-import java.util.ArrayList;
+import net.pms.encoders.Player
+import net.pms.PMS
 
-import net.pms.encoders.Player;
-import net.pms.PMS;
-
-// XXX this needs to be Java as GMaven doesn't grok template wildcards (? extends Player)
 public class WEB extends net.pms.formats.WEB {
-    private static final String[] PROTOCOLS = new String[] {
+    private static final String[] PROTOCOLS = [
         "br",
         "cue",
         "dvb",
@@ -40,22 +38,22 @@ public class WEB extends net.pms.formats.WEB {
         "udp",
         "unsv",
         "vcd"
-    };
+    ]
 
     @Override
     public ArrayList<Class<? extends Player>> getProfiles() {
-        ArrayList<Class<? extends Player>> profiles = super.getProfiles();
+        ArrayList<Class<? extends Player>> profiles = super.getProfiles()
 
         if (type == VIDEO) {
-            for (String engine: PMS.getConfiguration().getEnginesAsList(PMS.get().getRegistry())) {
-                if (engine.equals(PMSEncoder.ID)) {
-                    profiles.add(0, PMSEncoder.class);
-                    break; // ignore duplicates
+            for (engine in PMS.getConfiguration().getEnginesAsList(PMS.get().getRegistry())) {
+                if (engine == PMSEncoder.ID) {
+                    profiles.add(0, PMSEncoder.class)
+                    break // ignore duplicates
                 }
             }
         }
 
-        return profiles;
+        return profiles
     }
 
     // PMS checks the extension before the protocol, which might cause surprises for e.g.
@@ -63,28 +61,28 @@ public class WEB extends net.pms.formats.WEB {
     // XXX this should be fixed in PMS
     @Override
     public boolean match(String filename) {
-        boolean match = false;
+        def match = false
 
         if (filename == null) {
-            return match;
+            return match
         }
 
-        filename = filename.toLowerCase();
+        filename = filename.toLowerCase()
 
-        for (String id: getId()) {
-            match = filename.startsWith(id + "://");
+        for (id in getId()) {
+            match = filename.startsWith(id + "://")
 
             if (match) {
-                matchedId = id;
-                return true;
+                matchedId = id
+                return true
             }
         }
 
-        return match;
+        return match
     }
 
     @Override
     public String [] getId() {
-        return PROTOCOLS;
+        return PROTOCOLS
     }
 }

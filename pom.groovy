@@ -8,7 +8,7 @@ project {
 
     properties {
         'project.build.sourceEncoding' 'UTF-8'
-        'groovypp-version' '0.4.113'
+        'groovypp-version' '0.4.116'
         'groovypp-repo' 'http://groovypp.artifactoryonline.com/groovypp'
         'junit-version' '4.8.2'
     }
@@ -130,6 +130,11 @@ project {
                 configuration {
                     source '1.6'
                     target '1.6'
+                    /*
+                    includes {
+                        include '${project.basedir}/src/main/java'
+                    }
+                    */
                 }
             }
 
@@ -140,9 +145,9 @@ project {
                 executions {
                     execution {
                         goals {
-                            goal 'generateStubs'
+                            // goal 'generateStubs'
                             goal 'compile'
-                            goal 'generateTestStubs'
+                            // goal 'generateTestStubs'
                             goal 'testCompile'
                         }
                     }

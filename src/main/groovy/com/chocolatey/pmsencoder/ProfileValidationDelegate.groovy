@@ -29,11 +29,11 @@ class ProfileValidationDelegate extends ScriptDelegate {
         }
     }
 
-    @Typed(TypePolicy.MIXED) // Groovy++ doesn't support delegation
-    private runProfileBlock(Closure closure) {
-        this.with(closure)
+    public void runProfileBlock(Closure closure) {
+        closure.delegate = this
+        closure.resolveStrategy = Closure.DELEGATE_FIRST
+        closure()
         // the pattern block is optional; if not supplied, the profile always matches
         // the action block is optional; if not supplied no action is performed
     }
 }
-

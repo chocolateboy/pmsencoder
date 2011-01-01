@@ -1,8 +1,8 @@
 @Typed
 package com.chocolatey.pmsencoder
 
-class Pattern extends CommandDelegate {
-    private static final MatchFailureException STOP_MATCHING = new MatchFailureException()
+class Pattern extends CommandDelegate implements LoggerMixin {
+    protected static final MatchFailureException STOP_MATCHING = new MatchFailureException()
 
     Pattern(Script script, Command command) {
         super(script, command)
@@ -11,50 +11,34 @@ class Pattern extends CommandDelegate {
     // DSL setter - overrides the CommandDelegate method to avoid logging,
     // which is handled later (if the match succeeds) by merging the pattern
     // block's temporary stash
-    protected String propertyMissing(String name, Object value) {
-        $STASH[name] = value
+    protected String propertyMissing(Object name, Object value) {
+        command.stash.put(name, value)
     }
 
     // DSL method
-    @Typed(TypePolicy.DYNAMIC) // XXX try to handle GStrings
-    void domain(String name) {
-        if (!matchString($STASH['$URI'], domainToRegex(name.toString()))) {
+    protected void domain(Object scalarOrList) {
+        def uri = command.stash.get('$URI')
+        def matched = Util.scalarList(scalarOrList).any({
+            return matchString(uri, domainToRegex(it))
+        })
+
+        if (!matched) {
             throw STOP_MATCHING
         }
     }
 
-    // DSL method (alias for domain)
-    @Typed(TypePolicy.DYNAMIC) // XXX try to handle GStrings
-    void domains(String name) {
-        domain(name)
+    // DLS method (alias for domain)
+    protected void domains(Object scalarOrList) {
+        domain(scalarOrList)
     }
 
     // DSL method
-    @Typed(TypePolicy.DYNAMIC) // XXX try to handle GStrings
-    void domain(List<String> domains) {
-        if (!(domains.any { name -> matchString($STASH['$URI'], domainToRegex(name.toString())) })) {
-            throw STOP_MATCHING
-        }
-    }
+    protected void protocol(Object scalarOrList) {
+        def matched = Util.scalarList(scalarOrList).any({
+            return command.stash.get('$URI').startsWith("${it}://".toString())
+        })
 
-    // DSL method (alias for domain)
-    @Typed(TypePolicy.DYNAMIC) // XXX try to handle GStrings
-    void domains(List<String> domains) {
-        domain(domains)
-    }
-
-    // DSL method
-    @Typed(TypePolicy.DYNAMIC) // XXX try to handle GStrings
-    void protocol(String scheme) {
-        if (!matchString($STASH['$URI'], "^${scheme}://")) {
-            throw STOP_MATCHING
-        }
-    }
-
-    // DSL method
-    @Typed(TypePolicy.DYNAMIC) // XXX try to handle GStrings
-    void protocol(List<String> schemes) {
-        if (!(schemes.any { scheme -> matchString($STASH['$URI'], "^${scheme}://") })) {
+        if (!matched) {
             throw STOP_MATCHING
         }
     }
@@ -67,8 +51,7 @@ class Pattern extends CommandDelegate {
 
     // DSL method
     @Override // for documentation; Groovy doesn't require it
-    @Typed(TypePolicy.DYNAMIC) // XXX try to handle GStrings
-    boolean scrape(String regex, Map<String, String> options = [:]) {
+    protected boolean scrape(Object regex, Map options = [:]) {
         if (super.scrape(regex, options)) {
             return true
         } else {
@@ -77,113 +60,58 @@ class Pattern extends CommandDelegate {
     }
 
     // DSL method
-    @Typed(TypePolicy.DYNAMIC) // XXX try to handle GStrings
-    void match(Map<String, Object> map) {
-        map.each { name, value ->
-            def list = (value instanceof List) ? value as List : [ value ]
-            match($STASH[name.toString()], list)
-        }
-    }
+    // XXX so much for static typing...
+    protected void match(Object object) {
+        def matched = true
 
-    // DSL method
-    @Typed(TypePolicy.DYNAMIC) // XXX try to handle GStrings
-    void match(String name, List values) {
-        if (!(values.any { value -> matchString(name.toString(), value.toString()) })) {
+        if (object instanceof Closure) {
+            matched = matchClosure(object as Closure)
+        } else if (object instanceof Map) {
+            (object as Map).each { name, value ->
+                match(command.stash.get(name), value)
+            }
+        } else if (object instanceof List) {
+            def matches = (object as List).collect { it.toString() }
+            matched = command.matches.containsAll(matches)
+        } else {
+            matched = command.matches.contains(object.toString())
+        }
+
+        if (!matched) {
             throw STOP_MATCHING
         }
     }
 
     // DSL method
-    @Typed(TypePolicy.DYNAMIC) // XXX try to handle GStrings
-    void match(String name, Object value) {
-        def list = (value instanceof List) ? value as List : [ value ]
-        match(name.toString(), list)
-    }
+    // either (String , String) or (String, List)
+    protected void match(Object key, Object value) {
+        def matched
 
-    // DSL method
-    @Typed(TypePolicy.DYNAMIC) // XXX try to handle GStrings
-    void match(String name) {
-        if (!$MATCHES.contains(name.toString())) {
+        if (value instanceof List) {
+            matched = (value as List).any({ matchString(key, it) })
+        } else {
+            matched = matchString(key, value)
+        }
+
+        if (!matched) {
             throw STOP_MATCHING
         }
     }
 
     // DSL method
-    @Typed(TypePolicy.DYNAMIC) // XXX try to handle GStrings
-    void match(List<String> names) {
-        if (!$MATCHES.containsAll(names)) {
-            throw STOP_MATCHING
-        }
-    }
-
-    // DSL method
-    @Typed(TypePolicy.DYNAMIC) // XXX try to handle GStrings
-    void match(Closure closure) {
+    private boolean matchClosure(Closure closure) {
         log.debug('running match block')
 
         if (closure()) {
             log.debug('success')
+            return true
         } else {
             log.debug('failure')
-            throw STOP_MATCHING
+            return false
         }
     }
 
-    // DSL method
-    @Typed(TypePolicy.DYNAMIC) // XXX try to handle GStrings
-    void reject(Map<String, Object> map) {
-        map.each { name, value ->
-            def list = (value instanceof List) ? value as List : [ value ]
-            reject($STASH[name.toString()], list)
-        }
-    }
-
-    // DSL method
-    @Typed(TypePolicy.DYNAMIC) // XXX try to handle GStrings
-    void reject(String name, List values) {
-        if (values.any { value -> matchString(name.toString(), value.toString()) }) {
-            throw STOP_MATCHING
-        }
-    }
-
-    // DSL method
-    @Typed(TypePolicy.DYNAMIC) // XXX try to handle GStrings
-    void reject(String name, Object value) {
-        def list = (value instanceof List) ? value as List : [ value ]
-        reject(name.toString(), list)
-    }
-
-    // DSL method
-    @Typed(TypePolicy.DYNAMIC) // XXX try to handle GStrings
-    void reject(String name) {
-        if ($MATCHES.contains(name.toString())) {
-            throw STOP_MATCHING
-        }
-    }
-
-    // DSL method
-    @Typed(TypePolicy.DYNAMIC) // XXX try to handle GStrings
-    void reject(List<String> names) {
-        if ($MATCHES.containsAll(names)) {
-            throw STOP_MATCHING
-        }
-    }
-
-    // DSL method
-    @Typed(TypePolicy.DYNAMIC) // XXX try to handle GStrings
-    void reject(Closure closure) {
-        log.debug('running reject block')
-
-        if (closure()) {
-            log.debug('failure')
-            throw STOP_MATCHING
-        } else {
-            log.debug('success')
-        }
-    }
-
-    @Typed(TypePolicy.DYNAMIC) // XXX try to handle GStrings
-    private boolean matchString(String name, String value) {
+    private boolean matchString(Object name, Object value) {
         if (name == null) {
             log.error('invalid match: name is not defined')
         } else if (value == null) {
@@ -191,7 +119,7 @@ class Pattern extends CommandDelegate {
         } else {
             log.debug("matching $name against $value")
 
-            if (RegexHelper.match(name.toString(), value.toString(), $STASH)) {
+            if (RegexHelper.match(name, value, command.stash)) {
                 log.debug('success')
                 return true // abort default failure below
             } else {
@@ -203,9 +131,8 @@ class Pattern extends CommandDelegate {
     }
 
     // DSL method
-    @Typed(TypePolicy.DYNAMIC) // XXX try to handle GStrings
-    protected String domainToRegex(String domain) {
-        def escaped = domain.replaceAll('\\.', '\\\\.')
+    protected String domainToRegex(Object domain) {
+        def escaped = domain.toString().replaceAll('\\.', '\\\\.')
         return "^https?://(\\w+\\.)*${escaped}(/|\$)".toString()
     }
 }

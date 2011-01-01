@@ -7,20 +7,16 @@ import net.pms.io.ProcessWrapper
 import net.pms.io.ProcessWrapperImpl
 import net.pms.PMS
 
-import org.apache.log4j.Logger
-
-private class ProcessManager {
+private class ProcessManager implements LoggerMixin {
     static final long LAUNCH_TRANSCODE_SLEEP = 200
     static final long MKFIFO_SLEEP = 200
     List<ProcessWrapper> attachedProcesses
-    Logger log
     OutputParams outputParams
     private PMSEncoder pmsencoder
 
     ProcessManager(PMSEncoder pmsencoder, OutputParams params) {
         this.pmsencoder = pmsencoder
         this.outputParams = params
-        log = Logger.getLogger(this.getClass().getName())
         attachedProcesses = new ArrayList<ProcessWrapper>()
         // modify the output params object *before* the match so it can optionally be customized
         outputParams.minBufferSize = params.minFileSize

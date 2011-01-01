@@ -62,3 +62,31 @@ videofeed ('YouTube/Favourites') {
     uri ([ 'http://youtube.com/api/whatever?1-50', 'http://youtube.com/api/whatever?50-100' ])
     icon = 'http://example.com/rss.jpg'
 }
+
+/*
+
+fix the architecture: http://groovy.codehaus.org/Replace+Inheritance+with+Delegation
+
+Should be:
+
+    Matcher creates a Script in its constructor:
+
+        this.script = new Script(this)
+
+    Matcher receives a command object and passes it to Script.match()
+
+        return script.match(command)
+
+    Script creates an object that holds methods and members common to Patterns and Actions (command delegate)
+
+        def commandDelegate = new CommandDelegate(this, command)
+
+    For each Profile, Script instantiates a Pattern:
+
+        def pattern = new Pattern(commandDelegate)
+
+    If the pattern matches, Script creates an Action:
+
+        def action = new Action(commandDelegate)
+
+    The command response is modified via the command delegate object

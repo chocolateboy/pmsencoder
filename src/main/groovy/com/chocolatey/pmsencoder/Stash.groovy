@@ -17,7 +17,7 @@ public class Stash extends LinkedHashMap<java.lang.String, java.lang.String> {
         name.startsWith('$') ? name : '$' + name
     }
 
-    public Stash(Map<String, String> map) {
+    public Stash(Map map) {
         map.each { key, value -> this.put(key.toString(), value.toString()) }
     }
 
@@ -37,4 +37,3 @@ public class Stash extends LinkedHashMap<java.lang.String, java.lang.String> {
         super.get(canonicalize(key))
     }
 }
-

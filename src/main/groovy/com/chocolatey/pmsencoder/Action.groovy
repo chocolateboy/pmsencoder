@@ -1,7 +1,6 @@
 @Typed
 package com.chocolatey.pmsencoder
 
-/* XXX: add configurable HTTP proxy support? */
 class Action extends CommandDelegate {
     Action(Script script, Command command) {
         super(script, command)
@@ -20,60 +19,54 @@ class Action extends CommandDelegate {
     }
 
     /*
-        1) get the URI pointed to by options['uri'] or stash['$URI'] (if it hasn't already been retrieved)
+        1) get the URI pointed to by options['uri'] or stash.get('$URI') (if it hasn't already been retrieved)
         2) perform a regex match against the document
         3) update the stash with any named captures
     */
 
     // define a variable in the stash
     // DSL method
-    @Typed(TypePolicy.DYNAMIC) // XXX try to handle GStrings
-    void let(Map<String, String> map) {
+    void let(Map map) {
         map.each { key, value ->
-            $COMMAND.let(key, value)
+            command.let(key, ((value == null) ? null : value))
         }
     }
 
     // DSL method
-    @Typed(TypePolicy.DYNAMIC) // XXX try to handle GStrings
-    void set(Map<String, String> map) {
+    void set(Map map) {
         // the sort order is predictable (for tests) as long as we (and Groovy) use LinkedHashMap
-        map.each { name, value -> setArg(name.toString(), (value == null ? null : value.toString())) }
+        map.each { name, value -> setArg(name, (value == null ? null : value)) }
     }
 
     // DSL method
-    @Typed(TypePolicy.DYNAMIC) // XXX try to handle GStrings
-    void set(String name) {
+    void set(Object name) {
         setArg(name.toString(), null)
     }
 
     // set a transcoder option - create it if it doesn't exist
-    // DSL method
-    @Typed(TypePolicy.MIXED) // XXX try to handle GStrings
-    void setArg(String name, String value = null) {
+    void setArg(Object name, Object value = null) {
         assert name != null
 
-        def index = $ARGS.findIndexOf { it == name }
+        def index = $ARGS.findIndexOf { it == name.toString() }
 
         if (index == -1) {
             if (value != null) {
                 log.debug("adding $name $value")
                 /*
-                    XXX squashed bug: careful not to perform operations on $STASH or $COMMAND.args
-                    that return and subsequenly operate on a new value
-                    (i.e. make sure they're modified in place):
+                    XXX squashed bug: careful not to perform operations on copies of stash or args
+                    i.e. make sure they're modified in place:
 
-                        def args = $COMMAND.args
-                        args += ... // XXX doesn't modify $COMMAND.args
+                        def args = command.args
+                        args += ... // XXX doesn't modify command.args
                 */
-                $ARGS << name << value
+                $ARGS << name.toString() << value.toString()
             } else {
                 log.debug("adding $name")
-                $ARGS << name
+                $ARGS << name.toString()
             }
         } else if (value != null) {
             log.debug("setting $name to $value")
-            $ARGS[ index + 1 ] = value
+            $ARGS[ index + 1 ] = value.toString()
         }
     }
 
@@ -82,22 +75,22 @@ class Action extends CommandDelegate {
     */
 
     // DSL method
-    @Typed(TypePolicy.MIXED) // XXX try to handle GStrings
-    void replace(Map<String, Map<String, String>> replaceMap) {
+    void replace(Map<Object, Map> replaceMap) {
         // the sort order is predictable (for tests) as long as we (and Groovy) use LinkedHashMap
         replaceMap.each { name, map ->
             // squashed bug (see  above): take care to modify $ARGS in-place
-            def index = $ARGS.findIndexOf { it == name }
+            def index = $ARGS.findIndexOf { it == name.toString() }
 
             if (index != -1) {
                 map.each { search, replace ->
-                    log.debug("replacing $search with $replace in $name")
-                    // TODO support named captures
-                    def value = $ARGS[ index + 1 ]
-
-                    if (value) {
+                    if ((index + 1) < $ARGS.size()) {
+                        // TODO support named captures
+                        log.debug("replacing $search with $replace in $name")
+                        def value = $ARGS[ index + 1 ]
                         // XXX bugfix: strings are immutable!
-                        $ARGS[ index + 1 ] = value.replaceAll(search, replace)
+                        $ARGS[ index + 1 ] = value.replaceAll(search.toString(), replace.toString())
+                    } else {
+                        log.warn("can't replace $search with $replace in $name: target out of bounds")
                     }
                 }
             }
@@ -115,7 +108,7 @@ class Action extends CommandDelegate {
 
             if ((document != null) && RegexHelper.match(document, regex, newStash)) {
                 // XXX type-inference fail
-                List<String> fmt_url_pairs = URLDecoder.decode(newStash['$youtube_fmt_url_map']).tokenize(',')
+                List<String> fmt_url_pairs = URLDecoder.decode(newStash.get('$youtube_fmt_url_map')).tokenize(',')
                 fmt_url_pairs.inject(fmt_url_map) { Map<String, String> map, String pair ->
                     // XXX type-inference fail
                     List<String> kv = pair.tokenize('|')
@@ -132,17 +125,17 @@ class Action extends CommandDelegate {
     }
 
     // DSL method
-    @Typed(TypePolicy.MIXED) // XXX try to handle GStrings
     void youtube(List<Integer> formats = $YOUTUBE_ACCEPT) {
-        def uri = $STASH['$URI']
-        def video_id = $STASH['$youtube_video_id']
-        def t = $STASH['$youtube_t']
+        def stash = command.stash
+        def uri = stash.get('$URI')
+        def video_id = stash.get('$youtube_video_id')
+        def t = stash.get('$youtube_t')
         def found = false
 
         assert video_id != null
         assert t != null
 
-        $COMMAND.let('$youtube_uri', uri)
+        command.let('$youtube_uri', uri)
 
         if (formats.size() > 0) {
             def fmt_url_map = getFormatURLMap(video_id)
@@ -156,8 +149,8 @@ class Action extends CommandDelegate {
                     if (stream_uri != null) {
                         // set the new URI
                         log.debug('success')
-                        $COMMAND.let('$youtube_fmt', fmt)
-                        $COMMAND.let('$URI', stream_uri)
+                        command.let('$youtube_fmt', fmt)
+                        command.let('$URI', stream_uri)
                         return true
                     } else {
                         log.debug('failure')
@@ -177,25 +170,27 @@ class Action extends CommandDelegate {
     }
 
     // DSL method: append a list of options to the command's args list
-    void append(List<String> args) {
-        $COMMAND.args += args
+    void append(List args) {
+        List<String> list = args.collect { it.toString() }
+        command.args += list
     }
 
     // DSL method: prepend a list of options to the command's args list
-    void prepend(List<String> args) {
-        $COMMAND.args = args + $ARGS
+    void prepend(List args) {
+        List<String> list = args.collect { it.toString() }
+        command.args = list + $ARGS
     }
 
     // DSL method: remove multiple option names and their corresponding values if they have one
-    void remove(List<String> optionNames) {
-        optionNames.each { remove(it.toString()) }
+    void remove(List optionNames) {
+        optionNames.each { remove(it) }
     }
 
     // DSL method: remove a single option name and its corresponding value if it has one
-    void remove(String optionName) {
+    void remove(Object optionName) {
         assert optionName != null
 
-        def index = $ARGS.findIndexOf { it == optionName }
+        def index = $ARGS.findIndexOf { it == optionName.toString() }
 
         if (index >= 0) {
             def lastIndex = $ARGS.size() - 1
