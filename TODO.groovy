@@ -65,7 +65,7 @@ videofeed ('YouTube/Favourites') {
 
 /*
 
-fix the architecture: http://groovy.codehaus.org/Replace+Inheritance+with+Delegation
+fix the design: http://groovy.codehaus.org/Replace+Inheritance+with+Delegation
 
 Should be:
 
@@ -90,3 +90,5 @@ Should be:
         def action = new Action(commandDelegate)
 
     The command response is modified via the command delegate object
+
+*/

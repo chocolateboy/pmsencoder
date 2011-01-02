@@ -97,7 +97,9 @@ class CommandDelegate extends ScriptDelegate implements LoggerMixin {
     // actions inherit this method, whereas patterns add the
     // short-circuiting behaviour and delegate to this via super.scrape(...)
     protected boolean scrape(Object regex, Map options = [:]) {
-        def uri = (options['uri'] == null) ? command.stash.get('$URI') : options['uri'].toString()
+        String uri = (options['uri'] == null) ? command.stash.get('$URI') : options['uri'].toString()
+        boolean decode = options['decode'] ?: false
+
         def document = cache[uri]
         def newStash = new Stash()
         def scraped = false
@@ -111,6 +113,11 @@ class CommandDelegate extends ScriptDelegate implements LoggerMixin {
         if (document == null) {
             log.error('document not found')
             return scraped
+        }
+
+        if (decode) {
+            log.debug("URL-decoding content of $uri")
+            document = URLDecoder.decode(document)
         }
 
         log.debug("matching content of $uri against $regex")
