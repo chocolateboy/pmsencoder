@@ -71,8 +71,10 @@ script {
             scrape '&t=(?<youtube_t>[^&]+)', [ uri: youtube_scrape_uri ]
 
             // extract the title and uploader ("creator") so that scripts can use them
-            scrape '<meta\\s+name="title"\\s+content="(?<youtube_title>[^"]+)">', [ uri: youtube_scrape_uri ]
-            scrape '\\bdata-subscription-username="(?<youtube_uploader>[^"]+)"', [ uri: youtube_scrape_uri ]
+            youtube_title = browse (uri: youtube_scrape_uri) { $('meta', name: 'title').@content }
+            youtube_uploader = browse (uri: youtube_scrape_uri) {
+                $('span', 'data-subscription-type': 'user').'@data-subscription-username'
+            }
         }
     }
 

@@ -103,4 +103,8 @@ script {
     GET_FLASH_VIDEOS = '/usr/bin/get-flash-videos'
 }
 
-// make $URI a URI rather than a String
+// make $URI a URI rather than a String?
+
+// tests for prepend and append
+
+// migrate (some) regex scrapers to Geb (or Geb + regex)

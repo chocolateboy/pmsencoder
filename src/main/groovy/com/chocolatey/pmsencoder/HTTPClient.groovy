@@ -1,25 +1,55 @@
 @Typed
 package com.chocolatey.pmsencoder
 
+import groovy.util.slurpersupport.GPathResult
+
 import groovyx.net.http.HTTPBuilder
 import groovyx.net.http.ParserRegistry
+
+import net.sf.json.JSON
 
 import org.apache.http.client.methods.HttpUriRequest
 import org.apache.http.HttpHost
 import org.apache.http.protocol.ExecutionContext
 import org.apache.http.protocol.HttpContext
 
-import static groovyx.net.http.ContentType.TEXT
+import groovyx.net.http.ContentType
 import static groovyx.net.http.Method.GET
 import static groovyx.net.http.Method.HEAD
+
+// return types taken from:
+// ParserRegistry: http://tinyurl.com/395cjkb
+
+// XXX the URLENC type can probably be used to simplify YouTube fmt_url_map handling
 
 class HTTPClient implements LoggerMixin {
     private HTTPBuilder http = new HTTPBuilder()
 
-    @Typed(TypePolicy.MIXED)
     public String get(String uri) {
-        http.request(uri, GET, TEXT) { req ->
-            response.success = { resp, reader -> reader.getText() }
+        getType(uri, ContentType.TEXT)
+    }
+
+    public GPathResult getXML(String uri) {
+        return getType(uri, ContentType.XML)
+    }
+
+    public GPathResult getHTML(String uri) {
+        return getType(uri, ContentType.HTML)
+    }
+
+    public Map<String,String> getForm(String uri) {
+        return getType(uri, ContentType.URLENC)
+    }
+
+    public JSON getJSON(String uri) {
+        return getType(uri, ContentType.JSON)
+    }
+
+    @Typed(TypePolicy.MIXED)
+    private Object getType(String uri, ContentType contentType) {
+        http.request(uri, GET, contentType) { req ->
+            // HTTPBuilder cleans up the reader after this closure, so drain it before returning text
+            response.success = { resp, result -> contentType == ContentType.TEXT ? result.getText() : result }
             response.failure = { null } // parity (for now) with LWP::Simple
         }
     }
@@ -27,7 +57,7 @@ class HTTPClient implements LoggerMixin {
     // TODO: return a Map on success (ignore headers with multiple values?)
     @Typed(TypePolicy.MIXED)
     public boolean head(String uri) {
-        http.request(uri, HEAD, TEXT) { req ->
+        http.request(uri, HEAD, ContentType.TEXT) { req ->
             response.success = { true }
             response.failure = { false }
         }
@@ -35,7 +65,7 @@ class HTTPClient implements LoggerMixin {
 
     @Typed(TypePolicy.MIXED)
     public String target(String uri) {
-        http.request(uri, HEAD, TEXT) { req ->
+        http.request(uri, HEAD, ContentType.TEXT) { req ->
             response.success = { resp ->
                 getTargetURI(resp.getContext())
             }

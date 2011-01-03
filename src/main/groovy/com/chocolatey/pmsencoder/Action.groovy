@@ -170,15 +170,21 @@ class Action extends CommandDelegate {
     }
 
     // DSL method: append a list of options to the command's args list
-    void append(List args) {
-        List<String> list = args.collect { it.toString() }
-        command.args += list
+    void append(String object) {
+        command.args = command.args + [ object.toString() ]
+    }
+
+    void append(List list) {
+        list.each { append(it.toString()) }
     }
 
     // DSL method: prepend a list of options to the command's args list
-    void prepend(List args) {
-        List<String> list = args.collect { it.toString() }
-        command.args = list + $ARGS
+    void prepend(Object object) {
+        command.args = [ object.toString() ] + command.args
+    }
+
+    void prepend(List list) {
+        list.each { prepend(it.toString()) }
     }
 
     // DSL method: remove multiple option names and their corresponding values if they have one

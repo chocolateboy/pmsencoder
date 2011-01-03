@@ -21,8 +21,8 @@ script {
         }
 
         action {
-            // we're not changing the fps, so we don't need these
-            remove ([ '-ofps', '-vf' ])
+            // we're not changing the fps, so we don't need this
+            remove '-ofps'
             // "rename" the framerate (29.97: not OK; 30000/1001: OK)
             set '-fps': '30000/1001'
             // cargo-culted fix: see above
@@ -38,12 +38,13 @@ script {
         }
 
         action {
-            // we're not changing the fps, so we don't need these
-            remove ([ '-ofps', '-vf' ])
+            // we're not changing the fps, so we don't need this
+            remove '-ofps'
             // they're all either exactly 30 fps, or e.g. 30.003 fps, so round down so they're MPEG-2 compliant
             set '-fps': 30
             // even with the correct framerate, we have to struggle to keep the A/V in sync
-            set '-noskip': null, '-mc': 2 // null means: no value e.g. just -noskip
+            set '-noskip'
+            set '-mc': 2
             // the video is a fraction of a second ahead of the audio in these, for some reason (even in MPlayer)
             set '-delay': 0.5
         }

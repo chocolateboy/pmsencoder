@@ -135,8 +135,8 @@ public class PMSEncoder extends MEncoderWebVideo implements LoggerMixin {
             def transcoderInput = (downloaderArgs == null) ? newStash.get('$URI') : downloaderOutputPath
             transcoderArgs = newArgs
             transcoderArgs.add(0, executable())
-            transcoderArgs.add('-o')
-            transcoderArgs.add(transcoderOutputPath)
+            transcoderArgs.add(1, '-o')
+            transcoderArgs.add(2, transcoderOutputPath)
             transcoderArgs.add(transcoderInput)
         }
 
