@@ -71,7 +71,7 @@ class Pattern extends CommandDelegate implements LoggerMixin {
                 match(command.stash.get(name), value)
             }
         } else if (object instanceof List) {
-            def matches = (object as List).collect { it.toString() }
+            def matches = (object as List)*.toString()
             matched = command.matches.containsAll(matches)
         } else {
             matched = command.matches.contains(object.toString())

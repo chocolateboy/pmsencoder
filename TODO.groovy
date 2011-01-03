@@ -90,5 +90,17 @@ Should be:
         def action = new Action(commandDelegate)
 
     The command response is modified via the command delegate object
-
 */
+
+// Fix the Script delegate so that globals can be shared e.g.
+
+// unix_paths_example.groovy
+
+script {
+    PERL             = '/usr/bin/perl'
+    PYTHON           = '/usr/bin/python'
+    YOUTUBE_DL       = '/usr/bin/youtube-dl'
+    GET_FLASH_VIDEOS = '/usr/bin/get-flash-videos'
+}
+
+// make $URI a URI rather than a String

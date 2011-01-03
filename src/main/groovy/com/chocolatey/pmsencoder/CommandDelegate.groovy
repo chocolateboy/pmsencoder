@@ -2,6 +2,9 @@
 package com.chocolatey.pmsencoder
 
 import net.pms.io.OutputParams
+import geb.*
+import org.openqa.selenium.WebDriver
+import org.openqa.selenium.htmlunit.HtmlUnitDriver
 
 // i.e. a delegate with access to a Command
 // XXX some (most? all?) of these DSL properties could just be exposed/documented as-is i.e.
@@ -10,6 +13,7 @@ class CommandDelegate extends ScriptDelegate implements LoggerMixin {
     protected Command command
     private final Map<String, String> cache = [:] // only needed/used by this.scrape()
     @Lazy protected HTTPClient http = new HTTPClient()
+    @Lazy private WebDriver driver = new HtmlUnitDriver()
 
     public CommandDelegate(Script script, Command command) {
         super(script)
@@ -19,14 +23,14 @@ class CommandDelegate extends ScriptDelegate implements LoggerMixin {
     // DSL properties
 
     /*
-        XXX Groovy/Groovy++ fail
+        XXX Groovy fail: http://jira.codehaus.org/browse/GROOVY-2500
 
-        if two setters for a property (e.g. $DOWNLOADER) are defined (one for String and another for List<String>)
-        Groovy/Groovy++ always uses List<String> and complains at runtime that
-        it can't cast a GString into List<String>:
+        if two or more setters for a property (e.g. $DOWNLOADER) are defined (e.g. one for String and another
+        for List<String>) Groovy/Groovy++ only uses one of them, complaining at runtime that
+        it can't cast e.g. a String into a List:
 
             Cannot cast object '/usr/bin/downloader string http://downloader.string'
-            with class 'org.codehaus.groovy.runtime.GStringImpl' to class 'java.util.List'
+            with class 'java.lang.String' to class 'java.util.List'
 
         workaround: define just one setter and determine the type with instanceof (via stringList)
     */
@@ -93,14 +97,21 @@ class CommandDelegate extends ScriptDelegate implements LoggerMixin {
         command.let(name, value.toString())
     }
 
+    // XXX argument reordering
+    protected Object browse(Map options = [:], Closure closure) {
+        String uri = (options['uri'] == null) ? command.stash.get('$URI') : options['uri'].toString()
+        driver.get(uri)
+        Browser.drive(driver, closure)
+    }
+
     // DSL method - can be called from a pattern or an action.
     // actions inherit this method, whereas patterns add the
     // short-circuiting behaviour and delegate to this via super.scrape(...)
     protected boolean scrape(Object regex, Map options = [:]) {
         String uri = (options['uri'] == null) ? command.stash.get('$URI') : options['uri'].toString()
+        String document = (options['source'] == null) ? cache[uri] : options['source'].toString()
         boolean decode = options['decode'] ?: false
 
-        def document = cache[uri]
         def newStash = new Stash()
         def scraped = false
 

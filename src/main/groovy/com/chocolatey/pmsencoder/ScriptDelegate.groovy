@@ -25,7 +25,7 @@ public class ScriptDelegate implements LoggerMixin {
 
     // DSL setter: $DEFAULT_MENCODER_ARGS
     protected List<String> set$DEFAULT_MENCODER_ARGS(List args) {
-        script.$DEFAULT_MENCODER_ARGS = args.collect { it.toString() }
+        script.$DEFAULT_MENCODER_ARGS = args*.toString()
     }
 
     // DSL getter: $YOUTUBE_ACCEPT
@@ -35,6 +35,6 @@ public class ScriptDelegate implements LoggerMixin {
 
     // DSL setter: $YOUTUBE_ACCEPT
     protected List<String> get$YOUTUBE_ACCEPT(List args) {
-        script.$YOUTUBE_ACCEPT = args.collect { it.toString() }
+        script.$YOUTUBE_ACCEPT = args*.toString()
     }
 }

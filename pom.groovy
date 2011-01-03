@@ -2,7 +2,7 @@ project {
     modelVersion '4.0.0'
     groupId 'com.chocolatey.pmsencoder'
     artifactId 'pmsencoder'
-    version '1.3.0'
+    version '1.4.0'
     name 'PMSEncoder'
     description 'A plugin for PS3 Media Server that adds support for scriptable web video streaming.'
 
@@ -100,6 +100,18 @@ project {
             groupId 'excalibur'
             artifactId 'excalibur-fortress'
             version '1.0'
+        }
+
+        dependency {
+            groupId 'org.codehaus.geb'
+            artifactId 'geb-core'
+            version 'RELEASE'
+        }
+
+        dependency {
+            groupId 'org.seleniumhq.selenium'
+            artifactId 'selenium-htmlunit-driver'
+            version 'RELEASE'
         }
 
         // non-Mavenized dependencies installed via maven-external-dependency-plugin

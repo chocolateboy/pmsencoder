@@ -1,4 +1,4 @@
-// videofeed.Web,Test,WinFuture=http://rss.feedsportal.com/c/617/f/448481/index.rss
+// videofeed.Web,Eurogamer=http://rss.feedsportal.com/feed/eurogamer/eurogamer_tv
 script {
     profile ('Redirect') { // create or replace
         pattern {
@@ -16,7 +16,9 @@ script {
         }
 
         action {
-            $URI = 'http://www.eurogamer.net/' + browse { $('a.download', 0).@href }
+            // requires a recent-ish MEncoder (from June 2010)
+            set '-referrer': $URI
+            $URI = 'http://www.eurogamer.net/' + browse { $('a.download').@href }
         }
     }
 }
