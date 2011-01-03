@@ -20,6 +20,7 @@ class MatcherTest extends PMSEncoderTestCase {
         assertMatch([
             uri: 'http://www.example.com',
             wantArgs: [
+                '-msglevel', 'all=3:mencoder=1:cache=1',
                 '-prefer-ipv4',
                 '-oac', 'lavc',
                 '-of', 'lavf',

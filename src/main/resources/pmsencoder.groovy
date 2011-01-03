@@ -17,6 +17,7 @@ script {
 
     // default args for the default transcoder (MEncoder) - these can be redefined in a script
     $DEFAULT_MENCODER_ARGS = [
+        '-msglevel', 'all=3:mencoder=1:cache=1',
         '-prefer-ipv4',
         '-oac', 'lavc',
         '-of', 'lavf',
