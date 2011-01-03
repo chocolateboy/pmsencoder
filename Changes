@@ -6,6 +6,7 @@
     - DSL: expose $FFMPEG path
     - DSL: fix + test for null values in Action.set(Map)
     - DSL: fix + tests for Profile replaces: + Profile extends:
+    - DSL: Pattern/Action scrape() now takes a source option allowing the document to be supplied as a string
     - add blip9tv and Eurogamer scripts
     - restore cleaned-up SopCast example
 

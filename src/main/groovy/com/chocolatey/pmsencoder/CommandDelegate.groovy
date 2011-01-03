@@ -97,7 +97,7 @@ class CommandDelegate extends ScriptDelegate implements LoggerMixin {
         command.let(name, value.toString())
     }
 
-    // XXX argument reordering
+    // DSL method
     protected Object browse(Map options = [:], Closure closure) {
         String uri = (options['uri'] == null) ? command.stash.get('$URI') : options['uri'].toString()
         driver.get(uri)
