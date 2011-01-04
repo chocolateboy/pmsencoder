@@ -42,7 +42,7 @@ script {
             remove '-ofps'
             // they're all either exactly 30 fps, or e.g. 30.003 fps, so round down so they're MPEG-2 compliant
             set '-fps': 30
-            // even with the correct framerate, we have to struggle to keep the A/V in sync
+            // even with the correct framerate, it's still a struggle to keep the A/V in sync
             set '-noskip'
             set '-mc': 2
             // the video is a fraction of a second ahead of the audio in these, for some reason (even in MPlayer)

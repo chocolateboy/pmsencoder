@@ -69,27 +69,36 @@ fix the design: http://groovy.codehaus.org/Replace+Inheritance+with+Delegation
 
 Should be:
 
-    Matcher creates a Script in its constructor:
+    Matcher receives an exchange (request/response) object. It creates a
+    wrapper that holds methods and members common to Patterns and Actions:
 
-        this.script = new Script(this)
+        def exchange = new Exchange(this, request)
 
-    Matcher receives a command object and passes it to Script.match()
+    For each Profile, Matcher instantiates a Pattern:
 
-        return script.match(command)
+        def pattern = new Pattern(exchange)
 
-    Script creates an object that holds methods and members common to Patterns and Actions (command delegate)
+    If the pattern matches, it then creates an Action:
 
-        def commandDelegate = new CommandDelegate(this, command)
+        def action = new Action(exchange)
 
-    For each Profile, Script instantiates a Pattern:
 
-        def pattern = new Pattern(commandDelegate)
+Read-only options could go in request and r/w objects in response e.g.
 
-    If the pattern matches, Script creates an Action:
+new Request(
+    DOWNLOADER_OUT: ...,
+    TRANSCODER_OUT: ...,
+)
 
-        def action = new Action(commandDelegate)
+new Response(
+    URI: ...
+)
 
-    The command response is modified via the command delegate object
+matcher.run(request, response)
+
+http://stackoverflow.com/questions/325346/name-for-http-requestresponse
+http://stackoverflow.com/questions/1039513/what-is-a-request-response-pair-called
+
 */
 
 // Fix the Script delegate so that globals can be shared e.g.
@@ -108,3 +117,5 @@ script {
 // tests for prepend and append
 
 // migrate (some) regex scrapers to Geb (or Geb + regex)
+
+// when documenting scripting, note poor man's script versioning via Github's "Switch Tags" menu

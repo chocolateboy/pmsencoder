@@ -1,4 +1,7 @@
 // videofeed.Web,Eurogamer=http://rss.feedsportal.com/feed/eurogamer/eurogamer_tv
+
+// XXX this script requires PMSEncoder >= 1.4.0
+
 script {
     profile ('Redirect') { // create or replace
         pattern {
