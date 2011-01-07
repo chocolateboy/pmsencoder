@@ -23,8 +23,6 @@ import static groovyx.net.http.Method.HEAD
 // XXX the URLENC type can probably be used to simplify YouTube fmt_url_map handling
 
 class HTTPClient implements LoggerMixin {
-    private HTTPBuilder http = new HTTPBuilder()
-
     public String get(String uri) {
         getType(uri, ContentType.TEXT)
     }
@@ -47,6 +45,10 @@ class HTTPClient implements LoggerMixin {
 
     @Typed(TypePolicy.MIXED)
     private Object getType(String uri, ContentType contentType) {
+        // allocate one per request: try to avoid this exception:
+        // java.lang.IllegalStateException: Invalid use of SingleClientConnManager: connection still allocated.
+        def http = new HTTPBuilder()
+
         http.request(uri, GET, contentType) { req ->
             // HTTPBuilder cleans up the reader after this closure, so drain it before returning text
             response.success = { resp, result -> contentType == ContentType.TEXT ? result.getText() : result }
@@ -57,6 +59,7 @@ class HTTPClient implements LoggerMixin {
     // TODO: return a Map on success (ignore headers with multiple values?)
     @Typed(TypePolicy.MIXED)
     public boolean head(String uri) {
+        def http = new HTTPBuilder()
         http.request(uri, HEAD, ContentType.TEXT) { req ->
             response.success = { true }
             response.failure = { false }
@@ -65,6 +68,7 @@ class HTTPClient implements LoggerMixin {
 
     @Typed(TypePolicy.MIXED)
     public String target(String uri) {
+        def http = new HTTPBuilder()
         http.request(uri, HEAD, ContentType.TEXT) { req ->
             response.success = { resp ->
                 getTargetURI(resp.getContext())
