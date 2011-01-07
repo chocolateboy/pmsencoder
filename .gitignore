@@ -1,3 +1,6 @@
+.classpath
 pmsencoder.log
-target/
+.project
+.settings
 tags
+target/

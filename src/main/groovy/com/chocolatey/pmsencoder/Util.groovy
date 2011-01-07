@@ -1,4 +1,5 @@
 @Typed
+package com.chocolatey.pmsencoder
 
 class Util {
     static public List<String> scalarList(Object scalarOrList) {
