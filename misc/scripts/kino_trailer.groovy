@@ -1,18 +1,20 @@
 /*
-    videofeed.Web,FilmTrailer=http://de.rss.filmtrailer.com/default/Latest30CinemaCreated/
-    videofeed.Web,FilmTrailer=http://de.rss.filmtrailer.com/default/Latest30InCinema/
-    videofeed.Web,FilmTrailer=http://de.rss.filmtrailer.com/default/latest30ondvd/
-    videofeed.Web,FilmTrailer=http://de.rss.filmtrailer.com/default/Next30InCinema/
-    videofeed.Web,Filmtrailers=http://uk.rss.filmtrailer.com/default/Latest30CinemaCreated/
-    videofeed.Web,Filmtrailers=http://uk.rss.filmtrailer.com/default/Latest30InCinema/
-    videofeed.Web,Filmtrailers=http://uk.rss.filmtrailer.com/default/Next30InCinema/
+    videofeed.Web,Filmtrailer=http://de.rss.filmtrailer.com/default/Latest30CinemaCreated/
+    videofeed.Web,Filmtrailer=http://de.rss.filmtrailer.com/default/Latest30InCinema/
+    videofeed.Web,Filmtrailer=http://de.rss.filmtrailer.com/default/latest30ondvd/
+    videofeed.Web,Filmtrailer=http://de.rss.filmtrailer.com/default/Next30InCinema/
+    videofeed.Web,Filmtrailer=http://fr.rss.filmtrailer.com/default/Latest30CinemaCreated/
+    videofeed.Web,Filmtrailer=http://fr.rss.filmtrailer.com/default/Latest30InCinema/
+    videofeed.Web,Filmtrailer=http://fr.rss.filmtrailer.com/default/Next30InCinema/
+    videofeed.Web,Filmtrailer=http://uk.rss.filmtrailer.com/default/Latest30CinemaCreated/
+    videofeed.Web,Filmtrailer=http://uk.rss.filmtrailer.com/default/Latest30InCinema/
+    videofeed.Web,Filmtrailer=http://uk.rss.filmtrailer.com/default/Next30InCinema/
 */
 
 // XXX this script requires PMSEncoder >= 1.4.0
 
 script {
-    // sizes: small, medium, large, xlarge, xxlarge
-    // def SIZE = 'xxlarge'
+    def SIZES = [ 'xxlarge', 'xlarge', 'large', 'medium', 'small' ]
 
     profile ('Kino Trailers') {
         pattern {
@@ -27,11 +29,32 @@ script {
             // use HTTPBuilder to convert the XML to a GPathResult object
             def flashVars = $HTTP.getXML(flashVarsUrl)
 
-            // we can't use a variable (SIZE) here (yet) because a) the bindings are wrong and b)
-            // XmlSlurper aggressively intercepts all property references
-            def clips = flashVars.'**'.findAll { it.'@size' == 'xxlarge' }.collect { it.text() }
+            // assemble a list of clip URIs; typically each trailer has several
+            // variants: shorter, longer, teaser, excerpt, international, interviews &c.
+            def clips
 
-            // so far, the clips have all been 24 fps, so this isn't needed
+            /*
+                example trailer that doesn't have an xxlarge clip:
+
+                    page: http://uk.filmtrailer.com/trailer/5644/127+hours+film+t
+                    xml:  http://uk.player-feed.previewnetworks.com/v3.1/cinema/5644/441100000-1/
+            */
+
+            SIZES.any { size ->
+                log.info("looking for clip size: $size")
+
+                clips = flashVars.'**'.findAll { it.'@size' == size }.collect { it.text() }
+
+                if (clips.size() > 0) {
+                    log.info('success')
+                    return true
+                } else {
+                    log.info('failure')
+                    return false
+                }
+            }
+
+            // so far, all the clips I've checked have been 24 fps, so this isn't needed
             remove '-ofps'
 
             /*

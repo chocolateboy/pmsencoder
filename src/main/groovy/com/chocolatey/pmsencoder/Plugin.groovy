@@ -2,8 +2,10 @@
 package com.chocolatey.pmsencoder
 
 import static groovy.io.FileType.FILES
+import groovy.swing.SwingBuilder
 
 import javax.swing.JComponent
+import javax.swing.JFrame
 
 import net.pms.configuration.PmsConfiguration
 import net.pms.dlna.DLNAMediaInfo
@@ -28,6 +30,11 @@ public class Plugin implements StartStopListener, FileListener {
     private static final String BEGIN_NAME = 'BEGIN.groovy'
     private static final String DEFAULT_NAME = 'DEFAULT.groovy'
     private static final String END_NAME = 'END.groovy'
+    private static final String ABOUT = (
+        "PMSEncoder $VERSION\n" +
+        "Copyright (c) chocolateboy 2010,2011\n" +
+        'https://github.com/chocolateboy/pmsencoder'
+    ).toString()
 
     // 1 second is flaky - it results in overlapping file change events
     private PMSEncoder pmsencoder
@@ -41,6 +48,7 @@ public class Plugin implements StartStopListener, FileListener {
     private File defaultFile
     private File endFile
     private URL defaultScript
+    private Object lock = new Object()
 
     public Plugin() {
         info('initializing PMSEncoder ' + VERSION)
@@ -169,13 +177,15 @@ public class Plugin implements StartStopListener, FileListener {
         createMatcher()
     }
 
-    private synchronized void createMatcher() {
-        matcher = new Matcher(pms)
+    private void createMatcher() {
+        synchronized (lock) {
+            matcher = new Matcher(pms)
 
-        try {
-            loadScripts()
-        } catch (Exception e) {
-            error('error loading scripts', e)
+            try {
+                loadScripts()
+            } catch (Exception e) {
+                error('error loading scripts', e)
+            }
         }
     }
 
@@ -243,8 +253,20 @@ public class Plugin implements StartStopListener, FileListener {
     }
 
     @Override
+    @Typed(TypePolicy.MIXED)
     public JComponent config() {
-        return null
+        def ref = new Reference()
+
+        new SwingBuilder().edt {
+            def frame = frame(title:'Frame', size: [300, 300], show: true) {
+                borderLayout()
+                textLabel = label(text: ABOUT)
+            }
+
+            ref.set(frame)
+        }
+
+        return ref.get()
     }
 
     @Override

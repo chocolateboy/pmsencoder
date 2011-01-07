@@ -19,20 +19,11 @@ class MatcherTest extends PMSEncoderTestCase {
     void testInterpolationInDefaultMencoderArgs() {
         assertMatch([
             uri: 'http://www.example.com',
-            wantArgs: [
-                '-msglevel', 'all=3:mencoder=1:cache=1',
-                '-prefer-ipv4',
-                '-oac', 'lavc',
-                '-of', 'lavf',
-                '-lavfopts', 'format=dvd',
-                '-ovc', 'lavc',
-                // make sure nbcores is interpolated here as 3 in threads=3
-                // (this is mocked to 3 in PMSEncoderTestCase)
-                '-lavcopts', "vcodec=mpeg2video:vbitrate=4096:threads=3:acodec=ac3:abitrate=128",
-                '-ofps', '25',
-                '-cache', '16384',
-                '-vf', 'harddup'
-            ],
+            // make sure nbcores is interpolated here as 3 in threads=3
+            // (this is mocked to 3 in PMSEncoderTestCase)
+            wantArgs: { List<String> args ->
+                args.contains('vcodec=mpeg2video:vbitrate=4096:threads=3:acodec=ac3:abitrate=128')
+            },
             useDefaultArgs: true
         ])
     }

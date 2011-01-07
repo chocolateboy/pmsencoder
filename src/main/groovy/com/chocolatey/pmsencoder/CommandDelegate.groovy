@@ -94,7 +94,12 @@ class CommandDelegate extends ScriptDelegate implements LoggerMixin {
 
     // DSL setter
     protected String propertyMissing(String name, Object value) {
-        command.let(name, value.toString())
+        if (value == null) {
+            log.error("attempt to assign a null value for: $name")
+            return null
+        } else {
+            command.let(name, value.toString())
+        }
     }
 
     // DSL method

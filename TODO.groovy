@@ -82,15 +82,18 @@ Should be:
 
         def action = new Action(exchange)
 
-
 Read-only options could go in request and r/w objects in response e.g.
 
 new Request(
     DOWNLOADER_OUT: ...,
     TRANSCODER_OUT: ...,
+    URI: ...,
 )
 
 new Response(
+    ARGS: ...,
+    DOWNLOADER: ...
+    TRANSCODER: ...
     URI: ...
 )
 
@@ -119,3 +122,42 @@ script {
 // migrate (some) regex scrapers to Geb (or Geb + regex)
 
 // when documenting scripting, note poor man's script versioning via Github's "Switch Tags" menu
+
+// a suite of scrapers and extractors:
+
+    scrape:  regex
+    browse:  Geb
+    query:   Doj and/or port Zombie.js
+    xpath:   HtmlUnit?
+
+// use block syntax for scrape?
+
+    scrape { 'foo/bar(?<baz>\\w+)' }
+    scrape (uri: uri) { 'foo/bar(?<baz>\\w+)' }
+
+// download/install standard library (GitHub API/JGit):
+
+    pmsencoder.library.root = /tmp/pmsencoder/scripts
+    pmsencoder.library.repository = http://example.com/path/to/scripts,http://...
+
+// asynchronously downloads + installs scripts for this version of PMSEncoder and saves them to the specified
+// (writable) location under the version
+
+    /tmp/pmsencoder/scripts/1.3.0
+    /tmp/pmsencoder/scripts/1.4.0
+
+// Do this by default and eliminate the built-in pmsencoder.groovy?
+
+// query youtube-dl and get-flash-videos for supported sites at startup
+
+// add (overridable) INIT.groovy (or DEFAULT.groovy) for one-off initializations (e.g. $DEFAULT_MENCODER_ARGS)
+
+// print a debug version of the MEncoder (if used) command-line (i.e. pump up the debug level), target e.g.
+// deleteme.tmp, and quote the URI (i.e. would need to be done in PMSEncoder.groovy)
+
+// add namespace support (required?):
+
+    script (namespace: 'http://www.example.com', author: 'chocolateboy') {
+
+// use a web interface because a) Swing sucks and b) headless servers. Only use swing to enable/disable the web server
+// and set the port.
