@@ -43,16 +43,9 @@
 
 // WEB.groovy:
 
-videofeed {
-    uri  = 'http://example.com/rss'
-    icon = 'http://example.com/rss.jpg'
-    path = '/Web/Foo/Bar/Baz'
-}
-
-videostream {
+videostream ('/Web/TV') {
     uri  = 'mms://example.com/stream'
     icon = 'http://example.com/rss.jpg'
-    path = 'Quux' // relative path: relative to the previous path i.e. /Web/Foo/Bar/Baz/Quux
 }
 
 // use the user-specified folder, rather than appending the feed name, so feeds can be merged:
