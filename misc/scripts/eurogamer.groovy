@@ -3,7 +3,7 @@
 // XXX this script requires PMSEncoder >= 1.4.0
 
 script {
-    profile ('Redirect') { // create or replace
+    profile ('Eurogamer Redirect') {
         pattern {
             domain 'rss.feedsportal.com'
         }
@@ -19,7 +19,7 @@ script {
         }
 
         action {
-            // requires a recent-ish MEncoder (from June 2010)
+            // -referrer requires a recent-ish MEncoder (from June 2010)
             set '-referrer': $URI
             $URI = 'http://www.eurogamer.net/' + browse { $('a.download').@href }
         }

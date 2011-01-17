@@ -13,6 +13,9 @@
 
 // XXX this script requires PMSEncoder >= 1.4.0
 
+// FIXME: these should be converted into ATOM feeds with multiple enclosures (clips)
+// XXX need to improve PMS's feed handling
+
 script {
     def SIZES = [ 'xxlarge', 'xlarge', 'large', 'medium', 'small' ]
 

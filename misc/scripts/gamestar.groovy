@@ -1,3 +1,5 @@
+// videofeed.Web,Gamestar=http://www.gamestar.de/videos/rss/videos.rss
+
 script {
     profile ('Gamestar') {
         pattern {

@@ -142,7 +142,7 @@ script {
 
 // Do this by default and eliminate the built-in pmsencoder.groovy?
 
-// query youtube-dl and get-flash-videos for supported sites at startup
+// query youtube-dl and get-flash-videos for supported sites at startup?
 
 // add (overridable) INIT.groovy (or DEFAULT.groovy) for one-off initializations (e.g. $DEFAULT_MENCODER_ARGS)
 
@@ -157,3 +157,9 @@ script {
 // and set the port.
 
 // investigate using busybox-w32/ash instead of cmd.exe on Windows
+
+// Pattern: add extension matcher:
+
+    extension 'm3u8'
+    extension ([ 'mp4', 'm4v' ])
+	

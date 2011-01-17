@@ -1,3 +1,10 @@
+/*
+    videofeed.Web,ZDF=http://www.zdf.de/ZDFmediathek/rss/562?view=rss
+    videofeed.Web,3sat=http://www.3sat.de/mediathek/rss/mediathek_scobel.xml
+    videofeed.Web,3sat=http://www.3sat.de/mediathek/rss/mediathek_boerse.xml
+    videofeed.Web,3sat=http://www.3sat.de/mediathek/rss/mediathek_hitec.xml
+*/
+
 script {
     profile ('ARD/ZDF') {
         pattern {

@@ -1,3 +1,5 @@
+// videofeed.Web,PCGames=http://videos.pcgames.de/rss/newest.php
+
 script {
     profile ('PC Games') {
         pattern {

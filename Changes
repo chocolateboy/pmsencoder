@@ -8,6 +8,7 @@
     - DSL: fix + tests for Profile replaces: + Profile extends:
     - DSL: Pattern/Action scrape() now takes a source option allowing the document to be supplied as a string
     - DSL: add getXML, getJSON, getURLENC and getForm HTTP client methods
+    - DSL: new protocols: rtmp, rtmpe, and synacast (thanks, SharkHunter)
     - add blip9tv, Eurogamer, Kino Trailer, and GiantBomb scripts
     - restore cleaned-up SopCast example
 
