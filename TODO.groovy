@@ -41,19 +41,22 @@
       http://stackoverflow.com/questions/3302384/youtubes-hd-video-streaming-server-technology
 */
 
-// WEB.groovy:
+// WEB.groovy (path is relative to the renderer's root folder):
 
-videostream ('/Web/TV') {
+videostream ('Web/TV') {
     uri  = 'mms://example.com/stream'
-    icon = 'http://example.com/rss.jpg'
+    name = 'Example'
+    thumbnail = 'http://example.com/rss.jpg' // optional
 }
 
 // use the user-specified folder, rather than appending the feed name, so feeds can be merged:
-root = 'Web'
 
-videofeed ('YouTube/Favourites') {
-    uri ([ 'http://youtube.com/api/whatever?1-50', 'http://youtube.com/api/whatever?50-100' ])
-    icon = 'http://example.com/rss.jpg'
+videofeed ('Web/YouTube/Favourites') {
+    uri = 'http://youtube.com/api/whatever?1-50'
+}
+
+videofeed ('Web/YouTube/Favourites') {
+    uri = 'http://youtube.com/api/whatever?50-100'
 }
 
 /*
@@ -97,9 +100,7 @@ http://stackoverflow.com/questions/1039513/what-is-a-request-response-pair-calle
 
 */
 
-// Fix the Script delegate so that globals can be shared e.g.
-
-// unix_paths_example.groovy
+// Fix the Script delegate so that globals can be shared e.g. (unix_paths_example.groovy):
 
 script {
     PERL             = '/usr/bin/perl'
@@ -154,3 +155,5 @@ script {
 
 // use a web interface because a) Swing sucks and b) headless servers. Only use swing to enable/disable the web server
 // and set the port.
+
+// investigate using busybox-w32/ash instead of cmd.exe on Windows

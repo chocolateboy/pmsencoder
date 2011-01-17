@@ -26,17 +26,12 @@ public class Plugin implements StartStopListener, FileListener {
     private static final String LOG_CONFIG = 'pmsencoder.log.config'
     private static final String SCRIPT_DIRECTORY = 'pmsencoder.script.directory'
     private static final String SCRIPT_POLL = 'pmsencoder.script.poll'
-    private static final int MIN_SCRIPT_POLL_INTERVAL = 2
-    private static final String BEGIN_NAME = 'BEGIN.groovy'
-    private static final String DEFAULT_NAME = 'DEFAULT.groovy'
-    private static final String END_NAME = 'END.groovy'
-    private static final String ABOUT = (
-        "PMSEncoder $VERSION\n" +
-        "Copyright (c) chocolateboy 2010,2011\n" +
-        'https://github.com/chocolateboy/pmsencoder'
-    ).toString()
-
     // 1 second is flaky - it results in overlapping file change events
+    private static final int MIN_SCRIPT_POLL_INTERVAL = 2
+    private static final String BEGIN_FILENAME = 'BEGIN.groovy'
+    private static final String DEFAULT_FILENAME = 'DEFAULT.groovy'
+    private static final String END_FILENAME = 'END.groovy'
+
     private PMSEncoder pmsencoder
     private FileMonitor fileMonitor
     private File scriptDirectory
@@ -57,10 +52,11 @@ public class Plugin implements StartStopListener, FileListener {
         defaultScript = this.getClass().getResource('/pmsencoder.groovy')
 
         // get optional overrides from PMS.conf
-        def customLogConfigPath = (configuration.getCustomProperty(LOG_CONFIG) as String)
-        def candidateScriptDirectory = (configuration.getCustomProperty(SCRIPT_DIRECTORY) as String)
-        def candidateScriptPollInterval = (configuration.getCustomProperty(SCRIPT_POLL) as int) ?: 0
+        String customLogConfigPath = configuration.getCustomProperty(LOG_CONFIG)
+        String candidateScriptDirectory = configuration.getCustomProperty(SCRIPT_DIRECTORY)
+        int candidateScriptPollInterval = configuration.getCustomProperty(SCRIPT_POLL) ?: 0
 
+        // handle scripts
         if (candidateScriptDirectory != null) {
             def candidateScriptDirectoryFile = new File(candidateScriptDirectory)
 
@@ -80,16 +76,16 @@ public class Plugin implements StartStopListener, FileListener {
 
         if (scriptDirectory != null) {
             info("script directory: $scriptDirectory")
-            beginFile = new File(scriptDirectory, BEGIN_NAME)
-            defaultFile = new File(scriptDirectory, DEFAULT_NAME)
-            endFile = new File(scriptDirectory, END_NAME)
+            beginFile = new File(scriptDirectory, BEGIN_FILENAME)
+            defaultFile = new File(scriptDirectory, DEFAULT_FILENAME)
+            endFile = new File(scriptDirectory, END_FILENAME)
 
             if (candidateScriptPollInterval > 0) {
                 if (candidateScriptPollInterval < MIN_SCRIPT_POLL_INTERVAL) {
                     candidateScriptPollInterval = MIN_SCRIPT_POLL_INTERVAL
                 }
                 info("setting polling interval to $candidateScriptPollInterval seconds")
-                scriptPollInterval = (candidateScriptPollInterval * 1000) as long
+                scriptPollInterval = candidateScriptPollInterval * 1000
                 monitorScriptDirectory()
             }
         }
@@ -108,19 +104,7 @@ public class Plugin implements StartStopListener, FileListener {
             }
         }
 
-        Closure loadDefaultLogConfig = {
-            // XXX squashed bug - don't call this log4j.xml, as, by default,
-            // log4j attempts to load log4j.properties and log4j.xml automatically
-            def defaultLogConfig = this.getClass().getResource('/default_log4j.xml')
-            info("loading built-in log4j config file: $defaultLogConfig")
-
-            try {
-                DOMConfigurator.configure(defaultLogConfig)
-            } catch (Exception e) {
-                error("error loading built-in log4j config file ($defaultLogConfig)", e)
-            }
-        }
-
+        // load log4j config file
         if (customLogConfig != null) {
             info("loading custom log4j config file: $customLogConfig")
 
@@ -148,6 +132,19 @@ public class Plugin implements StartStopListener, FileListener {
         def extensions = pms.getExtensions()
         extensions.set(0, new WEB())
         registerPlayer(pmsencoder)
+    }
+
+    private void loadDefaultLogConfig() {
+        // XXX squashed bug - don't call this log4j.xml, as, by default,
+        // log4j attempts to load log4j.properties and log4j.xml automatically
+        def defaultLogConfig = this.getClass().getResource('/default_log4j.xml')
+        info("loading built-in log4j config file: $defaultLogConfig")
+
+        try {
+            DOMConfigurator.configure(defaultLogConfig)
+        } catch (Exception e) {
+            error("error loading built-in log4j config file ($defaultLogConfig)", e)
+        }
     }
 
     private boolean fileExists(File file) {
@@ -189,9 +186,9 @@ public class Plugin implements StartStopListener, FileListener {
         }
     }
 
-    // we don't need to load the begin/end scripts if there are no user scripts:
-    // they're not used by the default script
     private void loadScripts() {
+        // we don't need to load the begin/end scripts if there are no user scripts:
+        // they're not depended on by the default script
         if (directoryExists(scriptDirectory)) {
             if (fileExists(beginFile)) {
                 loadScript(beginFile)
@@ -207,7 +204,7 @@ public class Plugin implements StartStopListener, FileListener {
 
             scriptDirectory.eachFileRecurse(FILES) { File file ->
                 def filename = file.getName()
-                if (filename.endsWith('.groovy') && !(filename in [ BEGIN_NAME, DEFAULT_NAME, END_NAME ])) {
+                if (filename.endsWith('.groovy') && !(filename in [ BEGIN_FILENAME, DEFAULT_FILENAME, END_FILENAME ])) {
                     loadScript(file)
                 }
             }
@@ -244,7 +241,7 @@ public class Plugin implements StartStopListener, FileListener {
             pmsRegisterPlayer.setAccessible(true)
             pmsRegisterPlayer.invoke(pms, pmsencoder)
         } catch (Exception e) {
-            info('error calling PMS.registerPlayer: ' + e)
+            error('error calling PMS.registerPlayer', e)
         }
     }
 
@@ -253,20 +250,8 @@ public class Plugin implements StartStopListener, FileListener {
     }
 
     @Override
-    @Typed(TypePolicy.MIXED)
     public JComponent config() {
-        def ref = new Reference()
-
-        new SwingBuilder().edt {
-            def frame = frame(title:'Frame', size: [300, 300], show: true) {
-                borderLayout()
-                textLabel = label(text: ABOUT)
-            }
-
-            ref.set(frame)
-        }
-
-        return ref.get()
+        return null
     }
 
     @Override
