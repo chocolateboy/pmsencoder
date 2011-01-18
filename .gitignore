@@ -4,3 +4,4 @@ pmsencoder.log
 .settings
 tags
 target/
+pom.xml.versionsBackup
