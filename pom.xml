@@ -9,7 +9,7 @@
   <description>A plugin for PS3 Media Server that adds support for scriptable web video streaming.</description>
   <properties>
     <groovypp-repo>http://groovypp.artifactoryonline.com/groovypp</groovypp-repo>
-    <groovypp-version>0.4.119</groovypp-version>
+    <groovypp-version>0.4.150</groovypp-version>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <junit-version>4.8.2</junit-version>
   </properties>
@@ -42,11 +42,6 @@
       <artifactId>junit</artifactId>
       <version>${junit-version}</version>
       <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>excalibur</groupId>
-      <artifactId>excalibur-fortress</artifactId>
-      <version>1.0</version>
     </dependency>
     <dependency>
       <groupId>org.codehaus.geb</groupId>

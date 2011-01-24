@@ -8,7 +8,7 @@ project {
 
     properties {
         'project.build.sourceEncoding' 'UTF-8'
-        'groovypp-version' '0.4.119'
+        'groovypp-version' '0.4.150'
         'groovypp-repo' 'http://groovypp.artifactoryonline.com/groovypp'
         'junit-version' '4.8.2'
     }
@@ -94,12 +94,6 @@ project {
             artifactId 'junit'
             version '${junit-version}'
             scope 'test'
-        }
-
-        dependency {
-            groupId 'excalibur'
-            artifactId 'excalibur-fortress'
-            version '1.0'
         }
 
         dependency {
