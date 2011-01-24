@@ -1,6 +1,8 @@
 @Typed
 package com.chocolatey.pmsencoder
 
+import static com.chocolatey.pmsencoder.Util.guard;
+
 import static groovy.io.FileType.FILES
 import groovy.swing.SwingBuilder
 
@@ -21,7 +23,7 @@ import no.geosoft.cc.io.FileMonitor
 import org.apache.log4j.xml.DOMConfigurator
 
 public class Plugin implements StartStopListener, FileListener {
-    private static final String VERSION = '1.3.0'
+    private static final String VERSION = '1.4.0'
     private static final String DEFAULT_SCRIPT_DIRECTORY = 'pmsencoder'
     private static final String LOG_CONFIG = 'pmsencoder.log.config'
     private static final String SCRIPT_DIRECTORY = 'pmsencoder.script.directory'
@@ -54,7 +56,23 @@ public class Plugin implements StartStopListener, FileListener {
         // get optional overrides from PMS.conf
         String customLogConfigPath = configuration.getCustomProperty(LOG_CONFIG)
         String candidateScriptDirectory = configuration.getCustomProperty(SCRIPT_DIRECTORY)
-        int candidateScriptPollInterval = configuration.getCustomProperty(SCRIPT_POLL) ?: 0
+
+        /*
+           XXX: When Groovy breaks down...
+
+           long-windedness is required here to ensure that a string is correctly converted to
+           an Integer. in a previous incarnation:
+
+                pmsencoder.script.poll = 2
+
+            resulted in a poll interval of 50 (i.e. the ASCII value of the character "2")
+        */
+
+        // cast the expression to the type of the default value (int) and return the default value
+        // (0) if an exception (in this case a java.lang.NumberFormatException) is thrown
+        String scriptPollString = configuration.getCustomProperty(SCRIPT_POLL)
+        // changing this "int" to "def" produces a Verify error (see TODO.groovy)
+        int candidateScriptPollInterval = guard (0) { scriptPollString.toInteger() }
 
         // handle scripts
         if (candidateScriptDirectory != null) {
