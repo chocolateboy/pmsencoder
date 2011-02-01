@@ -8,7 +8,7 @@ project {
 
     properties {
         'project.build.sourceEncoding' 'UTF-8'
-        'groovypp-version' '0.4.150'
+        'groovypp-version' '0.4.152'
         'groovypp-repo' 'http://groovypp.artifactoryonline.com/groovypp'
         'junit-version' '4.8.2'
     }
