@@ -51,7 +51,7 @@ public class Plugin implements StartStopListener, FileListener {
         info('initializing PMSEncoder ' + VERSION)
         pms = PMS.get()
         configuration = PMS.getConfiguration()
-        defaultScript = this.getClass().getResource('/pmsencoder.groovy')
+        defaultScript = this.getClass().getResource('/PRELUDE.groovy')
 
         // get optional overrides from PMS.conf
         String customLogConfigPath = configuration.getCustomProperty(LOG_CONFIG)

@@ -140,18 +140,18 @@ script {
     /tmp/pmsencoder/scripts/1.3.0
     /tmp/pmsencoder/scripts/1.4.0
 
-// Do this by default and eliminate the built-in pmsencoder.groovy?
+// Do this by default and eliminate the built-in PRELUDE.groovy?
 
 // query youtube-dl and get-flash-videos for supported sites at startup?
 
 // add (overridable) INIT.groovy (or DEFAULT.groovy) for one-off initializations (e.g. $DEFAULT_MENCODER_ARGS)
 
 // print a debug version of the MEncoder (if used) command-line (i.e. pump up the debug level), target e.g.
-// deleteme.tmp, and quote the URI (i.e. would need to be done in PMSEncoder.groovy)
+// deleteme.tmp, and quote the URI (i.e. would need to be done in PRELUDE.groovy)
 
 // add namespace support (required?):
 
-    script (namespace: 'http://www.example.com', author: 'chocolateboy') {
+    script (namespace: 'http://www.example.com', author: 'chocolateboy', version: 1.04) { ... }
 
 // use a web interface because a) Swing sucks and b) headless servers. Only use swing to enable/disable the web server
 // and set the port.
@@ -187,3 +187,21 @@ Groovy++ bytecode compilation error (both at compile-time and runtime): see Plug
 [ERROR] at org.codehaus.groovy.control.CompilationUnit.compile(CompilationUnit.java:447)
 
 */
+
+/*
+    bring back dependencies in the form of script (rather than profile) dependencies:
+
+        script (before: 'get_flash_videos') { ... }
+*/
+
+/*
+
+add another "phase": INIT.groovy: after the builtin PRELUDE.groovy, but before user scripts i.e:
+
+    BEGIN.groovy
+    PRELUDE.groovy
+    INIT.groovy
+    userscript1.groovy
+    userscript2.groovy
+    ...
+    END.groovy
