@@ -32,6 +32,7 @@ public class Plugin implements StartStopListener, FileListener {
     private static final int MIN_SCRIPT_POLL_INTERVAL = 2
     private static final String BEGIN_FILENAME = 'BEGIN.groovy'
     private static final String DEFAULT_FILENAME = 'DEFAULT.groovy'
+    private static final String INIT_FILENAME = 'INIT.groovy'
     private static final String END_FILENAME = 'END.groovy'
 
     private PMSEncoder pmsencoder
@@ -43,6 +44,7 @@ public class Plugin implements StartStopListener, FileListener {
     private PMS pms
     private File beginFile
     private File defaultFile
+    private File initFile
     private File endFile
     private URL defaultScript
     private Object lock = new Object()
@@ -51,7 +53,7 @@ public class Plugin implements StartStopListener, FileListener {
         info('initializing PMSEncoder ' + VERSION)
         pms = PMS.get()
         configuration = PMS.getConfiguration()
-        defaultScript = this.getClass().getResource('/PRELUDE.groovy')
+        defaultScript = this.getClass().getResource(DEFAULT_FILENAME)
 
         // get optional overrides from PMS.conf
         String customLogConfigPath = configuration.getCustomProperty(LOG_CONFIG)
@@ -96,6 +98,7 @@ public class Plugin implements StartStopListener, FileListener {
             info("script directory: $scriptDirectory")
             beginFile = new File(scriptDirectory, BEGIN_FILENAME)
             defaultFile = new File(scriptDirectory, DEFAULT_FILENAME)
+            initFile = new File(scriptDirectory, INIT_FILENAME)
             endFile = new File(scriptDirectory, END_FILENAME)
 
             if (candidateScriptPollInterval > 0) {
@@ -218,11 +221,17 @@ public class Plugin implements StartStopListener, FileListener {
                 loadScript(defaultScript)
             }
 
+            if (fileExists(initFile)) {
+                loadScript(initFile)
+            }
+
             info("loading scripts from: $scriptDirectory")
 
             scriptDirectory.eachFileRecurse(FILES) { File file ->
                 def filename = file.getName()
-                if (filename.endsWith('.groovy') && !(filename in [ BEGIN_FILENAME, DEFAULT_FILENAME, END_FILENAME ])) {
+                if (filename.endsWith('.groovy')
+                    && !(filename in [ BEGIN_FILENAME, DEFAULT_FILENAME, INIT_FILENAME, END_FILENAME ]))
+                {
                     loadScript(file)
                 }
             }

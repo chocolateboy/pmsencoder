@@ -140,14 +140,14 @@ script {
     /tmp/pmsencoder/scripts/1.3.0
     /tmp/pmsencoder/scripts/1.4.0
 
-// Do this by default and eliminate the built-in PRELUDE.groovy?
+// Do this by default and eliminate the built-in DEFAULT.groovy?
 
 // query youtube-dl and get-flash-videos for supported sites at startup?
 
 // add (overridable) INIT.groovy (or DEFAULT.groovy) for one-off initializations (e.g. $DEFAULT_MENCODER_ARGS)
 
 // print a debug version of the MEncoder (if used) command-line (i.e. pump up the debug level), target e.g.
-// deleteme.tmp, and quote the URI (i.e. would need to be done in PRELUDE.groovy)
+// deleteme.tmp, and quote the URI (i.e. would need to be done in DEFAULT.groovy)
 
 // add namespace support (required?):
 
@@ -196,10 +196,10 @@ Groovy++ bytecode compilation error (both at compile-time and runtime): see Plug
 
 /*
 
-add another "phase": INIT.groovy: after the builtin PRELUDE.groovy, but before user scripts i.e:
+add another "phase": INIT.groovy: after the builtin DEFAULT.groovy, but before user scripts i.e:
 
     BEGIN.groovy
-    PRELUDE.groovy
+    DEFAULT.groovy
     INIT.groovy
     userscript1.groovy
     userscript2.groovy

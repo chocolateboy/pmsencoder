@@ -2,7 +2,7 @@
     - Breaking changes:
         - DSL: change $DEFAULT_TRANSCODER_ARGS back to $DEFAULT_MENCODER_ARGS
         - DSL: remove Pattern.reject()
-        - rename pmsencoder.groovy -> PREULDE.groovy to clarify its role as an overridable "stage"
+        - rename pmsencoder.groovy -> DEFAULT.groovy to clarify its role as an overridable "stage"
     - DSL: add Pattern/Action browse() method integrating Geb for jQuery-style scraping: http://geb.codehaus.org/
     - DSL: expose $FFMPEG path
     - DSL: fix + test for null values in Action.set(Map)

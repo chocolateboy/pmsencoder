@@ -13,7 +13,7 @@ abstract class PMSEncoderTestCase extends GroovyTestCase {
 
     void setUp() {
         def log4jConfig = this.getClass().getResource('/test_log4j.xml')
-        def defaultScript = this.getClass().getResource('/PRELUDE.groovy')
+        def defaultScript = this.getClass().getResource('/DEFAULT.groovy')
 
         new MockUp<PmsConfiguration>() {
             @Mock

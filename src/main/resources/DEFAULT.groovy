@@ -1,10 +1,10 @@
 /*
     this is the default/builtin PMSEncoder script. PMSEncoder loads it from
-    src/main/resources/PRELUDE.groovy
+    src/main/resources/DEFAULT.groovy
 
     see:
 
-       http://github.com/chocolateboy/pmsencoder/blob/plugin/src/main/resources/PRELUDE.groovy
+       http://github.com/chocolateboy/pmsencoder/blob/plugin/src/main/resources/DEFAULT.groovy
 
     XXX: Don't use this as a tutorial/documentation; see the wiki instead.
     XXX: The scripting framework/DSL is constantly changing, so don't rely on anything here.
