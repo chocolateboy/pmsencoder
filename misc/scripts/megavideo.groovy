@@ -2,7 +2,7 @@
 // TODO: script (before: 'get_flash_videos') { ... }
 
 script {
-    profile ('MEGAUPLOAD') {
+    profile ('Megaupload') {
         pattern {
             domain 'megaupload.com'
         }
@@ -12,14 +12,15 @@ script {
         }
     }
 
-    profile ('MEGAVIDEO') {
+    profile ('Megavideo') {
         pattern {
             domain 'megavideo.com'
         }
 
         action {
             $PARAMS.waitbeforestart = 10000L
-            $TRANSCODER = "$FFMPEG -v 0 -loglevel info -y -r 24 -i $DOWNLOADER_OUT -target ntsc-dvd $TRANSCODER_OUT"
+            // XXX -loglevel doesn't work on Ubuntu's ffmpeg
+            $TRANSCODER = "$FFMPEG -v 0 -y -r 24 -i $DOWNLOADER_OUT -target ntsc-dvd $TRANSCODER_OUT"
         }
     }
 }
