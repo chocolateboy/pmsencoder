@@ -8,7 +8,7 @@ project {
 
     properties {
         'project.build.sourceEncoding' 'UTF-8'
-        'groovypp-version' '0.4.152'
+        'groovypp-version' '0.4.154'
         'groovypp-repo' 'http://groovypp.artifactoryonline.com/groovypp'
         'junit-version' '4.8.2'
     }
@@ -99,13 +99,13 @@ project {
         dependency {
             groupId 'org.codehaus.geb'
             artifactId 'geb-core'
-            version 'RELEASE'
+            version '0.5.1'
         }
 
         dependency {
             groupId 'org.seleniumhq.selenium'
             artifactId 'selenium-htmlunit-driver'
-            version 'RELEASE'
+            version '2.0b1'
         }
 
         // non-Mavenized dependencies installed via maven-external-dependency-plugin

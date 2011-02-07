@@ -9,7 +9,7 @@
   <description>A plugin for PS3 Media Server that adds support for scriptable web video streaming.</description>
   <properties>
     <groovypp-repo>http://groovypp.artifactoryonline.com/groovypp</groovypp-repo>
-    <groovypp-version>0.4.152</groovypp-version>
+    <groovypp-version>0.4.154</groovypp-version>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <junit-version>4.8.2</junit-version>
   </properties>
@@ -51,7 +51,7 @@
     <dependency>
       <groupId>org.seleniumhq.selenium</groupId>
       <artifactId>selenium-htmlunit-driver</artifactId>
-      <version>RELEASE</version>
+      <version>2.0b1</version>
     </dependency>
     <dependency>
       <groupId>com.google.code</groupId>
