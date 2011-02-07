@@ -53,7 +53,7 @@ public class Plugin implements StartStopListener, FileListener {
         info('initializing PMSEncoder ' + VERSION)
         pms = PMS.get()
         configuration = PMS.getConfiguration()
-        defaultScript = this.getClass().getResource(DEFAULT_FILENAME)
+        defaultScript = this.getClass().getResource("/$DEFAULT_FILENAME")
 
         // get optional overrides from PMS.conf
         String customLogConfigPath = configuration.getCustomProperty(LOG_CONFIG)
