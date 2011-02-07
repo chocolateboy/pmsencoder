@@ -10,7 +10,7 @@
     - DSL: Pattern/Action scrape() now takes a source option allowing the document to be supplied as a string
     - DSL: add getXML, getJSON, getURLENC and getForm HTTP client methods
     - DSL: new protocols: rtmp, rtmpe, and synacast (thanks, SharkHunter)
-    - add blip9tv, Eurogamer, Kino Trailer, GiantBomb, screen and MEGAUPLOAD scripts
+    - add blip9tv, Eurogamer, Kino Trailer, GiantBomb, screen and MEGAVIDEO scripts
     - restore cleaned-up SopCast example
 
 1.3.0 Thu Dec 30 20:49:38 2010
