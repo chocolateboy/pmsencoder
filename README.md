@@ -56,7 +56,7 @@ Please do the following when reporting any issues:
 1. restart (or start) PMS
 2. try to stream a web video
 3. wait until it fails
-4. post your PMS.conf, pmsencoder.log and debug.log (as a zipped attachment)
+4. post your PMS.conf, WEB.conf, pmsencoder.log and debug.log as a zipped attachment
 
 ## Support <a name="Support"></a>
 
