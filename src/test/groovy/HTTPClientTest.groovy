@@ -1,13 +1,11 @@
 @Typed
 package com.chocolatey.pmsencoder
 
-import static org.hamcrest.MatcherAssert.assertThat
-import static org.hamcrest.Matchers.*
 import java.lang.NoClassDefFoundError
 
 /*
     prior to Groovy++ 0.4.99, HTTPBuilder (via HTTPClient) was acting flaky under
-    MIXED typing. try to pin it down
+    MIXED typing. seems to be fixed now
 */
 
 class HTTPClientTest extends PMSEncoderTestCase {

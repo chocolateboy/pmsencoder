@@ -11,7 +11,7 @@ import net.pms.PMS
 public class PMSEncoder extends MEncoderWebVideo implements LoggerMixin {
     public static final boolean isWindows = PMS.get().isWindows()
     private Plugin plugin
-    private final static ThreadLocal threadLocal = new ThreadLocal<String>();
+    private final static ThreadLocal threadLocal = new ThreadLocal<String>()
     private static final String DEFAULT_MIME_TYPE = 'video/mpeg'
 
     final PmsConfiguration configuration
