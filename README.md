@@ -68,6 +68,6 @@ For more details, discussion and troubleshooting tips, see the [wiki](http://wik
 
 # License <a name="License"></a>
 
-Copyright 2009-2010 [chocolateboy](mailto:chocolate@cpan.org).
+Copyright 2009-2011 [chocolateboy](mailto:chocolate@cpan.org).
 
 PMSEncoder is free software; you can redistribute it and/or modify it under the terms of the [Artistic License 2.0](http://www.opensource.org/licenses/artistic-license-2.0.php).
