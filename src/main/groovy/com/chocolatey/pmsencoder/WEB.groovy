@@ -28,6 +28,7 @@ public class WEB extends net.pms.formats.WEB {
         "noicyx",
         "pvr",
         "rtmp",
+        "rtmpdump", // pseudo-protocol
         "rtmpe",
         "rtp",
         "rtsp",
