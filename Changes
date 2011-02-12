@@ -1,3 +1,8 @@
+1.4.1 TBC
+    - expose $MPLAYER path
+    - add ffmpeg script
+    - add support for pmsencoder:// and rtmpdump:// pseudo-protocols
+
 1.4.0 Wed Feb 9 20:24:39 GMT 2011
     - Breaking changes:
         - DSL: change $DEFAULT_TRANSCODER_ARGS back to $DEFAULT_MENCODER_ARGS

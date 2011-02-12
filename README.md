@@ -32,8 +32,6 @@ To build PMSEncoder from source, see the [Wiki](https://github.com/chocolateboy/
 
 * To work around the PMS [bug](http://code.google.com/p/ps3mediaserver/issues/detail?id=759) that causes web video playback to be delayed for ~40s, uncheck "HTTP Engine V2" in the PMS "General Configuration" tab. This can also be done by setting `http_engine_v2 = false` in PMS.conf. Then restart PMS. See [below](#HTTPEngine) for caveats.
 * To take PMSEncoder for a spin, try [this WEB.conf](http://github.com/chocolateboy/pmsencoder/raw/master/misc/conf/WEB.conf), which contains a list of feeds that are regularly tested and updated.
-* The [Community Beta](https://code.google.com/p/ps3mediaservercontrib/) of PMS includes a [patch](https://code.google.com/p/ps3mediaserver/issues/detail?id=757) that
-  restores support for [GameTrailers feeds](http://www.gametrailers.com/rssgenform.php).
 
 # Troubleshooting <a name="Troubleshooting"></a>
 

@@ -4,7 +4,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>com.chocolatey.pmsencoder</groupId>
   <artifactId>pmsencoder</artifactId>
-  <version>1.4.0</version>
+  <version>1.4.1</version>
   <name>PMSEncoder</name>
   <description>A plugin for PS3 Media Server that adds support for scriptable web video streaming.</description>
   <properties>

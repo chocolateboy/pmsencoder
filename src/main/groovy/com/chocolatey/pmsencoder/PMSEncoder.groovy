@@ -85,6 +85,7 @@ public class PMSEncoder extends MEncoderWebVideo implements LoggerMixin {
         oldStash.put('$FFMPEG', normalizePath(configuration.getFfmpegPath()))
         oldStash.put('$MENCODER', normalizePath(configuration.getMencoderPath()))
         oldStash.put('$MENCODER_MT', normalizePath(configuration.getMencoderMTPath()))
+        oldStash.put('$MPLAYER', normalizePath(configuration.getMplayerPath()))
         oldStash.put('$TRANSCODER_OUT', transcoderOutputPath)
         oldStash.put('$URI', uri)
 
