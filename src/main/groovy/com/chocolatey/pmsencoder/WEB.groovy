@@ -26,7 +26,7 @@ public class WEB extends net.pms.formats.WEB {
         "mmsu",
         "mpst",
         "noicyx",
-        "pmsencoder",
+        "pmsencoder", // pseudo-protocol
         "pvr",
         "rtmp",
         "rtmpdump", // pseudo-protocol
