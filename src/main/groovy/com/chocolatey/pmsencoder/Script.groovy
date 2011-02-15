@@ -7,9 +7,12 @@ class Script implements LoggerMixin {
     // this is the default Map type, but let's be explicit for documentation purposes
     private Map<String, Profile> profiles = new LinkedHashMap<String, Profile>()
     // DSL fields (mutable)
-    public List<String> $DEFAULT_MENCODER_ARGS = []
+    protected List<String> $MENCODER = []
+    protected List<String> $MPLAYER = []
+    protected List<String> $FFMPEG = []
     public List<Integer> $YOUTUBE_ACCEPT = []
     public PMS $PMS
+    private Map<String, Object> stash = new HashMap<String, Object>()
 
     public Script(PMS pms) {
         $PMS = pms
@@ -36,6 +39,16 @@ class Script implements LoggerMixin {
         closure.delegate = this
         closure.resolveStrategy = Closure.DELEGATE_FIRST
         closure()
+    }
+
+    Object propertyMissing(String name) {
+        log.debug("retrieving global variable: $name")
+        return stash[name]
+    }
+
+    Object propertyMissing(String name, Object value) {
+        log.debug("setting global variable: $name = $value")
+        return stash[name] = value
     }
 
     // DSL method

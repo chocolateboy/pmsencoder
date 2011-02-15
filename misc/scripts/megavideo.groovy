@@ -10,8 +10,7 @@ script {
 
         action {
             // $PARAMS.waitbeforestart = 10000L
-            // XXX -loglevel doesn't work on Ubuntu's ffmpeg
-            $TRANSCODER = "$FFMPEG -v 0 -y -r 24 -i $DOWNLOADER_OUT -target ntsc-dvd $TRANSCODER_OUT"
+            set '-r': '24'
         }
     }
 }

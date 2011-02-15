@@ -9,12 +9,6 @@ script {
 
         action {
             $URI = "http://media.giantbomb.com/${path}.${extension}"
-            // we're not changing the fps, so we don't need this
-            remove '-ofps'
-            // or this
-            remove '-vf'
-            // "rename" the framerate (29.97: not OK; 30000/1001: OK)
-            set '-fps': '30000/1001'
         }
     }
 }

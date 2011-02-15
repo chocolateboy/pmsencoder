@@ -37,17 +37,6 @@ class CommandDelegate extends ScriptDelegate implements LoggerMixin {
         workaround: define just one setter and determine the type with instanceof (via stringList)
     */
 
-    // DSL accessor ($ARGS): getter
-    protected List<String> get$ARGS() {
-        command.args
-    }
-
-    // DSL accessor ($ARGS): setter
-    // see $DOWNLOADER below for implementation notes
-    protected List<String> set$ARGS(Object args) {
-        command.args = Util.stringList(args)
-    }
-
     // DSL accessor ($DOWNLOADER): getter
     public List<String> get$DOWNLOADER() {
         command.downloader
@@ -56,6 +45,16 @@ class CommandDelegate extends ScriptDelegate implements LoggerMixin {
     // DSL accessor ($DOWNLOADER): setter
     protected List<String> set$DOWNLOADER(Object downloader) {
         command.downloader = Util.stringList(downloader)
+    }
+
+    // DSL accessor ($TRANSCODER): getter
+    protected List<String> get$TRANSCODER() {
+        command.transcoder
+    }
+
+    // DSL accessor ($TRANSCODER): setter
+    protected List<String> set$TRANSCODER(Object transcoder) {
+        command.transcoder = Util.stringList(transcoder)
     }
 
     // DSL accessor ($HOOK): getter
@@ -68,25 +67,36 @@ class CommandDelegate extends ScriptDelegate implements LoggerMixin {
         command.hook = Util.stringList(hook)
     }
 
+    // DSL accessor ($OUTPUT): getter
+    protected List<String> get$OUTPUT() {
+        command.output
+    }
+
+    // DSL accessor ($OUTPUT): setter
+    protected List<String> set$OUTPUT(Object args) {
+        command.output = Util.stringList(args)
+    }
+
     // $HTTP: getter
     protected HTTPClient get$HTTP() {
         http
+    }
+
+    // $PROTOCOL: getter
+    protected String get$PROTOCOL() {
+        String uri = command.stash.get('$URI')
+
+        if (uri != null) {
+            return RegexHelper.match(uri, '^(\\w+)://')[1]
+        } else {
+            return null
+        }
     }
 
     // DSL accessor ($PARAMS): getter
     // $PARAMS: getter
     protected OutputParams get$PARAMS() {
         command.params
-    }
-
-    // DSL accessor ($TRANSCODER): getter
-    protected List<String> get$TRANSCODER() {
-        command.transcoder
-    }
-
-    // DSL accessor ($TRANSCODER): setter
-    protected List<String> set$TRANSCODER(Object transcoder) {
-        command.transcoder = Util.stringList(transcoder)
     }
 
     // DSL getter
@@ -117,7 +127,7 @@ class CommandDelegate extends ScriptDelegate implements LoggerMixin {
     protected boolean scrape(Object regex, Map options = [:]) {
         String uri = (options['uri'] == null) ? command.stash.get('$URI') : options['uri'].toString()
         String document = (options['source'] == null) ? cache[uri] : options['source'].toString()
-        boolean decode = options['decode'] ?: false
+        boolean decode = options['decode'] == null ? false : options['decode']
 
         def newStash = new Stash()
         def scraped = false

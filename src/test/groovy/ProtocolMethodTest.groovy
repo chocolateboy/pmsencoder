@@ -1,10 +1,10 @@
 @Typed
 package com.chocolatey.pmsencoder
 
-class ProtocolTest extends PMSEncoderTestCase {
+class ProtocolMethodTest extends PMSEncoderTestCase {
     void setUp() {
         super.setUp()
-        def script = this.getClass().getResource('/protocol.groovy')
+        def script = this.getClass().getResource('/protocol_method.groovy')
         matcher.load(script)
     }
 

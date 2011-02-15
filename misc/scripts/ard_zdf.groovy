@@ -14,8 +14,13 @@ script {
         action {
             // scrape the RTSP URI from the .mov "container" (actually a plain text file)
             scrape '(?<URI>rtsp://\\S+)'
-            // now set the correct MEncoder options
-            set '-rtsp-stream-over-tcp' // needed for some firewalls/routers
+
+            // now set the correct MPlayer option
+            $DOWNLOADER = $MPLAYER
+
+            downloader {
+                set '-rtsp-stream-over-tcp' // needed for some firewalls/routers
+            }
         }
     }
 }

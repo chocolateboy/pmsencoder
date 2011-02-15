@@ -2,8 +2,11 @@
 package com.chocolatey.pmsencoder
 
 class Action extends CommandDelegate {
+    private List<String> context
+
     Action(Script script, Command command) {
         super(script, command)
+        context = command.transcoder
     }
 
     boolean isOption(String arg) {
@@ -15,6 +18,57 @@ class Action extends CommandDelegate {
            return arg ==~ /^-[^0-9].*$/
         } else {
             return false
+        }
+    }
+
+    void hook (Closure closure) {
+        if ($HOOK == null) {
+            log.error("can't modify null hook command list")
+        } else {
+            context = $HOOK
+            try {
+                closure.call()
+            } finally {
+                context = $TRANSCODER
+            }
+        }
+    }
+
+    void downloader (Closure closure) {
+        if ($DOWNLOADER == null) {
+            log.error("can't modify null downloader command list")
+        } else {
+            context = $DOWNLOADER
+            try {
+                closure.call()
+            } finally {
+                context = $TRANSCODER
+            }
+        }
+    }
+
+    void transcoder (Closure closure) {
+        if ($TRANSCODER == null) {
+            log.error("can't modify null transcoder command list")
+        } else {
+            try {
+                closure.call()
+            } finally {
+                context = $TRANSCODER // in case of nested blocks
+            }
+        }
+    }
+
+    void output (Closure closure) {
+        if ($OUTPUT == null) {
+            log.error("can't modify null ffmpeg output arg list")
+        } else {
+            context = $OUTPUT
+            try {
+                closure.call()
+            } finally {
+                context = $TRANSCODER // in case of nested blocks
+            }
         }
     }
 
@@ -43,30 +97,30 @@ class Action extends CommandDelegate {
         setArg(name.toString(), null)
     }
 
-    // set a transcoder option - create it if it doesn't exist
+    // set a context option - create it if it doesn't exist
     void setArg(Object name, Object value = null) {
         assert name != null
 
-        def index = $ARGS.findIndexOf { it == name.toString() }
+        def index = context.findIndexOf { it == name.toString() }
 
         if (index == -1) {
             if (value != null) {
                 log.debug("adding $name $value")
                 /*
-                    XXX squashed bug: careful not to perform operations on copies of stash or args
+                    XXX squashed bug: careful not to perform operations on copies of stash or transcoder
                     i.e. make sure they're modified in place:
 
-                        def args = command.args
-                        args += ... // XXX doesn't modify command.args
+                        def transcoder = command.transcoder
+                        transcoder += ... // XXX doesn't modify command.transcoder
                 */
-                $ARGS << name.toString() << value.toString()
+                context << name.toString() << value.toString()
             } else {
                 log.debug("adding $name")
-                $ARGS << name.toString()
+                context << name.toString()
             }
         } else if (value != null) {
             log.debug("setting $name to $value")
-            $ARGS[ index + 1 ] = value.toString()
+            context[ index + 1 ] = value.toString()
         }
     }
 
@@ -78,17 +132,17 @@ class Action extends CommandDelegate {
     void replace(Map<Object, Map> replaceMap) {
         // the sort order is predictable (for tests) as long as we (and Groovy) use LinkedHashMap
         replaceMap.each { name, map ->
-            // squashed bug (see  above): take care to modify $ARGS in-place
-            def index = $ARGS.findIndexOf { it == name.toString() }
+            // squashed bug (see  above): take care to modify context in-place
+            def index = context.findIndexOf { it == name.toString() }
 
             if (index != -1) {
                 map.each { search, replace ->
-                    if ((index + 1) < $ARGS.size()) {
+                    if ((index + 1) < context.size()) {
                         // TODO support named captures
                         log.debug("replacing $search with $replace in $name")
-                        def value = $ARGS[ index + 1 ]
+                        def value = context[ index + 1 ]
                         // XXX bugfix: strings are immutable!
-                        $ARGS[ index + 1 ] = value.replaceAll(search.toString(), replace.toString())
+                        context[ index + 1 ] = value.replaceAll(search.toString(), replace.toString())
                     } else {
                         log.warn("can't replace $search with $replace in $name: target out of bounds")
                     }
@@ -169,18 +223,18 @@ class Action extends CommandDelegate {
         }
     }
 
-    // DSL method: append a list of options to the command's args list
+    // DSL method: append a list of options to the command's transcoder list
     void append(String object) {
-        command.args = command.args + [ object.toString() ]
+        command.transcoder = command.transcoder + [ object.toString() ]
     }
 
     void append(List list) {
         list.each { append(it.toString()) }
     }
 
-    // DSL method: prepend a list of options to the command's args list
+    // DSL method: prepend a list of options to the command's transcoder list
     void prepend(Object object) {
-        command.args = [ object.toString() ] + command.args
+        command.transcoder = [ object.toString() ] + command.transcoder
     }
 
     void prepend(List list) {
@@ -196,24 +250,24 @@ class Action extends CommandDelegate {
     void remove(Object optionName) {
         assert optionName != null
 
-        def index = $ARGS.findIndexOf { it == optionName.toString() }
+        def index = context.findIndexOf { it == optionName.toString() }
 
         if (index >= 0) {
-            def lastIndex = $ARGS.size() - 1
+            def lastIndex = context.size() - 1
             def nextIndex = index + 1
 
             if (nextIndex <= lastIndex) {
-                def nextArg = $ARGS[ nextIndex ]
+                def nextArg = context[ nextIndex ]
 
                 if (isOption(nextArg)) {
                     log.debug("removing: $optionName")
                 } else {
                     log.debug("removing: $optionName $nextArg")
-                    $ARGS.remove(nextIndex) // remove this first so the index is preserved for the option name
+                    context.remove(nextIndex) // remove this first so the index is preserved for the option name
                 }
             }
 
-            $ARGS.remove(index)
+            context.remove(index)
         }
     }
 }

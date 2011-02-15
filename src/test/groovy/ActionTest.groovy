@@ -19,7 +19,7 @@ class ActionTest extends PMSEncoderTestCase {
         assertMatch([
             script: '/action.groovy',
             uri:    'http://stringify.values',
-            wantArgs: [
+            wantTranscoder: [
                 '-foo',  '42',
                 '-bar',  '3.1415927',
                 '-baz',  'true',
@@ -34,7 +34,7 @@ class ActionTest extends PMSEncoderTestCase {
         assertMatch([
             script:   '/action.groovy',
             uri:      'http://set.string',
-            wantArgs: [ '-nocache' ],
+            wantTranscoder: [ '-nocache' ],
             matches:  [ 'Set String' ]
         ])
     }
@@ -43,7 +43,7 @@ class ActionTest extends PMSEncoderTestCase {
         assertMatch([
             script: '/action.groovy',
             uri:    'http://set.map',
-            wantArgs: [
+            wantTranscoder: [
                 '-foo',  '42',
                 '-bar',  '3.1415927',
                 '-baz',  'true',

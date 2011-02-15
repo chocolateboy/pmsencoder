@@ -75,17 +75,17 @@ abstract class PMSEncoderTestCase extends GroovyTestCase {
 
         assert stash != null
 
-        List<String> args = map['args'] ?: []
-        List<String> hook = map['hook']
-        List<String> downloader = map['downloader']
-        List<String> transcoder = map['transcoder']
+        List<String> transcoder = map.containsKey('transcoder') ? map['transcoder'] : []
 
-        def wantArgs = map['wantArgs'] ?: args
-        def wantStash = map['wantStash'] ?: stash
+        def wantStash = map.containsKey('wantStash') ? map['wantStash'] : stash
+        def wantHook = map['wantHook']
+        def wantDownloader = map['wantDownloader']
+        def wantTranscoder = map.containsKey('wantTranscoder') ? map['wantTranscoder'] : transcoder
+        def wantOutput = map.containsKey('wantOutput') ? map['wantOutput'] : [ '-target', 'ntsc-dvd' ]
 
-        List<String> matches = map['matches'] ?: []
+        List<String> matches = map.containsKey('matches') ? map['matches'] : []
 
-        boolean useDefaultArgs = map['useDefaultArgs'] ?: false
+        boolean useDefaultTranscoder = map.containsKey('useDefaultTranscoder') ? map['useDefaultTranscoder'] : false
 
         if (scripts != null) {
             scripts.each {
@@ -94,13 +94,15 @@ abstract class PMSEncoderTestCase extends GroovyTestCase {
             }
         }
 
-        def command = new Command(stash, args)
-        matcher.match(command, useDefaultArgs)
+        def command = new Command(stash, transcoder)
+        matcher.match(command, useDefaultTranscoder)
+
+        assert matches == command.matches
 
         /*
            XXX
 
-            Groovy(++) bug: strongly-typing the wantStash and wantArgs closures
+            Groovy(++) bug: strongly-typing the wantStash and wantTranscoder closures
             results in an exception when the closure contains a String =~ String expression
             (i.e. returns a Matcher):
 
@@ -117,15 +119,28 @@ abstract class PMSEncoderTestCase extends GroovyTestCase {
             assert command.stash == wantStash
         }
 
-        if (wantArgs instanceof Closure) {
-            assert (wantArgs as Closure).call(command.args)
+        if (wantHook instanceof Closure) {
+            assert (wantHook as Closure).call(command.hook)
         } else {
-            assert command.args == wantArgs
+            assert command.hook == wantHook
         }
 
-        assert matches == command.matches
-        assert hook == command.hook
-        assert downloader == command.downloader
-        assert transcoder == command.transcoder
+        if (wantDownloader instanceof Closure) {
+            assert (wantDownloader as Closure).call(command.downloader)
+        } else {
+            assert command.downloader == wantDownloader
+        }
+
+        if (wantTranscoder instanceof Closure) {
+            assert (wantTranscoder as Closure).call(command.transcoder)
+        } else {
+            assert command.transcoder == wantTranscoder
+        }
+
+        if (wantOutput instanceof Closure) {
+            assert (wantOutput as Closure).call(command.output)
+        } else {
+            assert command.output == wantOutput
+        }
     }
 }

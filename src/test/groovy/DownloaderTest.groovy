@@ -10,7 +10,7 @@ class DownloaderTest extends PMSEncoderTestCase {
             script: '/downloader.groovy',
             uri: uri,
             matches: [ 'Downloader String' ],
-            downloader: [ downloader, 'string', uri ]
+            wantDownloader: [ downloader, 'string', uri ]
         ])
     }
 
@@ -20,7 +20,7 @@ class DownloaderTest extends PMSEncoderTestCase {
             script: '/downloader.groovy',
             uri: uri,
             matches: [ 'Downloader List' ],
-            downloader: [ downloader, 'list', uri ]
+            wantDownloader: [ downloader, 'list', uri ]
         ])
     }
 }

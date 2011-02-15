@@ -13,7 +13,7 @@ script {
 
         action {
             def var4 = "action$nbcores"
-            $ARGS = [ var1, var2, var3, var4 ]
+            $TRANSCODER = [ var1, var2, var3, var4 ]
         }
     }
 }

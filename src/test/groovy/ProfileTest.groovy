@@ -4,10 +4,10 @@ package com.chocolatey.pmsencoder
 class ProfileTest extends PMSEncoderTestCase {
     void testOverrideDefaultArgs() {
         assertMatch([
-            script:         '/default_mencoder_args.groovy',
+            script:         '/default_ffmpeg_args.groovy',
             uri:            'http://www.example.com',
-            wantArgs:       [ '-default', '-mencoder', '-args' ],
-            useDefaultArgs: true
+            wantTranscoder: [ '-default', '-ffmpeg', '-args' ],
+            useDefaultTranscoder: true
         ])
     }
 
@@ -15,11 +15,10 @@ class ProfileTest extends PMSEncoderTestCase {
     void testProfileOverride() {
         def uri = 'http://www.gametrailers.com/video/action-trailer-littlebigplanet-2/708893'
         assertMatch([
-            script:        '/profile_override.groovy',
-            uri:           uri,
-            wantArgs:       [ '-game', 'trailers' ],
-            matches:        [ 'GameTrailers' ],
-            useDefaultArgs: false
+            script:         '/profile_override.groovy',
+            uri:            uri,
+            wantTranscoder: [ '-game', 'trailers' ],
+            matches:        [ 'GameTrailers' ]
         ])
     }
 
@@ -27,20 +26,19 @@ class ProfileTest extends PMSEncoderTestCase {
     void testProfileReplace() {
         def uri = 'http://www.gametrailers.com/video/action-trailer-littlebigplanet-2/708893'
         assertMatch([
-            script:        '/profile_replace.groovy',
-            uri:           uri,
-            wantArgs:       [ '-gametrailers', 'replacement' ],
-            matches:        [ 'GameTrailers Replacement' ],
-            useDefaultArgs: false
+            script:         '/profile_replace.groovy',
+            uri:            uri,
+            wantTranscoder: [ '-gametrailers', 'replacement' ],
+            matches:        [ 'GameTrailers Replacement' ]
         ])
     }
 
     void testInheritPattern() {
         assertMatch([
-            script:   '/profile_extend.groovy',
-            uri:      'http://inherit.pattern',
-            wantArgs: [ '-base', '-inherit', 'pattern' ],
-            matches:  [ 'Base', 'Inherit Pattern' ]
+            script:         '/profile_extend.groovy',
+            uri:            'http://inherit.pattern',
+            wantTranscoder: [ '-base', '-inherit', 'pattern' ],
+            matches:        [ 'Base', 'Inherit Pattern' ]
         ])
     }
 
@@ -48,7 +46,7 @@ class ProfileTest extends PMSEncoderTestCase {
         assertMatch([
             script:   '/profile_extend.groovy',
             uri:      'http://inherit.action',
-            wantArgs: [ '-base' ],
+            wantTranscoder: [ '-base' ],
             matches:  [ 'Inherit Action' ]
         ])
     }
@@ -66,7 +64,7 @@ class ProfileTest extends PMSEncoderTestCase {
                 $URI:     'http://www.example.com/example/key/value/42',
                 $value:   'value'
             ],
-            wantArgs:  [ '-key', 'key', '-value', 'value' ],
+            wantTranscoder:  [ '-key', 'key', '-value', 'value' ],
             matches :  [ 'GStrings' ]
         ])
     }
@@ -75,7 +73,7 @@ class ProfileTest extends PMSEncoderTestCase {
         assertMatch([
             script:   '/gstring_scope.groovy',
             uri:      'http://www.example.com',
-            wantArgs: [ 'config3', 'profile3', 'pattern3', 'action3' ],
+            wantTranscoder: [ 'config3', 'profile3', 'pattern3', 'action3' ],
             matches:  [ 'GString Scope' ]
         ])
     }

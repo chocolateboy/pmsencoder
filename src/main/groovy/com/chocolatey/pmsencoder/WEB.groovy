@@ -5,16 +5,19 @@ import net.pms.encoders.Player
 import net.pms.PMS
 
 public class WEB extends net.pms.formats.WEB {
+    // unless otherwise indicate, these protocols are only supported by MEncoder
     private static final String[] PROTOCOLS = [
         "br",
+        "concat", // ffmpeg
         "cue",
         "dvb",
         "dvd",
         "dvdnav",
         "ffmpeg",
-        "file",
+        "file", // mencoder and ffmpeg
         "ftp",
-        "http",
+        "gopher", // ffmpeg (for some reason)
+        "http", // mencoder and ffmpeg
         "http_proxy",
         "https",
         "icyx",
@@ -26,21 +29,25 @@ public class WEB extends net.pms.formats.WEB {
         "mmsu",
         "mpst",
         "noicyx",
-        "pmsencoder", // pseudo-protocol
+        "pmsencoder", // PMSEncoder pseudo-protocol
         "pvr",
-        "rtmp",
-        "rtmpdump", // pseudo-protocol
-        "rtmpe",
-        "rtp",
+        "rtmpdump", // PMSEncoder pseudo-protocol
+        "rtmpe", // mencoder and ffmpeg
+        "rtmp", // mencoder and ffmpeg
+        "rtmps", // ffmpeg
+        "rtmpte", // ffmpeg
+        "rtmpt", // ffmpeg
+        "rtp", // mencoder and ffmpeg
         "rtsp",
         "screen",
         "sdp",
         "smb",
         "sop",
         "synacast",
+        "tcp", // ffmpeg
         "tivo",
         "tv",
-        "udp",
+        "udp", // mencoder and ffmpeg
         "unsv",
         "vcd"
     ]

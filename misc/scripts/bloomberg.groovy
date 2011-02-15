@@ -7,6 +7,7 @@ script {
         }
 
         action {
+            $TRANSCODER = $MENCODER
             // grab the .asx file and extract the first double-quoted MMS URI into $URI
             scrape '"(?<URI>mms://[^"]+)"'
             // preserve the low bitrate

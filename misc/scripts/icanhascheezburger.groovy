@@ -30,7 +30,11 @@ script {
         }
 
         action {
-            set '-user-agent': IPAD_USER_AGENT
+            $DOWNLOADER = $MPLAYER
+
+            downloader {
+                set '-user-agent': IPAD_USER_AGENT
+            }
         }
     }
 }

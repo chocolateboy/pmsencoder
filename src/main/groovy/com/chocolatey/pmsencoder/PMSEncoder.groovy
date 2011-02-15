@@ -44,6 +44,12 @@ public class PMSEncoder extends MEncoderWebVideo implements LoggerMixin {
         return isWindows ? path.replaceAll(~'/', '\\\\') : path
     }
 
+    // double quote a URI to make it safe for cmd.exe
+    // XXX need to test this
+    private String windowsQuote(String uri) {
+        return isWindows ? '"' + uri.replaceAll('"', '%22') + '"' : uri
+    }
+
     @Override
     public String executable() {
         normalizePath(super.executable())
@@ -61,7 +67,7 @@ public class PMSEncoder extends MEncoderWebVideo implements LoggerMixin {
     }
 
     @Override
-    public ProcessWrapper launchTranscode(String uri, DLNAMediaInfo media, OutputParams params)
+    public ProcessWrapper launchTranscode(String oldURI, DLNAMediaInfo media, OutputParams params)
     throws IOException {
         def processManager = new ProcessManager(this, params)
         def threadId = currentThreadId() // make sure concurrent threads don't use the same filename
@@ -77,19 +83,23 @@ public class PMSEncoder extends MEncoderWebVideo implements LoggerMixin {
 
         def command = new Command()
         def oldStash = command.getStash()
-        def oldArgs = command.getArgs()
 
         command.setParams(params)
 
-        oldStash.put('$DOWNLOADER_OUT', downloaderOutputPath)
-        oldStash.put('$FFMPEG', normalizePath(configuration.getFfmpegPath()))
-        oldStash.put('$MENCODER', normalizePath(configuration.getMencoderPath()))
-        oldStash.put('$MENCODER_MT', normalizePath(configuration.getMencoderMTPath()))
-        oldStash.put('$MPLAYER', normalizePath(configuration.getMplayerPath()))
-        oldStash.put('$TRANSCODER_OUT', transcoderOutputPath)
-        oldStash.put('$URI', uri)
+        def ffmpeg = normalizePath(configuration.getFfmpegPath())
+        def mencoder = normalizePath(configuration.getMencoderPath())
+        def mencoder_mt = normalizePath(configuration.getMencoderMTPath())
+        def mplayer = normalizePath(configuration.getMplayerPath())
 
-        log.info('invoking matcher for: ' + uri)
+        oldStash.put('$URI', oldURI)
+        oldStash.put('$DOWNLOADER_OUT', downloaderOutputPath)
+        oldStash.put('$TRANSCODER_OUT', transcoderOutputPath)
+        oldStash.put('$ffmpeg', ffmpeg);
+        oldStash.put('$mencoder', mencoder)
+        oldStash.put('$mencoder_mt', mencoder_mt)
+        oldStash.put('$mplayer', mplayer)
+
+        log.info('invoking matcher for: ' + oldURI)
 
         try {
             plugin.match(command)
@@ -98,19 +108,18 @@ public class PMSEncoder extends MEncoderWebVideo implements LoggerMixin {
             PMS.error('PMSEncoder: match error', e)
         }
 
-        // the whole point of the command abstraction is that the stash Map/args List
+        // the whole point of the command abstraction is that the stash Map/transcoder command List
         // can be changed by the matcher, so make sure we refresh
         def newStash = command.getStash()
-        def newArgs = command.getArgs()
         def matches = command.getMatches()
         def nMatches = matches.size()
 
         if (nMatches == 0) {
-            log.info('0 matches for: ' + uri)
+            log.info('0 matches for: ' + oldURI)
         } else if (nMatches == 1) {
-            log.info('1 match (' + matches + ') for: ' + uri)
+            log.info('1 match (' + matches + ') for: ' + oldURI)
         } else {
-            log.info(nMatches + ' matches (' + matches + ') for: ' + uri)
+            log.info(nMatches + ' matches (' + matches + ') for: ' + oldURI)
         }
 
         def mimeType = newStash.get('$MIME_TYPE')
@@ -123,25 +132,84 @@ public class PMSEncoder extends MEncoderWebVideo implements LoggerMixin {
             threadLocal.remove() // remove it to prevent memory leaks
         }
 
-        def hookArgs = command.getHook()
-        def downloaderArgs = command.getDownloader()
-        def transcoderArgs = command.getTranscoder()
+        // FIXME: groovy++ type inference fail: the subscript and/or concatenation operations
+        // on downloaderArgs and transcoderArgs are causing groovy++ to define them as
+        // Collection<String> rather than List<String>
+        List<String> hookArgs = command.getHook()
+        List<String> downloaderArgs = command.getDownloader()
+        List<String> transcoderArgs = command.getTranscoder()
+        def newURI = windowsQuote(newStash.get('$URI'))
 
         if (hookArgs != null) {
             processManager.handleHook(hookArgs)
         }
 
-        // using MEncoder: prepend the executable, the output file, and the input file/URI
-        if (transcoderArgs == null) {
-            def transcoderInput = (downloaderArgs == null) ? newStash.get('$URI') : downloaderOutputPath
-            transcoderArgs = newArgs
-            transcoderArgs.add(0, executable())
-            transcoderArgs.add(1, '-o')
-            transcoderArgs.add(2, transcoderOutputPath)
-            transcoderArgs.add(transcoderInput)
+        // automagically add extra command-line options for the PMS-native downloaders/transformers
+        // and substitute the configured paths for 'MPLAYER', 'FFMPEG' &.
+        if (downloaderArgs != null && downloaderArgs.size() > 0 && downloaderArgs[0] == 'MPLAYER') {
+            /*
+                plugin the input/output e.g. before:
+
+                    mplayer -prefer-ipv4 -quiet -dumpstream
+
+                after:
+
+                    /path/to/mplayer -prefer-ipv4 -quiet -dumpstream -dumpfile $DOWNLOADER_OUT $URI
+            */
+
+            downloaderArgs[0] = mplayer
+            downloaderArgs += [ '-dumpfile', downloaderOutputPath, newURI ]
         }
 
-        // Groovy's "documentation" doesn't answer make it clear whether local variables are null-initialized
+        if (transcoderArgs != null && transcoderArgs.size() > 0) {
+            def transcoder = transcoderArgs[0]
+
+            if (transcoder != null && transcoder in [ 'FFMPEG', 'MENCODER', 'MENCODER_MT' ]) {
+                def transcoderInput = (downloaderArgs == null) ? newURI : downloaderOutputPath
+
+                if (transcoder == 'FFMPEG') {
+                    /*
+                        before:
+
+                             ffmpeg -v 0 -y -threads nbcores
+
+                        after (with downloader):
+
+                             /path/to/ffmpeg -v 0 -y -threads nbcores -i $DOWNLOADER_OUT -target ntsc-dvd $TRANSCODER_OUT
+
+                        after (without downloader):
+
+                             /path/to/ffmpeg -v 0 -y -threads nbcores -i $URI -target ntsc-dvd $TRANSCODER_OUT
+                    */
+
+                    transcoderArgs[0] = ffmpeg
+                    transcoderArgs += [ '-i', transcoderInput ]
+                    if (command.output != null) {
+                        transcoderArgs += command.output // defaults to: -target ntsc-dvd
+                    }
+                    transcoderArgs += [ transcoderOutputPath ]
+                } else { // mencoder
+                    /*
+                        before:
+
+                             mencoder -mencoder -options
+
+                        after (with downloader):
+
+                             /path/to/mencoder -mencoder -options -o $TRANSCODER_OUT $DOWNLOADER_OUT
+
+                        after (without downloader):
+
+                             /path/to/mencoder -mencoder -options -o $TRANSCODER_OUT $URI
+                    */
+
+                    transcoderArgs[0] = (transcoder == 'MENCODER' ? mencoder : mencoder_mt)
+                    transcoderArgs += [ '-o', transcoderOutputPath, transcoderInput ]
+                }
+            }
+        }
+
+        // Groovy's "documentation" doesn't make it clear whether local variables are null-initialized
         // http://stackoverflow.com/questions/4025222
         def transcoderProcess = null
 

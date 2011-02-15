@@ -18,14 +18,34 @@ public class ScriptDelegate implements LoggerMixin {
         script.$PMS
     }
 
-    // DSL getter: $DEFAULT_MENCODER_ARGS
-    protected List<String> get$DEFAULT_MENCODER_ARGS() {
-        script.$DEFAULT_MENCODER_ARGS
+    // DSL getter: $MENCODER
+    protected List<String> get$MENCODER() {
+        script.$MENCODER
     }
 
-    // DSL setter: $DEFAULT_MENCODER_ARGS
-    protected List<String> set$DEFAULT_MENCODER_ARGS(List args) {
-        script.$DEFAULT_MENCODER_ARGS = args*.toString()
+    // DSL setter: $MENCODER
+    protected List<String> set$MENCODER(List args) {
+        script.$MENCODER = args*.toString()
+    }
+
+    // DSL getter: $MPLAYER
+    protected List<String> get$MPLAYER() {
+        script.$MPLAYER
+    }
+
+    // DSL setter: $MPLAYER
+    protected List<String> set$MPLAYER(List args) {
+        script.$MPLAYER = args*.toString()
+    }
+
+    // DSL getter: $FFMPEG
+    protected List<String> get$FFMPEG() {
+        script.$FFMPEG
+    }
+
+    // DSL setter: $FFMPEG
+    protected List<String> set$FFMPEG(List args) {
+        script.$FFMPEG = args*.toString()
     }
 
     // DSL getter: $YOUTUBE_ACCEPT

@@ -1,7 +1,9 @@
 script {
-    def NOTIFY_SEND = '/usr/bin/notify-send'
-
     profile ('Example Hook') {
+        pattern {
+            match { NOTIFY_SEND != NULL }
+        }
+
         action {
             $HOOK = [ NOTIFY_SEND, 'PMSEncoder', "playing ${$URI}" ]
         }

@@ -8,7 +8,7 @@ class HookTest extends PMSEncoderTestCase {
             script: '/hook.groovy',
             uri: uri,
             matches: [ 'Hook String' ],
-            hook: [ 'string', uri ]
+            wantHook: [ 'string', uri ]
         ])
     }
 
@@ -18,7 +18,7 @@ class HookTest extends PMSEncoderTestCase {
             script: '/hook.groovy',
             uri: uri,
             matches: [ 'Hook List' ],
-            hook: [ 'list', uri ]
+            wantHook: [ 'list', uri ]
         ])
     }
 }

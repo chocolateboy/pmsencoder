@@ -13,8 +13,35 @@
 script {
     def nbcores = $PMS.getConfiguration().getNumberOfCpuCores()
 
-    // default args for the default transcoder (MEncoder) - these can be redefined in a script
-    $DEFAULT_MENCODER_ARGS = [
+    /*
+        Default download and transcode commands e.g.
+
+            $DOWNLOADER = "mplayer -msglevel all=2 -prefer-ipv4 -quiet -dumpstream -dumpfile $DOWNLOADER_OUT ${$URI}"
+            $TRANSCODER = "ffmpeg -v 0 -y -threads nbcores -i ${$URI} -target ntsc-dvd $TRANSCODER_OUT"
+            $TRANSCODER = "ffmpeg -v 0 -y -threads nbcores -i $DOWNLOADER_OUT -target ntsc-dvd $TRANSCODER_OUT"
+            $TRANSCODER = "mencoder -mencoder -options -o $TRANSCODER_OUT ${$URI}"
+            $TRANSCODER = "mencoder -mencoder -options -o $TRANSCODER_OUT $DOWNLOADER_OUT"
+
+        By default, ffmpeg is used without a separate downloader.
+
+        If a default downloader/transcoder is used, then PMSEncoder adds the appropriate
+        input/output options as shown above. Otherwise these must be set manually.
+
+        Note: the uppercase executable names (e.g. FFMPEG) are used to signal to PMSEncoder.groovy that the
+        configured path should be substituted.
+    */
+
+    // default ffmpeg transcode command - can be redefined in a userscript
+    $FFMPEG = [
+        'FFMPEG',
+        '-v', '0',
+        '-y',
+        '-threads', nbcores
+    ]
+
+    // default mencoder transcode command - can be redefined in a userscript
+    $MENCODER = [
+        'MENCODER', // XXX add support for mencoder-mt
         '-msglevel', 'all=2',
         '-quiet',
         '-prefer-ipv4',
@@ -26,6 +53,18 @@ script {
         '-ofps', '25',
         '-cache', '16384', // default cache size; default minimum percentage is 20%
         '-vf', 'harddup'
+    ]
+
+    // have to be completely silent on Windows as stdout is sent to the transcoder
+    def mplayerLogLevel = $PMS.get().isWindows() ? 'all=-1' : 'all=2'
+
+    // default mplayer download command - can be redefined in a userscript
+    $MPLAYER = [
+        'MPLAYER',
+        '-msglevel', mplayerLogLevel,
+        '-quiet',
+        '-prefer-ipv4',
+        '-dumpstream'
     ]
 
     /*
@@ -54,6 +93,46 @@ script {
         18,  // Medium
         5    // 240p
     ]
+
+    profile ('pmsencoder://') {
+        pattern {
+            protocol 'pmsencoder'
+        }
+
+        // currently three values can be set
+        // the URI (required)
+        // the referrer (optional)
+        // the user-agent (optional)
+        action {
+            def pairs = URLEncodedUtils.parse($URI)
+            def setDownloaderArg = { key, value ->
+                if ($DOWNLOADER == null) {
+                    $DOWNLOADER = $MPLAYER + [ key, value ]
+                } else if ($DOWNLOADER.size() > 0 && $DOWNLOADER[0] == 'MPLAYER') {
+                    downloader {
+                        set([ (key): value ])
+                    }
+                }
+            }
+
+            for (pair in pairs) {
+                def name = pair.name
+                def value = pair.value
+                switch (name) {
+                    case 'uri':
+                        $URI = URLDecoder.decode(value)
+                        break
+                    case 'referrer':
+                        // this requires a recent (post June 2010) MPlayer
+                        setDownloaderArg('-referrer', URLDecoder.decode(value))
+                        break
+                    case 'user_agent':
+                        setDownloaderArg('-user-agent', URLDecoder.decode(value))
+                        break
+                }
+            }
+        }
+    }
 
     // extract metadata about the video for other profiles
     profile ('YouTube Metadata') {
@@ -128,18 +207,11 @@ script {
         // FIXME: the default 4096 kbps (1/2 a megabyte per second) video bitrate
         // is needlessly high; these typically weigh in at ~1200 kbps
         action {
-            set '-ofps': '24', '-user-agent': 'QuickTime/7.6.2'
-        }
-    }
+            $DOWNLOADER = $MPLAYER
 
-    profile ('Apple Trailers HD') {
-        pattern {
-            match 'Apple Trailers'
-            match $URI: '(_h720p\\.mov|\\.m4v)$'
-        }
-
-        action {
-            replace '-lavcopts': [ '4096': '5086' ] // increase the bitrate
+            downloader {
+                set '-user-agent': 'QuickTime/7.6.2'
+            }
         }
     }
 
@@ -161,7 +233,7 @@ script {
 
         // 2) and use it to restore the correct web page URI
         action {
-           let $URI: "http://www.gametrailers.com/player/${gametrailers_page_id}.html"
+           $URI = "http://www.gametrailers.com/player/${gametrailers_page_id}.html"
         }
     }
 
@@ -191,9 +263,7 @@ script {
 
         action {
             // chase redirects (if possible)
-            // and work around MEncoder's recently-broken caching
-            $URI = 'ffmpeg://' + ($HTTP.target($URI) ?: $URI)
-            set '-ofps': '30000/1001'
+            $URI = $HTTP.target($URI) ?: $URI
         }
     }
 }

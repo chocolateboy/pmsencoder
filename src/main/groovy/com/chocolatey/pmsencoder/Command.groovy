@@ -12,15 +12,15 @@ public class Command implements LoggerMixin {
     Stash stash
     OutputParams params
     Level stashAssignmentLogLevel = Level.DEBUG
-    List<String> args
     List<String> matches
     List<String> hook
     List<String> downloader
     List<String> transcoder
+    List<String> output = [ '-target', 'ntsc-dvd' ]
 
-    private Command(Stash stash, List<String> args, List<String> matches) {
+    private Command(Stash stash, List<String> transcoder, List<String> matches) {
         this.stash = stash
-        this.args = args
+        this.transcoder = transcoder
         this.matches = matches
     }
 
@@ -32,12 +32,12 @@ public class Command implements LoggerMixin {
         this(stash, [])
     }
 
-    public Command(List<String> args) {
-        this(new Stash(), args)
+    public Command(List<String> transcoder) {
+        this(new Stash(), transcoder)
     }
 
-    public Command(Stash stash, List<String> args) {
-        this(stash, args, [])
+    public Command(Stash stash, List<String> transcoder) {
+        this(stash, transcoder, [])
     }
 
     // convenience constructor: allow the stash to be supplied as a Map<String, String>
@@ -47,7 +47,7 @@ public class Command implements LoggerMixin {
     }
 
     public Command(Command other) {
-        this(new Stash(other.stash), new ArrayList<String>(other.args), new ArrayList<String>(other.matches))
+        this(new Stash(other.stash), new ArrayList<String>(other.transcoder), new ArrayList<String>(other.matches))
     }
 
     public void setParams(OutputParams params) {
@@ -56,18 +56,18 @@ public class Command implements LoggerMixin {
 
     public boolean equals(Command other) {
         this.stash == other.stash &&
-        this.args == other.args &&
         this.matches == other.matches &&
         this.params == other.params &&
         this.hook == other.hook &&
         this.downloader == other.downloader &&
-        this.transcoder == other.transcoder
+        this.transcoder == other.transcoder &&
+        this.output == other.output
     }
 
     public java.lang.String toString() {
         // can't stringify params until this patch has been applied:
         // https://code.google.com/p/ps3mediaserver/issues/detail?id=863
-        "{ stash: $stash, args: $args, matches: $matches, hook: $hook, downloader: $downloader, transcoder: $transcoder }".toString()
+        "{ stash: $stash, matches: $matches, hook: $hook, downloader: $downloader, transcoder: $transcoder }".toString()
     }
 
     // setter implementation with logged stash assignments

@@ -19,50 +19,23 @@ class MatcherTest extends PMSEncoderTestCase {
     void testInterpolationInDefaultMencoderArgs() {
         assertMatch([
             uri: 'http://www.example.com',
-            // make sure nbcores is interpolated here as 3 in threads=3
+            // make sure nbcores is interpolated here as 3 in -threads 3
             // (this is mocked to 3 in PMSEncoderTestCase)
-            wantArgs: { List<String> args ->
-                args.contains('vcodec=mpeg2video:vbitrate=4096:threads=3:acodec=ac3:abitrate=128')
+            wantTranscoder: { List<String> transcoder ->
+                // FIXME
+                transcoder[4] = '-threads' && transcoder[5] == '3'
             },
-            useDefaultArgs: true
+            useDefaultTranscoder: true
         ])
     }
 
     void testApple() {
         assertMatch([
             uri: 'http://www.apple.com/foobar.mov',
-            args: [ '-lavcopts', 'vbitrate=4096' ],
-            wantArgs: [
-                '-lavcopts',   'vbitrate=4096',
-                '-ofps',       '24',
-                '-user-agent', 'QuickTime/7.6.2'
-            ],
+            wantDownloader: { List<String> downloader ->
+                downloader[-2] == '-user-agent' && downloader[-1] == 'QuickTime/7.6.2'
+            },
             matches: [ 'Apple Trailers' ]
-        ])
-    }
-
-    /*
-        lavcopts look like this:
-
-            -lavcopts vcodec=mpeg2video:vbitrate=4096:threads=2:acodec=ac3:abitrate=128
-
-        but for the purposes of this test, this will suffice:
-
-            -lavcopts vbitrate=4096
-    */
-    void testAppleHD() {
-        assertMatch([
-            uri: 'http://www.apple.com/foobar.m4v',
-            args: [ '-lavcopts', 'vbitrate=4096' ],
-            wantArgs: [
-                '-lavcopts', 'vbitrate=5086',
-                '-ofps', '24',
-                '-user-agent', 'QuickTime/7.6.2'
-            ],
-            matches: [
-                'Apple Trailers',
-                'Apple Trailers HD'
-            ]
         ])
     }
 
@@ -111,7 +84,7 @@ class MatcherTest extends PMSEncoderTestCase {
                 assert stash.get('$URI') =~ '\\.youtube\\.com/videoplayback\\?'
                 return true
             },
-            wantArgs: []
+            wantTranscoder: []
         ])
     }
 

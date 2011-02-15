@@ -11,10 +11,10 @@ class PMSEncoderTest extends PMSEncoderTestCase {
         assert newCommand != null
 
         assert !command.stash.is(newCommand.stash)
-        assert !command.args.is(newCommand.args)
+        assert !command.transcoder.is(newCommand.transcoder)
         assert !command.is(newCommand)
         assert newCommand.stash == [ $foo: 'bar' ]
-        assert newCommand.args == [ 'baz', 'quux' ]
+        assert newCommand.transcoder == [ 'baz', 'quux' ]
     }
 
     void testStashClone() {

@@ -19,7 +19,7 @@
 script {
     def SIZES = [ 'xxlarge', 'xlarge', 'large', 'medium', 'small' ]
 
-    profile ('Kino Trailers') {
+    profile ('Filemtrailer.com') {
         pattern {
             domain 'filmtrailer.com'
         }
@@ -57,21 +57,8 @@ script {
                 }
             }
 
-            // so far, all the clips I've checked have been 24 fps, so this isn't needed
-            remove '-ofps'
-
-            /*
-                when using the default transcoder (MEncoder), the URI is appended as the last argument.
-                that works for one URI, but here there may be multiple "clips". the solution is to
-                set the URI to the last clip and append any predecessors before it e.g.
-
-                    mencoder -o output.tmp ... clip1 clip2 clip3
-            */
-
-            $URI = clips.pop() // e.g. clip3 -- appended to the argument list later
-
-            // and append (in order) the clips before it - if any
-            clips.each { append(it) } // e.g. clip1, clip2 -- append to the argument list now
+            // now use the ffmpeg "concat" pseudo-protocol to join the clips together
+            $URI = 'concat:' + clips.join('\\|')
         }
     }
 }
