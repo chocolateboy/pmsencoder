@@ -1,6 +1,8 @@
 @Typed
 package com.chocolatey.pmsencoder
 
+import static com.chocolatey.pmsencoder.Util.quoteURI
+
 import net.pms.configuration.PmsConfiguration
 import net.pms.dlna.DLNAMediaInfo
 import net.pms.encoders.MEncoderWebVideo
@@ -42,12 +44,6 @@ public class PMSEncoder extends MEncoderWebVideo implements LoggerMixin {
 
     private String normalizePath(String path) {
         return isWindows ? path.replaceAll(~'/', '\\\\') : path
-    }
-
-    // double quote a URI to make it safe for cmd.exe
-    // XXX need to test this
-    private String windowsQuote(String uri) {
-        return isWindows ? '"' + uri.replaceAll('"', '%22') + '"' : uri
     }
 
     @Override
@@ -138,7 +134,7 @@ public class PMSEncoder extends MEncoderWebVideo implements LoggerMixin {
         List<String> hookArgs = command.getHook()
         List<String> downloaderArgs = command.getDownloader()
         List<String> transcoderArgs = command.getTranscoder()
-        def newURI = windowsQuote(newStash.get('$URI'))
+        def newURI = quoteURI(newStash.get('$URI'))
 
         if (hookArgs != null) {
             processManager.handleHook(hookArgs)

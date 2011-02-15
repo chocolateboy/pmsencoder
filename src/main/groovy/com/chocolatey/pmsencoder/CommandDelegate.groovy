@@ -101,7 +101,11 @@ class CommandDelegate extends ScriptDelegate implements LoggerMixin {
 
     // DSL getter
     protected String propertyMissing(String name) throws PMSEncoderException {
-        command.stash.get(name)
+        if (script.stash.containsKey(name)) {
+            return script.propertyMissing(name)
+        } else {
+            return command.stash.get(name)
+        }
     }
 
     // DSL setter

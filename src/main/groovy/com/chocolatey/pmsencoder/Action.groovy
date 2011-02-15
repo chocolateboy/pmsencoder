@@ -72,6 +72,10 @@ class Action extends CommandDelegate {
         }
     }
 
+    String quoteURI(String uri) {
+        Util.quoteURI(uri)
+    }
+
     /*
         1) get the URI pointed to by options['uri'] or stash.get('$URI') (if it hasn't already been retrieved)
         2) perform a regex match against the document

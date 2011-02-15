@@ -6,7 +6,8 @@ script {
         }
 
         action {
-            $HOOK = "$SOPCAST \"${$URI}\""
+            $URI = quoteURI($URI)
+            $HOOK = "$SOPCAST ${$URI}"
             $URI = 'http://127.0.0.1:8902/stream'
         }
     }

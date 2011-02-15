@@ -12,7 +12,7 @@ class Script implements LoggerMixin {
     protected List<String> $FFMPEG = []
     public List<Integer> $YOUTUBE_ACCEPT = []
     public PMS $PMS
-    private Map<String, Object> stash = new HashMap<String, Object>()
+    Map<String, Object> stash = new HashMap<String, Object>()
 
     public Script(PMS pms) {
         $PMS = pms

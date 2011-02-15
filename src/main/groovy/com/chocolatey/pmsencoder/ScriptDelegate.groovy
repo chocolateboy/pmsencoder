@@ -11,6 +11,10 @@ public class ScriptDelegate implements LoggerMixin {
         this.script = script
     }
 
+    protected Script getScript() {
+        script
+    }
+
     // DSL properties
 
     // $PMS: getter

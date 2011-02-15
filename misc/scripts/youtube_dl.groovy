@@ -9,7 +9,8 @@ script {
 
         action {
             def maxQuality = YOUTUBE_DL_MAX_QUALITY ?: 22
-            $DOWNLOADER = "$PYTHON $YOUTUBE_DL --max-quality $maxQuality --quiet -o $DOWNLOADER_OUT \"${$URI}\""
+            $URI = quoteURI($URI)
+            $DOWNLOADER = "$PYTHON $YOUTUBE_DL --max-quality $maxQuality --quiet -o $DOWNLOADER_OUT ${$URI}"
         }
     }
 }
