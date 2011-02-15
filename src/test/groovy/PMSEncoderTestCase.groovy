@@ -9,11 +9,14 @@ import org.apache.log4j.xml.DOMConfigurator
 
 abstract class PMSEncoderTestCase extends GroovyTestCase {
     protected Matcher matcher
-    protected PMS pms
+    private PMS pms
+    private URL defaultScript
 
     void setUp() {
-        def log4jConfig = this.getClass().getResource('/test_log4j.xml')
-        def defaultScript = this.getClass().getResource('/DEFAULT.groovy')
+        def log4jConfig = PMSEncoderTestCase.getClass().getResource('/test_log4j.xml')
+        DOMConfigurator.configure(log4jConfig)
+
+        defaultScript = this.getClass().getResource('/DEFAULT.groovy')
 
         new MockUp<PmsConfiguration>() {
             @Mock
@@ -36,13 +39,14 @@ abstract class PMSEncoderTestCase extends GroovyTestCase {
         }
 
         pms = PMS.get()
-
-        DOMConfigurator.configure(log4jConfig)
         matcher = new Matcher(pms)
-        matcher.load(defaultScript)
     }
 
     protected void assertMatch(Map<String, Object> map) {
+        if (map['loadDefaultScript']) {
+            matcher.load(defaultScript)
+        }
+
         List<URL> scripts
 
         if (map['script'] != null) {
@@ -75,13 +79,16 @@ abstract class PMSEncoderTestCase extends GroovyTestCase {
 
         assert stash != null
 
+        List<String> output = map['output']
+        List<String> downloader = map['downloader']
         List<String> transcoder = map.containsKey('transcoder') ? map['transcoder'] : []
 
         def wantStash = map.containsKey('wantStash') ? map['wantStash'] : stash
         def wantHook = map['wantHook']
         def wantDownloader = map['wantDownloader']
         def wantTranscoder = map.containsKey('wantTranscoder') ? map['wantTranscoder'] : transcoder
-        def wantOutput = map.containsKey('wantOutput') ? map['wantOutput'] : [ '-target', 'ntsc-dvd' ]
+        def testOutput = map.containsKey('wantOutput')
+        def wantOutput = map['wantOutput']
 
         List<String> matches = map.containsKey('matches') ? map['matches'] : []
 
@@ -95,6 +102,15 @@ abstract class PMSEncoderTestCase extends GroovyTestCase {
         }
 
         def command = new Command(stash, transcoder)
+
+        if (downloader != null) {
+            command.downloader = downloader
+        }
+
+        if (output != null) {
+            command.output = output
+        }
+
         matcher.match(command, useDefaultTranscoder)
 
         assert matches == command.matches
@@ -137,10 +153,12 @@ abstract class PMSEncoderTestCase extends GroovyTestCase {
             assert command.transcoder == wantTranscoder
         }
 
-        if (wantOutput instanceof Closure) {
-            assert (wantOutput as Closure).call(command.output)
-        } else {
-            assert command.output == wantOutput
+        if (testOutput) {
+            if (wantOutput instanceof Closure) {
+                assert (wantOutput as Closure).call(command.output)
+            } else {
+                assert command.output == wantOutput
+            }
         }
     }
 }

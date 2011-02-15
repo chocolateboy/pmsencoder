@@ -26,7 +26,7 @@ public class Stash extends LinkedHashMap<java.lang.String, java.lang.String> {
     }
 
     public java.lang.String put(Object key, Object value) {
-        super.put(canonicalize(key), value.toString())
+        super.put(canonicalize(key), value?.toString())
     }
 
     public java.lang.String get(java.lang.String key) {

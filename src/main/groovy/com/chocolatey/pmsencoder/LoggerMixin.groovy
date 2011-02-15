@@ -20,7 +20,7 @@ import org.apache.log4j.Logger
             private Logger unused = Logger.getLogger(this.getClass())
     */
 
-    private Logger unused = Logger.getLogger(this.getClass().name)
+    private Logger __unused__ = Logger.getLogger(this.getClass().name)
 
     // expose a "log" property - grr, too much magic
     // XXX initializing this as a field (e.g. unused, above)

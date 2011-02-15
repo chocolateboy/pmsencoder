@@ -5,6 +5,7 @@ class MatcherTest extends PMSEncoderTestCase {
     // no match - change nothing
     private void noMatch() {
         assertMatch([
+            loadDefaultScript: true,
             uri: 'http://www.example.com',
             matches: []
         ])
@@ -18,6 +19,7 @@ class MatcherTest extends PMSEncoderTestCase {
 
     void testInterpolationInDefaultMencoderArgs() {
         assertMatch([
+            loadDefaultScript: true,
             uri: 'http://www.example.com',
             // make sure nbcores is interpolated here as 3 in -threads 3
             // (this is mocked to 3 in PMSEncoderTestCase)
@@ -31,6 +33,7 @@ class MatcherTest extends PMSEncoderTestCase {
 
     void testApple() {
         assertMatch([
+            loadDefaultScript: true,
             uri: 'http://www.apple.com/foobar.mov',
             wantDownloader: { List<String> downloader ->
                 downloader[-2] == '-user-agent' && downloader[-1] == 'QuickTime/7.6.2'
@@ -57,6 +60,7 @@ class MatcherTest extends PMSEncoderTestCase {
         def youtube = 'http://www.youtube.com'
         def uri = "$youtube/watch?v=_OBlgSz8sSM"
         assertMatch([
+            loadDefaultScript: true,
             uri: uri,
             script: script,
             matches: ['YouTube Metadata', 'YouTube-DL Compatible', 'YouTube' ],
@@ -96,6 +100,7 @@ class MatcherTest extends PMSEncoderTestCase {
         def wantURI = "http://trailers-ak.gametrailers.com/gt_vault/${movie_id}/${filename}.flv"
 
         assertMatch([
+            loadDefaultScript: true,
             uri: uri,
             wantStash: [
                 $URI:                   wantURI,

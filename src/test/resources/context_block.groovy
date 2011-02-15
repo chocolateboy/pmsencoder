@@ -1,7 +1,6 @@
 script {
     profile ('Context Block') {
         action {
-            $DOWNLOADER = $MPLAYER
             $HOOK = 'hook -foo -bar -baz'
         }
     }
@@ -17,19 +16,19 @@ script {
             }
 
             downloader {
-                set '-user-agent': 'PS3 Media Server'
+                set '-bar'
             }
 
             transcoder {
-                set '-threads': '42'
+                set '-bar'
             }
 
             output {
-                set '-target': 'pal-dvd'
+                set '-bar'
             }
 
             // default to $TRANSCODER
-            set '-foo': 'bar'
+            set '-baz'
         }
     }
 
@@ -44,19 +43,19 @@ script {
             }
 
             downloader {
-                remove([ '-msglevel', '-quiet' ])
+                remove '-bar'
             }
 
             transcoder {
-                remove '-y'
+                remove '-bar'
             }
 
             output {
-                remove '-target'
+                remove '-bar'
             }
 
             // default to $TRANSCODER
-            remove '-v'
+            remove '-baz'
         }
     }
 }

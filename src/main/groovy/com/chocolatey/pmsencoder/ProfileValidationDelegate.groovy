@@ -1,13 +1,12 @@
 @Typed
 package com.chocolatey.pmsencoder
 
-class ProfileValidationDelegate extends ScriptDelegate {
+class ProfileValidationDelegate {
     public Closure patternBlock
     public Closure actionBlock
     public String name
 
-    ProfileValidationDelegate(Script script, String name) {
-        super(script)
+    ProfileValidationDelegate(String name) {
         this.name = name
     }
 

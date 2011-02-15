@@ -11,14 +11,30 @@ import org.apache.http.NameValuePair
 // i.e. a delegate with access to a Command
 // XXX some (most? all?) of these DSL properties could just be exposed/documented as-is i.e.
 // log.info(..), http.get(...) &c.
-class CommandDelegate extends ScriptDelegate implements LoggerMixin {
-    protected Command command
-    private final Map<String, String> cache = [:] // only needed/used by this.scrape()
-    @Lazy protected HTTPClient http = new HTTPClient()
-    @Lazy private WebDriver driver = new HtmlUnitDriver()
 
-    public CommandDelegate(Script script, Command command) {
-        super(script)
+/*
+
+    XXX squashed bug: note that delegated methods (i.e. methods exposed via the @Delegate
+    annotation) must be *public*:
+
+        All public instance methods present in the type of the annotated field
+        and not present in the owner class will be added to owner class
+        at compile time.
+
+    http://groovy.codehaus.org/api/groovy/lang/Delegate.html
+*/
+
+class ProfileDelegate implements LoggerMixin {
+    private final Map<String, String> cache = [:] // only needed/used by this.scrape()
+    @Lazy private HTTPClient http = new HTTPClient()
+    @Lazy private WebDriver driver = new HtmlUnitDriver()
+    // FIXME: sigh: transitive delegation doesn't work (groovy bug)
+    // so make this public so dependent classes can manually delegate to it
+    @Delegate Script script
+    Command command
+
+    public ProfileDelegate(Script script, Command command) {
+        this.script = script
         this.command = command
     }
 
@@ -43,47 +59,47 @@ class CommandDelegate extends ScriptDelegate implements LoggerMixin {
     }
 
     // DSL accessor ($DOWNLOADER): setter
-    protected List<String> set$DOWNLOADER(Object downloader) {
+    public List<String> set$DOWNLOADER(Object downloader) {
         command.downloader = Util.stringList(downloader)
     }
 
     // DSL accessor ($TRANSCODER): getter
-    protected List<String> get$TRANSCODER() {
+    public List<String> get$TRANSCODER() {
         command.transcoder
     }
 
     // DSL accessor ($TRANSCODER): setter
-    protected List<String> set$TRANSCODER(Object transcoder) {
+    public List<String> set$TRANSCODER(Object transcoder) {
         command.transcoder = Util.stringList(transcoder)
     }
 
     // DSL accessor ($HOOK): getter
-    protected List<String> get$HOOK() {
+    public List<String> get$HOOK() {
         command.hook
     }
 
     // DSL accessor ($HOOK): setter
-    protected List<String> set$HOOK(Object hook) {
+    public List<String> set$HOOK(Object hook) {
         command.hook = Util.stringList(hook)
     }
 
     // DSL accessor ($OUTPUT): getter
-    protected List<String> get$OUTPUT() {
+    public List<String> get$OUTPUT() {
         command.output
     }
 
     // DSL accessor ($OUTPUT): setter
-    protected List<String> set$OUTPUT(Object args) {
+    public List<String> set$OUTPUT(Object args) {
         command.output = Util.stringList(args)
     }
 
     // $HTTP: getter
-    protected HTTPClient get$HTTP() {
+    public HTTPClient get$HTTP() {
         http
     }
 
     // $PROTOCOL: getter
-    protected String get$PROTOCOL() {
+    public String get$PROTOCOL() {
         String uri = command.stash.get('$URI')
 
         if (uri != null) {
@@ -95,12 +111,12 @@ class CommandDelegate extends ScriptDelegate implements LoggerMixin {
 
     // DSL accessor ($PARAMS): getter
     // $PARAMS: getter
-    protected OutputParams get$PARAMS() {
+    public OutputParams get$PARAMS() {
         command.params
     }
 
     // DSL getter
-    protected String propertyMissing(String name) throws PMSEncoderException {
+    public String propertyMissing(String name) {
         if (script.stash.containsKey(name)) {
             return script.propertyMissing(name)
         } else {
@@ -109,17 +125,12 @@ class CommandDelegate extends ScriptDelegate implements LoggerMixin {
     }
 
     // DSL setter
-    protected String propertyMissing(String name, Object value) {
-        if (value == null) {
-            log.error("attempt to assign a null value for: $name")
-            return null
-        } else {
-            command.let(name, value.toString())
-        }
+    public String propertyMissing(String name, Object value) {
+        command.let(name, value?.toString())
     }
 
     // DSL method
-    protected Object browse(Map options = [:], Closure closure) {
+    public Object browse(Map options = [:], Closure closure) {
         String uri = (options['uri'] == null) ? command.stash.get('$URI') : options['uri'].toString()
         driver.get(uri)
         Browser.drive(driver, closure)
@@ -128,7 +139,7 @@ class CommandDelegate extends ScriptDelegate implements LoggerMixin {
     // DSL method - can be called from a pattern or an action.
     // actions inherit this method, whereas patterns add the
     // short-circuiting behaviour and delegate to this via super.scrape(...)
-    protected boolean scrape(Object regex, Map options = [:]) {
+    public boolean scrape(Object regex, Map options = [:]) {
         String uri = (options['uri'] == null) ? command.stash.get('$URI') : options['uri'].toString()
         String document = (options['source'] == null) ? cache[uri] : options['source'].toString()
         boolean decode = options['decode'] == null ? false : options['decode']

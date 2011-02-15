@@ -1,13 +1,13 @@
 script {
     profile ('Protocol String') {
         pattern {
-            protocol 'dvb'
+            protocol 'file'
         }
     }
 
     profile ('Protocol List') {
         pattern {
-            protocol([ 'mms', 'sop' ])
+            protocol([ 'mms', 'rtmp' ])
         }
     }
 }

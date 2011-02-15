@@ -8,7 +8,7 @@ import org.apache.log4j.Level
 /*
  * this object encapsulates the per-request state passed from/to the PMS transcode launcher (PMSEncoder.java).
  */
-public class Command implements LoggerMixin {
+public class Command implements LoggerMixin, Cloneable {
     Stash stash
     OutputParams params
     Level stashAssignmentLogLevel = Level.DEBUG
@@ -48,6 +48,10 @@ public class Command implements LoggerMixin {
 
     public Command(Command other) {
         this(new Stash(other.stash), new ArrayList<String>(other.transcoder), new ArrayList<String>(other.matches))
+    }
+
+    public Command clone() {
+        return new Command(this)
     }
 
     public void setParams(OutputParams params) {

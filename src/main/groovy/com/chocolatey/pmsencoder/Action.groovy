@@ -1,11 +1,15 @@
 @Typed
 package com.chocolatey.pmsencoder
 
-class Action extends CommandDelegate {
+class Action {
     private List<String> context
+    @Delegate final ProfileDelegate profileDelegate
+    // FIXME: sigh: transitive delegation doesn't work (groovy bug)
+    @Delegate private final Script script
 
-    Action(Script script, Command command) {
-        super(script, command)
+    Action(ProfileDelegate profileDelegate) {
+        this.profileDelegate = profileDelegate
+        this.script = profileDelegate.script
         context = command.transcoder
     }
 
@@ -162,7 +166,7 @@ class Action extends CommandDelegate {
             def uri = "http://www.youtube.com/get_video_info?video_id=${video_id}${param}&ps=default&eurl=&gl=US&hl=en"
             def regex = '\\bfmt_url_map=(?<youtube_fmt_url_map>[^&]+)'
             def newStash = new Stash()
-            def document = http.get(uri)
+            def document = $HTTP.get(uri)
 
             if ((document != null) && RegexHelper.match(document, regex, newStash)) {
                 // XXX type-inference fail
@@ -201,13 +205,14 @@ class Action extends CommandDelegate {
                 log.trace('fmt_url_map: ' + fmt_url_map)
 
                 found = formats.any { fmt ->
-                    log.debug("checking fmt_url_map for $fmt")
-                    def stream_uri = fmt_url_map[fmt.toString()]
+                    def fmtString = fmt.toString()
+                    log.debug("checking fmt_url_map for $fmtString")
+                    def stream_uri = fmt_url_map[fmtString]
 
                     if (stream_uri != null) {
                         // set the new URI
                         log.debug('success')
-                        command.let('$youtube_fmt', fmt)
+                        command.let('$youtube_fmt', fmtString)
                         command.let('$URI', stream_uri)
                         return true
                     } else {

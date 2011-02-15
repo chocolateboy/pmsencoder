@@ -1,18 +1,26 @@
 @Typed
 package com.chocolatey.pmsencoder
 
-class Pattern extends CommandDelegate implements LoggerMixin {
+class Pattern {
+    @Delegate private ProfileDelegate profileDelegate
     protected static final MatchFailureException STOP_MATCHING = new MatchFailureException()
+    // FIXME: sigh: transitive delegation doesn't work (groovy bug)
+    @Delegate private final Script script
 
-    Pattern(Script script, Command command) {
-        super(script, command)
+    Pattern(ProfileDelegate profileDelegate) {
+        this.profileDelegate = profileDelegate
+        this.script = profileDelegate.script
     }
 
-    // DSL setter - overrides the CommandDelegate method to avoid logging,
+    // DSL setter - overrides the ProfileDelegate method to avoid logging,
     // which is handled later (if the match succeeds) by merging the pattern
     // block's temporary stash
-    protected String propertyMissing(Object name, Object value) {
+    protected String propertyMissing(String name, Object value) {
         command.stash.put(name, value)
+    }
+
+    protected String propertyMissing(String name) {
+        profileDelegate.propertyMissing(name)
     }
 
     // DSL method
@@ -52,7 +60,7 @@ class Pattern extends CommandDelegate implements LoggerMixin {
     // DSL method
     @Override // for documentation; Groovy doesn't require it
     protected boolean scrape(Object regex, Map options = [:]) {
-        if (super.scrape(regex, options)) {
+        if (scrape(regex, options)) {
             return true
         } else {
             throw STOP_MATCHING
