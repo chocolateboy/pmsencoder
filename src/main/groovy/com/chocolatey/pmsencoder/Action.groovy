@@ -5,11 +5,11 @@ class Action {
     private List<String> context
     @Delegate final ProfileDelegate profileDelegate
     // FIXME: sigh: transitive delegation doesn't work (groovy bug)
-    @Delegate private final Script script
+    @Delegate private final Matcher matcher
 
     Action(ProfileDelegate profileDelegate) {
         this.profileDelegate = profileDelegate
-        this.script = profileDelegate.script
+        this.matcher = profileDelegate.matcher
         context = command.transcoder
     }
 
@@ -81,7 +81,7 @@ class Action {
     }
 
     /*
-        1) get the URI pointed to by options['uri'] or stash.get('$URI') (if it hasn't already been retrieved)
+        1) get the URI pointed to by options['uri'] or command.getVar('$URI') (if it hasn't already been retrieved)
         2) perform a regex match against the document
         3) update the stash with any named captures
     */
@@ -188,10 +188,9 @@ class Action {
 
     // DSL method
     void youtube(List<Integer> formats = $YOUTUBE_ACCEPT) {
-        def stash = command.stash
-        def uri = stash.get('$URI')
-        def video_id = stash.get('$youtube_video_id')
-        def t = stash.get('$youtube_t')
+        def uri = command.getVar('$URI')
+        def video_id = command.getVar('$youtube_video_id')
+        def t = command.getVar('$youtube_t')
         def found = false
 
         assert video_id != null

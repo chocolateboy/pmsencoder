@@ -1,14 +1,14 @@
 script {
     profile ('SopCast') {
         pattern {
+            match { SOPCAST_PLAYER && SOPCAST_URI }
             protocol 'sop'
-            match { SOPCAST != null }
         }
 
         action {
             $URI = quoteURI($URI)
             $HOOK = "$SOPCAST ${$URI}"
-            $URI = 'http://127.0.0.1:8902/stream'
+            $URI = SOPCAST_URI
         }
     }
 }

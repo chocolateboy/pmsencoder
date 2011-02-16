@@ -141,7 +141,8 @@ public class PMSEncoder extends MEncoderWebVideo implements LoggerMixin {
         }
 
         // automagically add extra command-line options for the PMS-native downloaders/transformers
-        // and substitute the configured paths for 'MPLAYER', 'FFMPEG' &.
+        // and substitute the configured paths for 'MPLAYER', 'FFMPEG' &c.
+        // TODO: add support for GET_FLASH_VIDEOS, YOUTUBE_DL and RTMPDUMP "macros" (any others?)
         if (downloaderArgs != null && downloaderArgs.size() > 0 && downloaderArgs[0] == 'MPLAYER') {
             /*
                 plugin the input/output e.g. before:

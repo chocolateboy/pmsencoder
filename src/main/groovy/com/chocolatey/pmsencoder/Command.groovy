@@ -16,7 +16,7 @@ public class Command implements LoggerMixin, Cloneable {
     List<String> hook
     List<String> downloader
     List<String> transcoder
-    List<String> output = [ '-sameq', '-target', 'pal-dvd' ]
+    List<String> output
 
     private Command(Stash stash, List<String> transcoder, List<String> matches) {
         this.stash = stash
@@ -72,6 +72,18 @@ public class Command implements LoggerMixin, Cloneable {
         // can't stringify params until this patch has been applied:
         // https://code.google.com/p/ps3mediaserver/issues/detail?id=863
         "{ stash: $stash, matches: $matches, hook: $hook, downloader: $downloader, transcoder: $transcoder }".toString()
+    }
+
+    protected boolean hasVar(Object name) {
+        stash.containsKey(name)
+    }
+
+    protected String getVar(Object name) {
+        stash.get(name)
+    }
+
+    protected String setVar(Object name, Object value) {
+        let(name, value)
     }
 
     // setter implementation with logged stash assignments

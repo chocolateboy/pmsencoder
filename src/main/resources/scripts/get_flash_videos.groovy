@@ -3,7 +3,7 @@
 script {
     profile ('Get Flash Videos') {
         pattern {
-            match { GET_FLASH_VIDEOS != null }
+            match { PERL && GET_FLASH_VIDEOS }
             domains([ 'wimp.com', 'megavideo.com' ]) // &c.
         }
 

@@ -130,6 +130,38 @@
               <goal>testCompile</goal>
             </goals>
           </execution>
+          <execution>
+              <id>generate-script-manifest</id>
+              <phase>validate</phase>
+              <goals>
+                  <goal>execute</goal>
+              </goals>
+              <configuration>
+                  <source>
+                      <!-- http://veithen.blogspot.com/2010/03/improve-your-maven-builds-with-groovy.html -->
+                      <!-- This generates a manifest of scripts for use by Matcher.loadDefaultsScripts -->
+                      <![CDATA[
+                            def resources = 'src/main/resources'
+                            def manifest = new File(project.basedir, "$resources/lib.txt")
+
+                            manifest.parentFile.mkdirs();
+
+                            if (manifest.exists())
+                                manifest.delete()
+
+                            def files = []
+                            new File(project.basedir, "$resources/scripts").eachFileRecurse(groovy.io.FileType.FILES) {
+                                if (it.file && it.name.endsWith(".groovy")) {
+                                    files << "scripts/$it.name\n"
+                                }
+                            }
+
+                            files.sort().each { manifest.append(it) }
+                      ]]>
+                  </source>
+              </configuration>
+          </execution>
+
         </executions>
         <dependencies>
           <dependency>

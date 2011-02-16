@@ -24,17 +24,17 @@ import org.apache.http.NameValuePair
     http://groovy.codehaus.org/api/groovy/lang/Delegate.html
 */
 
-class ProfileDelegate implements LoggerMixin {
+class ProfileDelegate {
     private final Map<String, String> cache = [:] // only needed/used by this.scrape()
     @Lazy private HTTPClient http = new HTTPClient()
     @Lazy private WebDriver driver = new HtmlUnitDriver()
     // FIXME: sigh: transitive delegation doesn't work (groovy bug)
     // so make this public so dependent classes can manually delegate to it
-    @Delegate Script script
+    @Delegate Matcher matcher
     Command command
 
-    public ProfileDelegate(Script script, Command command) {
-        this.script = script
+    public ProfileDelegate(Matcher matcher, Command command) {
+        this.matcher = matcher
         this.command = command
     }
 
@@ -98,15 +98,18 @@ class ProfileDelegate implements LoggerMixin {
         http
     }
 
-    // $PROTOCOL: getter
-    public String get$PROTOCOL() {
-        String uri = command.stash.get('$URI')
-
+    // FIXME: use the URI class
+    private String getProtocol(String uri) {
         if (uri != null) {
             return RegexHelper.match(uri, '^(\\w+)://')[1]
         } else {
             return null
         }
+    }
+
+    // $PROTOCOL: getter
+    public String get$PROTOCOL() {
+        return getProtocol(command.getVar('$URI'))
     }
 
     // DSL accessor ($PARAMS): getter
@@ -117,10 +120,10 @@ class ProfileDelegate implements LoggerMixin {
 
     // DSL getter
     public String propertyMissing(String name) {
-        if (script.stash.containsKey(name)) {
-            return script.propertyMissing(name)
+        if (matcher.hasVar(name)) {
+            return matcher.getVar(name)
         } else {
-            return command.stash.get(name)
+            return command.getVar(name)
         }
     }
 
@@ -131,7 +134,7 @@ class ProfileDelegate implements LoggerMixin {
 
     // DSL method
     public Object browse(Map options = [:], Closure closure) {
-        String uri = (options['uri'] == null) ? command.stash.get('$URI') : options['uri'].toString()
+        String uri = (options['uri'] == null) ? command.getVar('$URI') : options['uri'].toString()
         driver.get(uri)
         Browser.drive(driver, closure)
     }
@@ -140,7 +143,7 @@ class ProfileDelegate implements LoggerMixin {
     // actions inherit this method, whereas patterns add the
     // short-circuiting behaviour and delegate to this via super.scrape(...)
     public boolean scrape(Object regex, Map options = [:]) {
-        String uri = (options['uri'] == null) ? command.stash.get('$URI') : options['uri'].toString()
+        String uri = (options['uri'] == null) ? command.getVar('$URI') : options['uri'].toString()
         String document = (options['source'] == null) ? cache[uri] : options['source'].toString()
         boolean decode = options['decode'] == null ? false : options['decode']
 

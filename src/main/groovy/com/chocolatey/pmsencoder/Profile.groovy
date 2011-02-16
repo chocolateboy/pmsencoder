@@ -5,15 +5,16 @@ import org.apache.log4j.Level
 
 // this holds a reference to the pattern and action blocks, and isn't delegated to
 class Profile implements LoggerMixin {
-    private final Script script
+    private final Matcher matcher
     private Closure patternBlock
     private Closure actionBlock
+    final Stage stage
+    final String name
 
-    public final String name
-
-    Profile(Script script, String name) {
-        this.script = script
+    Profile(Matcher matcher, String name, Stage stage) {
+        this.matcher = matcher
         this.name = name
+        this.stage = stage
     }
 
     void extractBlocks(Closure closure) {
@@ -79,7 +80,7 @@ class Profile implements LoggerMixin {
             return true
         }
 
-        def profileDelegate = new ProfileDelegate(script, command)
+        def profileDelegate = new ProfileDelegate(matcher, command)
 
         if (patternBlock == null) { // unconditionally match
             log.trace('no pattern block supplied: matched OK')
@@ -87,7 +88,7 @@ class Profile implements LoggerMixin {
             return true
         } else {
             def newCommand = command.clone()
-            def patternProfileDelegate = new ProfileDelegate(script, newCommand)
+            def patternProfileDelegate = new ProfileDelegate(matcher, newCommand)
 
             // avoid clogging up the logfile with pattern-block stash assignments. If the pattern doesn't match,
             // the assigments are irrelevant; and if it does match, the assignments are logged (below)

@@ -1,8 +1,8 @@
 script {
     profile ('HTTP Live Stream') {
         pattern {
+            match { PYTHON && HLS_PLAYER }
             match $URI: '\\.m3u8$'
-            match { HLS_PLAYER != null }
         }
 
         action {

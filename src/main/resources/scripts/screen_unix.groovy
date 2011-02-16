@@ -3,13 +3,14 @@
 script {
     profile ('Screen') {
         pattern {
+            match { !$PMS.get().isWindows() && CVLC }
             protocol 'screen'
         }
 
         action {
             // $PARAMS.waitbeforestart = 0
             $TRANSCODER = [
-                'cvlc',
+                CVLC,
                 'screen://',
                 '--screen-fps',     '5',
                 '--screen-caching', '100',

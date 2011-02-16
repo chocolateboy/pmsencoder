@@ -158,10 +158,14 @@ script {
 
 // investigate using busybox-w32/ash instead of cmd.exe on Windows
 
-// Pattern: add extension matcher:
+// Pattern: add extension matcher (use URI):
 
     extension 'm3u8'
     extension ([ 'mp4', 'm4v' ])
+
+// profile: add $EXTENSION variable
+
+// use URI for protocol parsing rather than a regex
 
 /*
 
@@ -189,19 +193,33 @@ Groovy++ bytecode compilation error (both at compile-time and runtime): see Plug
 */
 
 /*
-    bring back dependencies in the form of script (rather than profile) dependencies:
+    script loading order:
 
-        script (before: 'get_flash_videos') { ... }
+        builtin scripts
+        user scripts
+
+    script stages:
+
+        begin
+        init
+        script
+        check
+        end
+
+document this:
+
+    replacing a profile with a profile with a different name
+    does not change its canonical name. this ensures other replacement profiles
+    have a predictable, consistent name to refer to
+
+TODO: determine behaviour (if any) if a replacement has a different stage
+
+TODO: re-stage all the profiles in a script block, preserving the natural order
+
+keep a list of Script objects rather than (just) a hash of profiles?
+
 */
 
-/*
+// remove rtmpdump protocol and manage everything through pmsencoder://
 
-add another "phase": INIT.groovy: after the builtin DEFAULT.groovy, but before user scripts i.e:
-
-    BEGIN.groovy
-    DEFAULT.groovy
-    INIT.groovy
-    userscript1.groovy
-    userscript2.groovy
-    ...
-    END.groovy
+// PMS.setValue('com.chocolatey.pmsencoder.Matcher', Matcher)

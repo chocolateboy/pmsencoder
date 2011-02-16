@@ -5,18 +5,18 @@ class Pattern {
     @Delegate private ProfileDelegate profileDelegate
     protected static final MatchFailureException STOP_MATCHING = new MatchFailureException()
     // FIXME: sigh: transitive delegation doesn't work (groovy bug)
-    @Delegate private final Script script
+    @Delegate private final Matcher matcher
 
     Pattern(ProfileDelegate profileDelegate) {
         this.profileDelegate = profileDelegate
-        this.script = profileDelegate.script
+        this.matcher = profileDelegate.matcher
     }
 
     // DSL setter - overrides the ProfileDelegate method to avoid logging,
     // which is handled later (if the match succeeds) by merging the pattern
     // block's temporary stash
     protected String propertyMissing(String name, Object value) {
-        command.stash.put(name, value)
+        command.setVar(name, value)
     }
 
     protected String propertyMissing(String name) {
@@ -25,7 +25,7 @@ class Pattern {
 
     // DSL method
     protected void domain(Object scalarOrList) {
-        def uri = command.stash.get('$URI')
+        def uri = command.getVar('$URI')
         def matched = Util.scalarList(scalarOrList).any({
             return matchString(uri, domainToRegex(it))
         })
@@ -43,7 +43,7 @@ class Pattern {
     // DSL method
     protected void protocol(Object scalarOrList) {
         def matched = Util.scalarList(scalarOrList).any({
-            return command.stash.get('$URI').startsWith("${it}://".toString())
+            return command.getVar('$URI').startsWith("${it}://".toString())
         })
 
         if (!matched) {
@@ -76,7 +76,7 @@ class Pattern {
             matched = matchClosure(object as Closure)
         } else if (object instanceof Map) {
             (object as Map).each { name, value ->
-                match(command.stash.get(name), value)
+                match(command.getVar(name), value)
             }
         } else if (object instanceof List) {
             def matches = (object as List)*.toString()

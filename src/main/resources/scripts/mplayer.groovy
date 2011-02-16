@@ -1,5 +1,5 @@
-script {
-    profile ('Unsupported FFmpeg Protocol') {
+end {
+    profile ('MPlayer') {
         pattern {
             match {
                 // http://www.ffmpeg.org/ffmpeg-doc.html#SEC33
@@ -22,7 +22,7 @@ script {
         }
 
         action {
-            if ($DOWNLOADER == null) {
+            if (!$DOWNLOADER) {
                 $DOWNLOADER = $MPLAYER
             }
         }
