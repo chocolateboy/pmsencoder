@@ -171,17 +171,18 @@ public class PMSEncoder extends MEncoderWebVideo implements LoggerMixin {
 
                         after (with downloader):
 
-                             /path/to/ffmpeg -v 0 -y -threads nbcores -i $DOWNLOADER_OUT -target ntsc-dvd $TRANSCODER_OUT
+                             /path/to/ffmpeg -v 0 -y -threads nbcores -i $DOWNLOADER_OUT -sameq \
+                                -target pal-dvd $TRANSCODER_OUT
 
                         after (without downloader):
 
-                             /path/to/ffmpeg -v 0 -y -threads nbcores -i $URI -target ntsc-dvd $TRANSCODER_OUT
+                             /path/to/ffmpeg -v 0 -y -threads nbcores -i $URI -sameq -target pal-dvd $TRANSCODER_OUT
                     */
 
                     transcoderArgs[0] = ffmpeg
                     transcoderArgs += [ '-i', transcoderInput ]
                     if (command.output != null) {
-                        transcoderArgs += command.output // defaults to: -target ntsc-dvd
+                        transcoderArgs += command.output // defaults to: -sameq -target pal-dvd
                     }
                     transcoderArgs += [ transcoderOutputPath ]
                 } else { // mencoder

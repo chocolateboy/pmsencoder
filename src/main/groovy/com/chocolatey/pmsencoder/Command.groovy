@@ -16,7 +16,7 @@ public class Command implements LoggerMixin, Cloneable {
     List<String> hook
     List<String> downloader
     List<String> transcoder
-    List<String> output = [ '-target', 'ntsc-dvd' ]
+    List<String> output = [ '-sameq', '-target', 'pal-dvd' ]
 
     private Command(Stash stash, List<String> transcoder, List<String> matches) {
         this.stash = stash

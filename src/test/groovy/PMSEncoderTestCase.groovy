@@ -7,6 +7,8 @@ import net.pms.configuration.PmsConfiguration
 import net.pms.PMS
 import org.apache.log4j.xml.DOMConfigurator
 
+// there's no point trying to optimize this while we're still using JUnit:
+// http://tinyurl.com/6k6z6dj
 abstract class PMSEncoderTestCase extends GroovyTestCase {
     protected Matcher matcher
     private PMS pms

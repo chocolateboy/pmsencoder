@@ -21,7 +21,7 @@
     </appender>
 
     <category name="com.chocolatey.pmsencoder">
-        <priority value="DEBUG" />
+        <priority value="INFO" />
     </category>
 
     <category name="groovyx.net.http">

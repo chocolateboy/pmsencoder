@@ -18,12 +18,12 @@ public class Script implements LoggerMixin {
     }
 
     Object propertyMissing(String name) {
-        log.debug("retrieving global variable: $name")
+        log.trace("retrieving global variable: $name")
         return stash[name]
     }
 
     Object propertyMissing(String name, Object value) {
-        log.debug("setting global variable: $name = $value")
+        log.info("setting global variable: $name = $value")
         return stash[name] = value
     }
 

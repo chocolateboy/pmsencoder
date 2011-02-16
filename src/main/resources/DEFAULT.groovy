@@ -23,8 +23,8 @@ script {
         Default download and transcode commands e.g.
 
             $DOWNLOADER = "mplayer -msglevel all=2 -prefer-ipv4 -quiet -dumpstream -dumpfile $DOWNLOADER_OUT ${$URI}"
-            $TRANSCODER = "ffmpeg -v 0 -y -threads nbcores -i ${$URI} -target ntsc-dvd $TRANSCODER_OUT"
-            $TRANSCODER = "ffmpeg -v 0 -y -threads nbcores -i $DOWNLOADER_OUT -target ntsc-dvd $TRANSCODER_OUT"
+            $TRANSCODER = "ffmpeg -v 0 -y -threads nbcores -i ${$URI} -target pal-dvd $TRANSCODER_OUT"
+            $TRANSCODER = "ffmpeg -v 0 -y -threads nbcores -i $DOWNLOADER_OUT -target pal-dvd $TRANSCODER_OUT"
             $TRANSCODER = "mencoder -mencoder -options -o $TRANSCODER_OUT ${$URI}"
             $TRANSCODER = "mencoder -mencoder -options -o $TRANSCODER_OUT $DOWNLOADER_OUT"
 
@@ -302,10 +302,10 @@ script {
     }
 
     /*
-	videofeed.Web,ZDF=http://www.zdf.de/ZDFmediathek/rss/562?view=rss
-	videofeed.Web,3sat=http://www.3sat.de/mediathek/rss/mediathek_scobel.xml
-	videofeed.Web,3sat=http://www.3sat.de/mediathek/rss/mediathek_boerse.xml
-	videofeed.Web,3sat=http://www.3sat.de/mediathek/rss/mediathek_hitec.xml
+        videofeed.Web,ZDF=http://www.zdf.de/ZDFmediathek/rss/562?view=rss
+        videofeed.Web,3sat=http://www.3sat.de/mediathek/rss/mediathek_scobel.xml
+        videofeed.Web,3sat=http://www.3sat.de/mediathek/rss/mediathek_boerse.xml
+        videofeed.Web,3sat=http://www.3sat.de/mediathek/rss/mediathek_hitec.xml
     */
 
     profile ('ARD/ZDF') {
@@ -409,8 +409,8 @@ script {
     // FIXME: these should be converted into ATOM feeds with multiple enclosures (clips)
     // XXX need to improve PMS's feed handling
 
-    profile ('Filemtrailer.com') {
-	def SIZES = [ 'xxlarge', 'xlarge', 'large', 'medium', 'small' ]
+    profile ('Filmtrailer.com') {
+        def SIZES = [ 'xxlarge', 'xlarge', 'large', 'medium', 'small' ]
 
         pattern {
             domain 'filmtrailer.com'
@@ -608,18 +608,18 @@ script {
     }
 
     if (PYTHON != null && YOUTUBE_DL != null) {
-	// videofeed.Web,YouTube=http://gdata.youtube.com/feeds/base/users/freddiew/uploads?alt=rss&v=2&orderby=published
-	profile ('YouTube-DL', replaces: 'YouTube') { // replace it with a profile that works for all YouTube-DL sites
-	    pattern {
-		match 'YouTube-DL Compatible' // built-in profile; matches if the site is supported by youtube-dl
-	    }
+        // videofeed.Web,YouTube=http://gdata.youtube.com/feeds/base/users/freddiew/uploads?alt=rss&v=2&orderby=published
+        profile ('YouTube-DL', replaces: 'YouTube') { // replace it with a profile that works for all YouTube-DL sites
+            pattern {
+                match 'YouTube-DL Compatible' // built-in profile; matches if the site is supported by youtube-dl
+            }
 
-	    action {
-		def maxQuality = YOUTUBE_DL_MAX_QUALITY ?: 22
-		$URI = quoteURI($URI)
-		$DOWNLOADER = "$PYTHON $YOUTUBE_DL --max-quality $maxQuality --quiet -o $DOWNLOADER_OUT ${$URI}"
-	    }
-	}
+            action {
+                def maxQuality = YOUTUBE_DL_MAX_QUALITY ?: 22
+                $URI = quoteURI($URI)
+                $DOWNLOADER = "$PYTHON $YOUTUBE_DL --max-quality $maxQuality --quiet -o $DOWNLOADER_OUT ${$URI}"
+            }
+        }
     }
 
     profile ('Unsupported FFmpeg Protocol') {
