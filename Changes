@@ -1,7 +1,19 @@
-1.4.1 TBC
-    - expose $MPLAYER path
-    - add ffmpeg script
+1.5.0 TBC
+    - Breaking changes:
+        - application paths are now lower-case e.g. $MENCODER -> $mencoder
+        - ffmpeg is now used as the default transcoder
+        - mplayer is used as the default downloader for protocols/request options ffmpeg doesn't support
+    - DSL:
+        - add quoteURI() method for cross-platform manual URI handling
+        - expose MPlayer path ($mplayer)
+        - add $OUTPUT list for ffmpeg output args
+        - action methods can select and operate on any arg list e.g. hook, downloader, transcoder, output
+        - built-in commands for mplayer ($MPLAYER), ffmpeg ($FFMPEG) and mencoder ($MENCODER)
+        - global variable support allows config details to be kept in one place e.g. BEGIN.groovy
+        - profiles that require external tools no longer match unless relevant globals are defined
     - add support for pmsencoder:// and rtmpdump:// pseudo-protocols
+    - refactor to replace inheritance with delegation
+    - remove last vestige of dynamic typing from the core
 
 1.4.0 Wed Feb 9 20:24:39 GMT 2011
     - Breaking changes:
