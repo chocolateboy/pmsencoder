@@ -12,11 +12,11 @@ public class Command implements LoggerMixin, Cloneable {
     Stash stash
     OutputParams params
     Level stashAssignmentLogLevel = Level.DEBUG
-    List<String> matches
-    List<String> hook
-    List<String> downloader
-    List<String> transcoder
-    List<String> output
+    List<String> matches = []
+    List<String> hook = []
+    List<String> downloader = []
+    List<String> transcoder = []
+    List<String> output = []
 
     private Command(Stash stash, List<String> transcoder, List<String> matches) {
         this.stash = stash
@@ -59,19 +59,29 @@ public class Command implements LoggerMixin, Cloneable {
     }
 
     public boolean equals(Command other) {
-        this.stash == other.stash &&
         this.matches == other.matches &&
-        this.params == other.params &&
         this.hook == other.hook &&
         this.downloader == other.downloader &&
         this.transcoder == other.transcoder &&
-        this.output == other.output
+        this.output == other.output &&
+        this.stash == other.stash &&
+        this.params == other.params
     }
 
     public java.lang.String toString() {
         // can't stringify params until this patch has been applied:
         // https://code.google.com/p/ps3mediaserver/issues/detail?id=863
-        "{ stash: $stash, matches: $matches, hook: $hook, downloader: $downloader, transcoder: $transcoder }".toString()
+        def repr = """
+        {
+            matches:    $matches
+            hook:       $hook
+            downloader: $downloader
+            transcoder: $transcoder
+            output:     $output
+            params:     $params
+            stash:      $stash
+        }""".substring(1).stripIndent(8)
+
     }
 
     protected boolean hasVar(Object name) {
