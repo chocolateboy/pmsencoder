@@ -3,7 +3,7 @@
 script {
     profile ('Screen') {
         pattern {
-            match { !$PMS.get().isWindows() && CVLC }
+            match { !$PMS.isWindows() && CVLC }
             protocol 'screen'
         }
 

@@ -15,7 +15,7 @@ abstract class PMSEncoderTestCase extends GroovyTestCase {
     private URL defaultScript
 
     void setUp() {
-        def log4jConfig = this.getClass().getResource('/test_log4j.xml')
+        def log4jConfig = this.getClass().getResource('/log4j_test.xml')
         DOMConfigurator.configure(log4jConfig)
 
         defaultScript = this.getClass().getResource('/DEFAULT.groovy')

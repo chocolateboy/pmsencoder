@@ -13,7 +13,7 @@
 init {
     def nbcores = $PMS.getConfiguration().getNumberOfCpuCores()
     // have to be completely silent on Windows as stdout is sent to the transcoder
-    def mplayerLogLevel = $PMS.get().isWindows() ? 'all=-1' : 'all=2'
+    def mplayerLogLevel = $PMS.isWindows() ? 'all=-1' : 'all=2'
 
     /*
         Matcher-level (global) lists of strings that provide provide useful default options
@@ -25,8 +25,8 @@ init {
 
         $TRANSCODER = $FFMPEG:
 
-            $TRANSCODER = "ffmpeg -v 0 -y -threads nbcores -i ${$URI} -sameq -target pal-dvd $TRANSCODER_OUT"
-            $TRANSCODER = "ffmpeg -v 0 -y -threads nbcores -i $DOWNLOADER_OUT -sameq -target pal-dvd $TRANSCODER_OUT"
+            $TRANSCODER = "ffmpeg -v 0 -y -threads nbcores -i ${$URI} -target pal-dvd -b 4096 $TRANSCODER_OUT"
+            $TRANSCODER = "ffmpeg -v 0 -y -threads nbcores -i $DOWNLOADER_OUT -target pal-dvd -b 4096 $TRANSCODER_OUT"
 
         $TRANSCODER = $MENCODER:
 
@@ -52,11 +52,11 @@ init {
     // all four of these values are initialized to empty lists, so we're relying on the "is nonempty"
     // meaning for these checks
     if (!$FFMPEG)
-        $FFMPEG = "FFMPEG -v 0 -y -threads ${nbcores}"
+        $FFMPEG = "FFMPEG -v 0 -y -threads ${nbcores}" // -threads 0 doesn't work for all codecs - better to specify
 
     // default ffmpeg output options
     if (!$FFMPEG_OUT)
-        $FFMPEG_OUT = '-sameq -target pal-dvd'
+        $FFMPEG_OUT = '-target pal-dvd -b 4096'
 
     // default mencoder transcode command
     if (!$MENCODER) {

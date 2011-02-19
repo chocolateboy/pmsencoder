@@ -136,14 +136,14 @@ public class PMSEncoder extends MEncoderWebVideo implements LoggerMixin {
         List<String> transcoderArgs = command.getTranscoder()
         def newURI = quoteURI(newStash.get('$URI'))
 
-        if (hookArgs != null) {
+        if (hookArgs) {
             processManager.handleHook(hookArgs)
         }
 
         // automagically add extra command-line options for the PMS-native downloaders/transformers
         // and substitute the configured paths for 'MPLAYER', 'FFMPEG' &c.
         // TODO: add support for GET_FLASH_VIDEOS, YOUTUBE_DL and RTMPDUMP "macros" (any others?)
-        if (downloaderArgs != null && downloaderArgs.size() > 0 && downloaderArgs[0] == 'MPLAYER') {
+        if (downloaderArgs && downloaderArgs[0] == 'MPLAYER') {
             /*
                 plugin the input/output e.g. before:
 
@@ -158,11 +158,11 @@ public class PMSEncoder extends MEncoderWebVideo implements LoggerMixin {
             downloaderArgs += [ '-dumpfile', downloaderOutputPath, newURI ]
         }
 
-        if (transcoderArgs != null && transcoderArgs.size() > 0) {
+        if (transcoderArgs) {
             def transcoder = transcoderArgs[0]
 
             if (transcoder != null && transcoder in [ 'FFMPEG', 'MENCODER', 'MENCODER_MT' ]) {
-                def transcoderInput = (downloaderArgs == null) ? newURI : downloaderOutputPath
+                def transcoderInput = downloaderArgs ? downloaderOutputPath : newURI
 
                 if (transcoder == 'FFMPEG') {
                     /*
@@ -172,18 +172,18 @@ public class PMSEncoder extends MEncoderWebVideo implements LoggerMixin {
 
                         after (with downloader):
 
-                             /path/to/ffmpeg -v 0 -y -threads nbcores -i $DOWNLOADER_OUT -sameq \
-                                -target pal-dvd $TRANSCODER_OUT
+                             /path/to/ffmpeg -v 0 -y -threads nbcores -i $DOWNLOADER_OUT \
+                                -target pal-dvd -b 4096 $TRANSCODER_OUT
 
                         after (without downloader):
 
-                             /path/to/ffmpeg -v 0 -y -threads nbcores -i $URI -sameq -target pal-dvd $TRANSCODER_OUT
+                             /path/to/ffmpeg -v 0 -y -threads nbcores -i $URI -target pal-dvd -b 4096 $TRANSCODER_OUT
                     */
 
                     transcoderArgs[0] = ffmpeg
                     transcoderArgs += [ '-i', transcoderInput ]
-                    if (command.output != null) {
-                        transcoderArgs += command.output // defaults to: -sameq -target pal-dvd
+                    if (command.output) {
+                        transcoderArgs += command.output // defaults to: -target pal-dvd -b 4096
                     }
                     transcoderArgs += [ transcoderOutputPath ]
                 } else { // mencoder
@@ -201,7 +201,7 @@ public class PMSEncoder extends MEncoderWebVideo implements LoggerMixin {
                              /path/to/mencoder -mencoder -options -o $TRANSCODER_OUT $URI
                     */
 
-                    transcoderArgs[0] = (transcoder == 'MENCODER' ? mencoder : mencoder_mt)
+                    transcoderArgs[0] = transcoder == 'MENCODER' ? mencoder : mencoder_mt
                     transcoderArgs += [ '-o', transcoderOutputPath, transcoderInput ]
                 }
             }
@@ -211,7 +211,7 @@ public class PMSEncoder extends MEncoderWebVideo implements LoggerMixin {
         // http://stackoverflow.com/questions/4025222
         def transcoderProcess = null
 
-        if (downloaderArgs != null) {
+        if (downloaderArgs) {
             if (isWindows) {
                 transcoderProcess = processManager.handleDownloadWindows(downloaderArgs, transcoderArgs)
             } else {

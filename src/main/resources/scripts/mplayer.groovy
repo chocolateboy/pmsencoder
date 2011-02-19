@@ -4,19 +4,19 @@ end {
             match {
                 // http://www.ffmpeg.org/ffmpeg-doc.html#SEC33
                 !($PROTOCOL in [
+                    'concat',
                     'file',
                     'gopher',
                     'http',
                     'pipe',
                     'rtmp',
-                    'rtmpt',
                     'rtmpe',
-                    'rtmpte',
                     'rtmps',
+                    'rtmpt',
+                    'rtmpte',
                     'rtp',
                     'tcp',
-                    'udp',
-                    'concat'
+                    'udp'
                 ])
             }
         }

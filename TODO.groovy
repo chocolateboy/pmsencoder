@@ -234,30 +234,40 @@ class MyTranscoder extends Transcoder {
 
 profile('Foo') {
     pattern {
-        match { uri == 'http://...' }
+        match { uri == 'http://whatever' } // TODO: make uri an actual URI rather than a string
     }
 
     action {
         // default
-        transcoder.id = FFMPEG // enum Transcoder { FFMPEG, MENCODER, VLC }
+        transcoder = new FFmpeg() // assigns default args
         transcoder.args = "string -or -list"
-        trancoder.args = FFmpeg.args
         transcoder.output = "string -or -list" // ffmpeg only: output options
 
         // add a downloader
-        downloader.id = MENCODER
-        downloader.args = [ 'string', '-or', '-list' ]
-        dowloader.args.set('-foo': 'bar')
-
-        // maybe
-        transcoder = new MEncoder() // assigns default args
-        transcoder.args.whatever(...)
-        transcoder.output = ... // invalid (at compile-time with .gpp extension?) - only for ffmpeg!
-
-        // completely custom
-
-        if (transcoder instanceof FFmpeg) {
-            // ...
-        }
+        def mplayer = new MPlayer(uri)
+        mplayer.args = [ 'string', '-or', '-list' ]
+        mplayer.args.set([ '-foo': 'bar' ])
+        transcoder.downloader = mplayer
     }
 }
+
+// No need to expose $PMS. Just use PMS.get() as normal
+
+// store the original URI: e.g. for mplayer.groovy
+
+if (originalUri.protocol == 'concat') { ... }
+
+// bring back reject: e.g. for mplayer.groovy:
+
+reject $URI: '^concat:'
+
+// add a commit method which stops all further profile matching for this request
+
+/*
+
+    image to video:
+
+        ffmpeg -r 24 -i http://ip:port/plugin/name/imdb_plot?id=42&fmt=png \
+            -vcodec mpeg2video -qscale 2 -vframes 1 transcoder.out
+
+*/

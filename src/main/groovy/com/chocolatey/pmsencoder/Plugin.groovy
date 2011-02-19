@@ -144,7 +144,7 @@ public class Plugin implements ExternalListener, FileListener {
     private void loadDefaultLogConfig() {
         // XXX squashed bug - don't call this log4j.xml, as, by default,
         // log4j attempts to load log4j.properties and log4j.xml automatically
-        def defaultLogConfig = this.getClass().getResource('/default_log4j.xml')
+        def defaultLogConfig = this.getClass().getResource('/log4j_default.xml')
         info("loading built-in log4j config file: $defaultLogConfig")
 
         try {
