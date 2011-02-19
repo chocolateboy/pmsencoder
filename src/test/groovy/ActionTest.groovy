@@ -11,7 +11,7 @@ class ActionTest extends PMSEncoderTestCase {
                 $URI: uri,
                 $rfc: '2606'
             ],
-            matches: [ 'Scrape' ]
+            wantMatches: [ 'Scrape' ]
         ])
     }
 
@@ -25,7 +25,7 @@ class ActionTest extends PMSEncoderTestCase {
                 '-baz',  'true',
                 '-quux'
             ],
-            matches: [ 'Stringify Values' ]
+            wantMatches: [ 'Stringify Values' ]
         ])
     }
 
@@ -35,7 +35,7 @@ class ActionTest extends PMSEncoderTestCase {
             script:   '/action.groovy',
             uri:      'http://set.string',
             wantTranscoder: [ '-nocache' ],
-            matches:  [ 'Set String' ]
+            wantMatches:  [ 'Set String' ]
         ])
     }
 
@@ -49,7 +49,7 @@ class ActionTest extends PMSEncoderTestCase {
                 '-baz',  'true',
                 '-quux'
             ],
-            matches: [ 'Set Map' ]
+            wantMatches: [ 'Set Map' ]
         ])
     }
 }

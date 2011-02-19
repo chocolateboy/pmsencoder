@@ -7,7 +7,7 @@ class ContextBlockTest extends PMSEncoderTestCase {
         assertMatch([
             script: '/context_block.groovy',
             uri: uri,
-            matches: [ 'Context Block', 'Context Block Set' ],
+            wantMatches: [ 'Context Block', 'Context Block Set' ],
             wantHook: [ 'hook', '-foo', '-bar', '-baz', '-quux' ],
             downloader: [ 'downloader', '-foo' ],
             wantDownloader: [ 'downloader', '-foo', '-bar' ],
@@ -23,7 +23,7 @@ class ContextBlockTest extends PMSEncoderTestCase {
         assertMatch([
             script: '/context_block.groovy',
             uri: uri,
-            matches: [ 'Context Block', 'Context Block Remove' ],
+            wantMatches: [ 'Context Block', 'Context Block Remove' ],
             wantHook: [ 'hook', '-foo', '-baz' ],
             downloader: [ 'downloader', '-foo', '-bar', '-baz' ],
             wantDownloader: [ 'downloader', '-foo', '-baz' ],

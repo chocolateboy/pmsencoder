@@ -23,6 +23,7 @@ script {
     profile ('I Can Has Viddler') {
         pattern {
             match ICHC
+            match { IPAD_USER_AGENT }
             scrape "\\bsrc='(?<URI>http://www\\.viddler\\.com/file/\\w+/html5mobile/)'"
         }
 

@@ -44,19 +44,27 @@ abstract class PMSEncoderTestCase extends GroovyTestCase {
         matcher = new Matcher(pms)
     }
 
-    protected void assertMatch(Map<String, Object> map) {
-        if (map['loadDefaultScripts']) {
+    private Object getValue(Map<String, Object> map, String key, Object defaultValue = null) {
+        if (map.containsKey(key)) {
+            return map[key]
+        } else {
+            return defaultValue
+        }
+    }
+
+    protected void assertMatch(Map<String, Object> spec) {
+        if (spec['loadDefaultScripts']) {
             matcher.loadDefaultScripts()
         }
 
         List<URL> scripts
 
-        if (map['script'] != null) {
-            if (!(map['script'] instanceof List)) {
-                map['script'] = [ map['script'] ]
+        if (spec['script'] != null) {
+            if (!(spec['script'] instanceof List)) {
+                spec['script'] = [ spec['script'] ]
             }
 
-            scripts = map['script'].collect {
+            scripts = spec['script'].collect {
                 def url
 
                 if (it instanceof URL) {
@@ -71,30 +79,28 @@ abstract class PMSEncoderTestCase extends GroovyTestCase {
         }
 
         Stash stash
-        String uri = map['uri']
+        String uri = spec['uri']
 
         if (uri != null) {
-            stash = [ $URI: uri ]
-        } else if (map['stash'] != null) {
-            stash = map['stash']
+            stash = new Stash([ $URI: uri ])
+        } else if (spec.containsKey('stash')) {
+            Map<String, String> map = spec['stash']
+            stash = new Stash(map)
         }
 
-        assert stash != null
+        List<String> wantMatches = getValue(spec, 'wantMatches')
+        List<String> hook = getValue(spec, 'hook')
+        List<String> downloader = getValue(spec, 'downloader')
+        List<String> transcoder = getValue(spec, 'transcoder')
+        List<String> output = getValue(spec, 'output')
 
-        List<String> output = map['output']
-        List<String> downloader = map['downloader']
-        List<String> transcoder = map.containsKey('transcoder') ? map['transcoder'] : []
+        def wantStash = getValue(spec, 'wantStash')
+        def wantHook = getValue(spec, 'wantHook')
+        def wantDownloader = getValue(spec, 'wantDownloader')
+        def wantTranscoder = getValue(spec, 'wantTranscoder')
+        def wantOutput = getValue(spec, 'wantOutput')
 
-        def wantStash = map.containsKey('wantStash') ? map['wantStash'] : stash
-        def wantHook = map['wantHook']
-        def wantDownloader = map['wantDownloader']
-        def wantTranscoder = map.containsKey('wantTranscoder') ? map['wantTranscoder'] : transcoder
-        def testOutput = map.containsKey('wantOutput')
-        def wantOutput = map['wantOutput']
-
-        List<String> matches = map.containsKey('matches') ? map['matches'] : []
-
-        boolean useDefaultTranscoder = map.containsKey('useDefaultTranscoder') ? map['useDefaultTranscoder'] : false
+        boolean useDefaultTranscoder = getValue(spec, 'useDefaultTranscoder', false)
 
         if (scripts != null) {
             scripts.each {
@@ -103,10 +109,30 @@ abstract class PMSEncoderTestCase extends GroovyTestCase {
             }
         }
 
-        def command = new Command(stash, transcoder)
+        def command
+
+        if (transcoder != null) {
+            if (stash != null) {
+                command = new Command(stash, transcoder)
+            } else {
+                command = new Command(transcoder)
+            }
+        } else if (stash != null) {
+            command = new Command(stash)
+        } else {
+            command = new Command()
+        }
+
+        if (hook != null) {
+            command.hook = hook
+        }
 
         if (downloader != null) {
             command.downloader = downloader
+        }
+
+        if (transcoder != null) {
+            command.transcoder = transcoder
         }
 
         if (output != null) {
@@ -115,7 +141,9 @@ abstract class PMSEncoderTestCase extends GroovyTestCase {
 
         matcher.match(command, useDefaultTranscoder)
 
-        assert matches == command.matches
+        if (wantMatches != null) {
+            assert command.matches == wantMatches
+        }
 
         /*
            XXX
@@ -131,31 +159,39 @@ abstract class PMSEncoderTestCase extends GroovyTestCase {
             Loosely-typing them as mere Closures works around this.
         */
 
-        if (wantStash instanceof Closure) {
-            assert (wantStash as Closure).call(command.stash)
-        } else {
-            assert command.stash == wantStash
+        if (wantStash != null) {
+            if (wantStash instanceof Closure) {
+                assert (wantStash as Closure).call(command.stash)
+            } else {
+                assert command.stash == wantStash
+            }
         }
 
-        if (wantHook instanceof Closure) {
-            assert (wantHook as Closure).call(command.hook)
-        } else {
-            assert command.hook == wantHook
+        if (wantHook != null) {
+            if (wantHook instanceof Closure) {
+                assert (wantHook as Closure).call(command.hook)
+            } else {
+                assert command.hook == wantHook
+            }
         }
 
-        if (wantDownloader instanceof Closure) {
-            assert (wantDownloader as Closure).call(command.downloader)
-        } else {
-            assert command.downloader == wantDownloader
+        if (wantDownloader != null) {
+            if (wantDownloader instanceof Closure) {
+                assert (wantDownloader as Closure).call(command.downloader)
+            } else {
+                assert command.downloader == wantDownloader
+            }
         }
 
-        if (wantTranscoder instanceof Closure) {
-            assert (wantTranscoder as Closure).call(command.transcoder)
-        } else {
-            assert command.transcoder == wantTranscoder
+        if (wantTranscoder != null) {
+            if (wantTranscoder instanceof Closure) {
+                assert (wantTranscoder as Closure).call(command.transcoder)
+            } else {
+                assert command.transcoder == wantTranscoder
+            }
         }
 
-        if (testOutput) {
+        if (wantOutput != null) {
             if (wantOutput instanceof Closure) {
                 assert (wantOutput as Closure).call(command.output)
             } else {

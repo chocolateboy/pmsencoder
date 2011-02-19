@@ -11,7 +11,7 @@ class MatchTest extends PMSEncoderTestCase {
     void testMatches() {
         assertMatch([
             uri: 'http://www.example.com',
-            matches: [
+            wantMatches: [
                 'Match',
                 'Match Profile',
                 'Match Profiles',

@@ -7,7 +7,7 @@ class HookTest extends PMSEncoderTestCase {
         assertMatch([
             script: '/hook.groovy',
             uri: uri,
-            matches: [ 'Hook String' ],
+            wantMatches: [ 'Hook String' ],
             wantHook: [ 'string', uri ]
         ])
     }
@@ -17,7 +17,7 @@ class HookTest extends PMSEncoderTestCase {
         assertMatch([
             script: '/hook.groovy',
             uri: uri,
-            matches: [ 'Hook List' ],
+            wantMatches: [ 'Hook List' ],
             wantHook: [ 'list', uri ]
         ])
     }

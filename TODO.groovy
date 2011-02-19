@@ -223,3 +223,41 @@ keep a list of Script objects rather than (just) a hash of profiles?
 // remove rtmpdump protocol and manage everything through pmsencoder://
 
 // PMS.setValue('com.chocolatey.pmsencoder.Matcher', Matcher)
+
+// cleaner Gradle-style names (no sigils!):
+
+class MyTranscoder extends Transcoder {
+    List<String> toCommandLine() {
+
+    }
+}
+
+profile('Foo') {
+    pattern {
+        match { uri == 'http://...' }
+    }
+
+    action {
+        // default
+        transcoder.id = FFMPEG // enum Transcoder { FFMPEG, MENCODER, VLC }
+        transcoder.args = "string -or -list"
+        trancoder.args = FFmpeg.args
+        transcoder.output = "string -or -list" // ffmpeg only: output options
+
+        // add a downloader
+        downloader.id = MENCODER
+        downloader.args = [ 'string', '-or', '-list' ]
+        dowloader.args.set('-foo': 'bar')
+
+        // maybe
+        transcoder = new MEncoder() // assigns default args
+        transcoder.args.whatever(...)
+        transcoder.output = ... // invalid (at compile-time with .gpp extension?) - only for ffmpeg!
+
+        // completely custom
+
+        if (transcoder instanceof FFmpeg) {
+            // ...
+        }
+    }
+}

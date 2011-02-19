@@ -1,10 +1,10 @@
 /*
     this is the default/builtin PMSEncoder script. PMSEncoder loads it from
-    src/main/resources/DEFAULT.groovy
+    src/main/resources/scripts/INIT.groovy
 
     see:
 
-       http://github.com/chocolateboy/pmsencoder/blob/plugin/src/main/resources/DEFAULT.groovy
+       http://github.com/chocolateboy/pmsencoder/blob/plugin/src/main/resources/scripts/INIT.groovy
 
     XXX: Don't use this as a tutorial/documentation; see the wiki instead.
     XXX: The scripting framework/DSL is constantly changing, so don't rely on anything here.
@@ -14,10 +14,6 @@ init {
     def nbcores = $PMS.getConfiguration().getNumberOfCpuCores()
     // have to be completely silent on Windows as stdout is sent to the transcoder
     def mplayerLogLevel = $PMS.get().isWindows() ? 'all=-1' : 'all=2'
-    def ICHC = 'I Can Has Cheezburger'
-    def IPAD_USER_AGENT = 'Mozilla/5.0 (iPad; U; CPU OS 3_2 like Mac OS X; en-us) ' +
-        'AppleWebKit/531.21.10 (KHTML, like Gecko) ' +
-        'Version/4.0.4 Mobile/7B334b Safari/531.21.10'
 
     /*
         Matcher-level (global) lists of strings that provide provide useful default options
@@ -52,6 +48,9 @@ init {
     */
 
     // default ffmpeg transcode command - all of these defaults can be (p)redefined in a userscript (e.g. BEGIN.groovy)
+    // XXX: Groovy quirk: !$FFMPEG means $FFMPEG is not a) null or b) empty
+    // all four of these values are initialized to empty lists, so we're relying on the "is nonempty"
+    // meaning for these checks
     if (!$FFMPEG)
         $FFMPEG = "FFMPEG -v 0 -y -threads ${nbcores}"
 

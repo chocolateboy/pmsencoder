@@ -2,7 +2,7 @@
 package com.chocolatey.pmsencoder
 
 class Action {
-    private List<String> context
+    private Closure _context
     @Delegate final ProfileDelegate profileDelegate
     // FIXME: sigh: transitive delegation doesn't work (groovy bug)
     @Delegate private final Matcher matcher
@@ -10,7 +10,7 @@ class Action {
     Action(ProfileDelegate profileDelegate) {
         this.profileDelegate = profileDelegate
         this.matcher = profileDelegate.matcher
-        context = command.transcoder
+        setContext({ get$TRANSCODER() })
     }
 
     boolean isOption(String arg) {
@@ -25,53 +25,72 @@ class Action {
         }
     }
 
+    // FIXME Every other attempt to get this simple thunk to work
+    // fails (including the recommended Function0<List<String>>)
+    void setContext(Closure closure) {
+        _context = closure
+    }
+
+    List<String> getContext() {
+        _context.call()
+    }
+
+    // FIXME: weird compiler errors complaining about methods with the same name/signature
+    // in Groovy++ without this:
+    //
+    //     Duplicate method name&signature in class file com/chocolatey/pmsencoder/Action$hook$2
+    @Typed(TypePolicy.DYNAMIC)
     void hook (Closure closure) {
         if ($HOOK == null) {
             log.error("can't modify null hook command list")
         } else {
-            context = $HOOK
+            setContext({ get$HOOK() })
             try {
                 closure.call()
             } finally {
-                context = $TRANSCODER
+                setContext({ get$TRANSCODER() })
             }
         }
     }
 
+    @Typed(TypePolicy.DYNAMIC)
     void downloader (Closure closure) {
         if ($DOWNLOADER == null) {
             log.error("can't modify null downloader command list")
         } else {
-            context = $DOWNLOADER
+            setContext({ get$DOWNLOADER() })
             try {
                 closure.call()
             } finally {
-                context = $TRANSCODER
+                setContext({ get$TRANSCODER() })
             }
         }
     }
 
+    @Typed(TypePolicy.DYNAMIC)
     void transcoder (Closure closure) {
         if ($TRANSCODER == null) {
             log.error("can't modify null transcoder command list")
         } else {
+            assert getContext().is(get$TRANSCODER())
             try {
                 closure.call()
             } finally {
-                context = $TRANSCODER // in case of nested blocks
+                setContext({ get$TRANSCODER() }) // in case of nested blocks
             }
         }
     }
 
+    @Typed(TypePolicy.DYNAMIC)
     void output (Closure closure) {
         if ($OUTPUT == null) {
             log.error("can't modify null ffmpeg output arg list")
         } else {
-            context = $OUTPUT
+            setContext({ get$OUTPUT() })
             try {
                 closure.call()
             } finally {
-                context = $TRANSCODER // in case of nested blocks
+                setContext({ get$TRANSCODER() }) // in case of nested blocks
             }
         }
     }
@@ -105,10 +124,11 @@ class Action {
         setArg(name.toString(), null)
     }
 
-    // set a context option - create it if it doesn't exist
+    // set an option in the current argument list (context) - create the option if it doesn't exist
     void setArg(Object name, Object value = null) {
         assert name != null
 
+        def context = getContext()
         def index = context.findIndexOf { it == name.toString() }
 
         if (index == -1) {
@@ -132,12 +152,99 @@ class Action {
         }
     }
 
+    // DSL method: append a single option to the current argument list
+    List<String> append(Object object) {
+        def context = getContext()
+        context << object.toString()
+        return context
+    }
+
+    List<String> append(List list) {
+        def context = getContext()
+        context.addAll(list*.toString())
+        return context
+    }
+
+    // DSL method: prepend a single option to the current argument list
+    List<String> prepend(Object object) {
+        // XXX we need to be careful to modify the list in place as context
+        // is just a reference to list rather than a field in its own
+        // right
+
+        def context = getContext()
+        def contextSize = context.size()
+
+        if (contextSize == 0) {
+            context << object.toString()
+        } else {
+            if (context.is(get$OUTPUT())) { // no executable in the first element to protect
+                context.add(0, object.toString())
+            } else {
+                if (contextSize == 1) {
+                    context << object.toString()
+                } else {
+                    context.add(1, object.toString())
+                }
+            }
+        }
+
+        return context
+    }
+
+    List<String> prepend(List list) {
+        def context = getContext()
+
+        if (context.isEmpty()) {
+            context.addAll(list*.toString())
+        } else if (context.is(get$OUTPUT())) { // no executable in the first element to protect
+            def temp = list*.toString()
+            context.addAll(0, list*.toString())
+        } else {
+            def temp = list*.toString()
+            context.addAll(1, list*.toString())
+        }
+
+        return context
+    }
+
+    // DSL method: remove multiple option names and their corresponding values if they have one
+    void remove(List optionNames) {
+        optionNames.each { remove(it) }
+    }
+
+    // DSL method: remove a single option name and its corresponding value if it has one
+    void remove(Object optionName) {
+        assert optionName != null
+
+        def context = getContext()
+        def index = context.findIndexOf { it == optionName.toString() }
+
+        if (index >= 0) {
+            def lastIndex = context.size() - 1
+            def nextIndex = index + 1
+
+            if (nextIndex <= lastIndex) {
+                def nextArg = context[ nextIndex ]
+
+                if (isOption(nextArg)) {
+                    log.debug("removing: $optionName")
+                } else {
+                    log.debug("removing: $optionName $nextArg")
+                    context.remove(nextIndex) // remove this first so the index is preserved for the option name
+                }
+            }
+
+            context.remove(index)
+        }
+    }
+
     /*
         perform a string search-and-replace in the value of a transcoder option.
     */
 
     // DSL method
     void replace(Map<Object, Map> replaceMap) {
+        def context = getContext()
         // the sort order is predictable (for tests) as long as we (and Groovy) use LinkedHashMap
         replaceMap.each { name, map ->
             // squashed bug (see  above): take care to modify context in-place
@@ -228,54 +335,6 @@ class Action {
 
         if (!found) {
             log.fatal("can't retrieve stream URI for $uri")
-        }
-    }
-
-    // DSL method: append a list of options to the command's transcoder list
-    void append(String object) {
-        command.transcoder = command.transcoder + [ object.toString() ]
-    }
-
-    void append(List list) {
-        list.each { append(it.toString()) }
-    }
-
-    // DSL method: prepend a list of options to the command's transcoder list
-    void prepend(Object object) {
-        command.transcoder = [ object.toString() ] + command.transcoder
-    }
-
-    void prepend(List list) {
-        list.each { prepend(it.toString()) }
-    }
-
-    // DSL method: remove multiple option names and their corresponding values if they have one
-    void remove(List optionNames) {
-        optionNames.each { remove(it) }
-    }
-
-    // DSL method: remove a single option name and its corresponding value if it has one
-    void remove(Object optionName) {
-        assert optionName != null
-
-        def index = context.findIndexOf { it == optionName.toString() }
-
-        if (index >= 0) {
-            def lastIndex = context.size() - 1
-            def nextIndex = index + 1
-
-            if (nextIndex <= lastIndex) {
-                def nextArg = context[ nextIndex ]
-
-                if (isOption(nextArg)) {
-                    log.debug("removing: $optionName")
-                } else {
-                    log.debug("removing: $optionName $nextArg")
-                    context.remove(nextIndex) // remove this first so the index is preserved for the option name
-                }
-            }
-
-            context.remove(index)
         }
     }
 }

@@ -11,21 +11,21 @@ class ProtocolMethodTest extends PMSEncoderTestCase {
     void testProtocolString() {
         assertMatch([
             uri: 'file://www.example.com',
-            matches: [ 'Protocol String' ]
+            wantMatches: [ 'Protocol String' ]
         ])
     }
 
     void testProtocolList() {
         assertMatch([
             uri: 'rtmp://www.example.com',
-            matches: [ 'Protocol List' ]
+            wantMatches: [ 'Protocol List' ]
         ])
     }
 
     void testProtocolNoMatch() {
         assertMatch([
             uri: 'http://www.example.com',
-            matches: []
+            wantMatches: []
         ])
     }
 }

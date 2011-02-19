@@ -11,42 +11,42 @@ class DomainTest extends PMSEncoderTestCase {
     void testDomainString() {
         assertMatch([
             uri: 'http://www.domain-string.com',
-            matches: [ 'Domain String' ]
+            wantMatches: [ 'Domain String' ]
         ])
     }
 
     void testDomainList() {
         assertMatch([
             uri: 'http://www.domain-list.com',
-            matches: [ 'Domain List' ]
+            wantMatches: [ 'Domain List' ]
         ])
     }
 
     void testDomainsString() {
         assertMatch([
             uri: 'http://www.domains-string.com',
-            matches: [ 'Domains String' ]
+            wantMatches: [ 'Domains String' ]
         ])
     }
 
     void testDomainsList() {
         assertMatch([
             uri: 'http://www.domains-list.com',
-            matches: [ 'Domains List' ]
+            wantMatches: [ 'Domains List' ]
         ])
     }
 
     void testGotDot() {
         assertMatch([
             uri: 'http://www.dot.com',
-            matches: [ 'Got Dot' ]
+            wantMatches: [ 'Got Dot' ]
         ])
     }
 
     void testNotDot() {
         assertMatch([
             uri: 'http://www.dotacom',
-            matches: []
+            wantMatches: []
         ])
     }
 }

@@ -11,7 +11,7 @@ class ProtocolVarTest extends PMSEncoderTestCase {
     void testFileProtocol() {
         assertMatch([
             uri: 'file://some.file',
-            matches: [ 'file://' ],
+            wantMatches: [ 'file://' ],
             wantTranscoder: [ '-protocol', 'file' ]
         ])
     }
@@ -19,7 +19,7 @@ class ProtocolVarTest extends PMSEncoderTestCase {
     void testHTTPProtocol() {
         assertMatch([
             uri: 'http://some.domain.com',
-            matches: [ 'http://' ],
+            wantMatches: [ 'http://' ],
             wantTranscoder: [ '-protocol', 'http' ]
         ])
     }

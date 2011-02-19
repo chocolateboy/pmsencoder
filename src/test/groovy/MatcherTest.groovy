@@ -7,7 +7,7 @@ class MatcherTest extends PMSEncoderTestCase {
         assertMatch([
             loadDefaultScripts: true,
             uri: 'http://www.example.com',
-            matches: []
+            wantMatches: []
         ])
     }
 
@@ -37,7 +37,7 @@ class MatcherTest extends PMSEncoderTestCase {
             wantDownloader: { List<String> downloader ->
                 downloader[-2] == '-user-agent' && downloader[-1] == 'QuickTime/7.6.2'
             },
-            matches: [ 'Apple Trailers' ]
+            wantMatches: [ 'Apple Trailers' ]
         ])
     }
 
@@ -62,7 +62,7 @@ class MatcherTest extends PMSEncoderTestCase {
             loadDefaultScripts: true,
             uri: uri,
             script: script,
-            matches: ['YouTube Metadata', 'YouTube-DL Compatible', 'YouTube' ],
+            wantMatches: ['YouTube Metadata', 'YouTube-DL Compatible', 'YouTube' ],
             wantStash: { Stash stash ->
                 assert stash.keySet().toList() == [
                     '$URI',
@@ -107,7 +107,7 @@ class MatcherTest extends PMSEncoderTestCase {
                 $gametrailers_page_id:  page_id,
                 $gametrailers_filename: filename
             ],
-            matches: [
+            wantMatches: [
                 'GameTrailers (Revert PMS Workaround)',
                 'GameTrailers',
             ]

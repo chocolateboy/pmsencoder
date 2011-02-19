@@ -9,7 +9,7 @@ class TranscoderTest extends PMSEncoderTestCase {
         assertMatch([
             script: '/transcoder.groovy',
             uri: uri,
-            matches: [ 'Transcoder List' ],
+            wantMatches: [ 'Transcoder List' ],
             transcoder: [ transcoder, 'list', uri ]
         ])
     }
@@ -19,7 +19,7 @@ class TranscoderTest extends PMSEncoderTestCase {
         assertMatch([
             script: '/transcoder.groovy',
             uri: uri,
-            matches: [ 'Transcoder String' ],
+            wantMatches: [ 'Transcoder String' ],
             transcoder: [ transcoder, 'string', uri ]
         ])
     }

@@ -18,7 +18,7 @@ class ProfileTest extends PMSEncoderTestCase {
             script:         '/profile_override.groovy',
             uri:            uri,
             wantTranscoder: [ '-game', 'trailers' ],
-            matches:        [ 'GameTrailers' ]
+            wantMatches:        [ 'GameTrailers' ]
         ])
     }
 
@@ -29,7 +29,7 @@ class ProfileTest extends PMSEncoderTestCase {
             script:         '/profile_replace.groovy',
             uri:            uri,
             wantTranscoder: [ '-gametrailers', 'replacement' ],
-            matches:        [ 'GameTrailers Replacement' ]
+            wantMatches:        [ 'GameTrailers Replacement' ]
         ])
     }
 
@@ -38,7 +38,7 @@ class ProfileTest extends PMSEncoderTestCase {
             script:         '/profile_extend.groovy',
             uri:            'http://inherit.pattern',
             wantTranscoder: [ '-base', '-inherit', 'pattern' ],
-            matches:        [ 'Base', 'Inherit Pattern' ]
+            wantMatches:        [ 'Base', 'Inherit Pattern' ]
         ])
     }
 
@@ -47,7 +47,7 @@ class ProfileTest extends PMSEncoderTestCase {
             script:   '/profile_extend.groovy',
             uri:      'http://inherit.action',
             wantTranscoder: [ '-base' ],
-            matches:  [ 'Inherit Action' ]
+            wantMatches:  [ 'Inherit Action' ]
         ])
     }
 
@@ -65,7 +65,7 @@ class ProfileTest extends PMSEncoderTestCase {
                 $value:   'value'
             ],
             wantTranscoder:  [ '-key', 'key', '-value', 'value' ],
-            matches :  [ 'GStrings' ]
+            wantMatches :  [ 'GStrings' ]
         ])
     }
 
@@ -74,7 +74,7 @@ class ProfileTest extends PMSEncoderTestCase {
             script:   '/gstring_scope.groovy',
             uri:      'http://www.example.com',
             wantTranscoder: [ 'config3', 'profile3', 'pattern3', 'action3' ],
-            matches:  [ 'GString Scope' ]
+            wantMatches:  [ 'GString Scope' ]
         ])
     }
 }

@@ -8,7 +8,6 @@ import org.openqa.selenium.htmlunit.HtmlUnitDriver
 import org.apache.http.client.utils.URLEncodedUtils
 import org.apache.http.NameValuePair
 
-// i.e. a delegate with access to a Command
 // XXX some (most? all?) of these DSL properties could just be exposed/documented as-is i.e.
 // log.info(..), http.get(...) &c.
 

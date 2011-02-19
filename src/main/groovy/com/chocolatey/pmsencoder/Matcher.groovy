@@ -70,7 +70,7 @@ class Matcher implements LoggerMixin {
             if (profiles[name] != null) {
                 log.info("replacing profile: $name")
             } else {
-                log.info("registering profile: $name")
+                log.info("registering ${stage.toString().toLowerCase()} profile: $name")
             }
         }
 
@@ -194,7 +194,6 @@ class Matcher implements LoggerMixin {
 
     // DSL method
     protected void begin(Closure closure) {
-        log.info("stage: begin")
         closure.delegate = new Script(this, Stage.BEGIN)
         closure.resolveStrategy = Closure.DELEGATE_FIRST
         closure()
@@ -202,7 +201,6 @@ class Matcher implements LoggerMixin {
 
     // DSL method
     protected void init(Closure closure) {
-        log.info("stage: init")
         closure.delegate = new Script(this, Stage.INIT)
         closure.resolveStrategy = Closure.DELEGATE_FIRST
         closure()
@@ -210,7 +208,6 @@ class Matcher implements LoggerMixin {
 
     // DSL method
     protected void script(Closure closure) {
-        log.info("stage: script")
         closure.delegate = new Script(this, Stage.SCRIPT)
         closure.resolveStrategy = Closure.DELEGATE_FIRST
         closure()
@@ -218,7 +215,6 @@ class Matcher implements LoggerMixin {
 
     // DSL method
     protected void check(Closure closure) {
-        log.info("stage: check")
         closure.delegate = new Script(this, Stage.CHECK)
         closure.resolveStrategy = Closure.DELEGATE_FIRST
         closure()
@@ -226,7 +222,6 @@ class Matcher implements LoggerMixin {
 
     // DSL method
     protected void end(Closure closure) {
-        log.info("stage: end")
         closure.delegate = new Script(this, Stage.END)
         closure.resolveStrategy = Closure.DELEGATE_FIRST
         closure()

@@ -12,7 +12,7 @@ class RemoveTest extends PMSEncoderTestCase {
         assertMatch([
             uri: 'http://remove.name',
             transcoder: [ '-foo', '-bar', '-baz', '-quux' ],
-            matches: [ 'Remove Name' ],
+            wantMatches: [ 'Remove Name' ],
             wantTranscoder: [ '-foo', '-baz', '-quux' ]
         ])
     }
@@ -21,7 +21,7 @@ class RemoveTest extends PMSEncoderTestCase {
         assertMatch([
             uri: 'http://remove.value',
             transcoder: [ '-foo', '-bar', 'baz', '-quux' ],
-            matches: [ 'Remove Value' ],
+            wantMatches: [ 'Remove Value' ],
             wantTranscoder: [ '-foo', '-quux' ]
         ])
     }
@@ -30,7 +30,7 @@ class RemoveTest extends PMSEncoderTestCase {
         assertMatch([
             uri: 'http://digit.value',
             transcoder: [ '-foo', '-bar', '-42', '-quux' ],
-            matches: [ 'Digit Value' ],
+            wantMatches: [ 'Digit Value' ],
             wantTranscoder: [ '-foo', '-quux' ]
         ])
     }
@@ -39,7 +39,7 @@ class RemoveTest extends PMSEncoderTestCase {
         assertMatch([
             uri: 'http://hyphen.value',
             transcoder: [ '-foo', '-output', '-', '-quux' ],
-            matches: [ 'Hyphen Value' ],
+            wantMatches: [ 'Hyphen Value' ],
             wantTranscoder: [ '-foo', '-quux' ]
         ])
     }

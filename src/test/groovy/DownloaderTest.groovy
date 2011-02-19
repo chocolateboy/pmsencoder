@@ -9,7 +9,7 @@ class DownloaderTest extends PMSEncoderTestCase {
         assertMatch([
             script: '/downloader.groovy',
             uri: uri,
-            matches: [ 'Downloader String' ],
+            wantMatches: [ 'Downloader String' ],
             wantDownloader: [ downloader, 'string', uri ]
         ])
     }
@@ -19,7 +19,7 @@ class DownloaderTest extends PMSEncoderTestCase {
         assertMatch([
             script: '/downloader.groovy',
             uri: uri,
-            matches: [ 'Downloader List' ],
+            wantMatches: [ 'Downloader List' ],
             wantDownloader: [ downloader, 'list', uri ]
         ])
     }
