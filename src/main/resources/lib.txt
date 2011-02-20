@@ -21,6 +21,7 @@ scripts/onion_news_network.groovy
 scripts/pc_games.groovy
 scripts/pmsencoder.groovy
 scripts/politiek24.groovy
+scripts/redirect.groovy
 scripts/screen_unix.groovy
 scripts/sopcast.groovy
 scripts/winfuture.groovy

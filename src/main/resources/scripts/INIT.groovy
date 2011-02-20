@@ -25,8 +25,11 @@ init {
 
         $TRANSCODER = $FFMPEG:
 
-            $TRANSCODER = "ffmpeg -v 0 -y -threads nbcores -i ${$URI} -target pal-dvd -b 4096 $TRANSCODER_OUT"
-            $TRANSCODER = "ffmpeg -v 0 -y -threads nbcores -i $DOWNLOADER_OUT -target pal-dvd -b 4096 $TRANSCODER_OUT"
+            $TRANSCODER = "ffmpeg -v 0 -y -threads nbcores \
+                -i ${$URI} -threads nbcores -target pal-dvd $TRANSCODER_OUT"
+
+            $TRANSCODER = "ffmpeg -v 0 -y -threads nbcores \
+                -i $DOWNLOADER_OUT -threads nbcores -target pal-dvd $TRANSCODER_OUT"
 
         $TRANSCODER = $MENCODER:
 
@@ -42,7 +45,7 @@ init {
         configured path should be substituted.
 
         matcher-scoped (i.e. global): $FFMPEG, $FFMPEG_OUT, $MENCODER, and $MPLAYER are lists of strings,
-        but, as seen below, can be set as strings, which are split on whitespace
+        but, as seen below, can be assigned strings (which are split on whitespace).
 
         profile-scoped: $DOWNLOADER, $TRANSCODER, $OUTPUT and $HOOK are similar, but only have profile-scope
     */
@@ -56,7 +59,7 @@ init {
 
     // default ffmpeg output options
     if (!$FFMPEG_OUT)
-        $FFMPEG_OUT = '-target pal-dvd -b 4096'
+        $FFMPEG_OUT = "-threads ${nbcores} -target pal-dvd"
 
     // default mencoder transcode command
     if (!$MENCODER) {
