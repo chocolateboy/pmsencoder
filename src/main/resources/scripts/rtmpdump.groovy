@@ -1,6 +1,8 @@
 // e.g. rtmpdump://channel?uri=http%3A//example.com&-y=yvalue&-c=cvalue
-// -q, -o and -r are set automatically
+// -q, -o and -r are set automatically (the latter via the URI parameter)
 // boolean values can be set without a value e.g. rtmpdump://channel?uri=http%3A//example.com&--live&--foo=bar
+// values must be URL-encoded
+// keys can be, but hyphens are not special characters, so they don't need to be
 
 init {
     profile ('rtmpdump://') {
@@ -25,7 +27,7 @@ init {
                         break
                     default:
                         rtmpdumpArgs << name
-                        if (value != null) {
+                        if (value) {
                             rtmpdumpArgs << value
                         }
                 }
