@@ -1,3 +1,4 @@
+// videofeed.Web,YouTube=http://gdata.youtube.com/feeds/base/users/freddiew/uploads?alt=rss&v=2&orderby=published
 check {
     // extract metadata about the video for other profiles
     profile ('YouTube Metadata') {
@@ -28,19 +29,20 @@ check {
             match $URI: [
                 '^(?:http://)?(?:[a-z0-9]+\\.)?photobucket\\.com/.*[\\?\\&]current=(.*\\.flv)',
                 '^(?:http://)?(?:[a-z]+\\.)?video\\.yahoo\\.com/(?:watch|network)/([0-9]+)(?:/|\\?v=)([0-9]+)(?:[#\\?].*)?',
-                '^((?:https?://)?(?:youtu\\.be/|(?:\\w+\\.)?youtube(?:-nocookie)?\\.com/(?:(?:v/)|(?:(?:watch(?:_popup)?(?:\\.php)?)?(?:\\?|#!?)(?:.+&)?v=))))?([0-9A-Za-z_-]+)(?(1).+)?$',
+                '^(?:https?://)?(?:\\w+\\.)?facebook.com/video/video.php\\?(?:.*?)v=(?P<ID>\\d+)(?:.*)',
+                '^((?:https?://)?(?:youtu\\.be/|(?:\\w+\\.)?youtube(?:-nocookie)?\\.com/)(?:(?:(?:v|embed)/)|(?:(?:watch(?:_popup)?(?:\\.php)?)?(?:\\?|#!?)(?:.+&)?v=)))?([0-9A-Za-z_-]+)(?(1).+)?$',
                 '^(?:http://)?video\\.google\\.(?:com(?:\\.au)?|co\\.(?:uk|jp|kr|cr)|ca|de|es|fr|it|nl|pl)/videoplay\\?docid=([^\\&]+).*',
                 '^(?:http://)?(?:\\w+\\.)?depositfiles.com/(?:../(?#locale))?files/(.+)',
                 '^(?:http://)?(?:www\\.)?metacafe\\.com/watch/([^/]+)/([^/]+)/.*',
-                '^(?:http://)?(?:\\w+\\.)?youtube.com/user/(.*)',
-                '^(?:http://)?(?:\\w+\\.)?youtube.com/(?:(?:view_play_list|my_playlists)\\?.*?p=|user/.*?/user/)([^&]+).*',
+                '^(?:(?:(?:http://)?(?:\\w+\\.)?youtube.com/user/)|ytuser:)([A-Za-z0-9_-]+)',
+                '^(?:http://)?(?:\\w+\\.)?youtube.com/(?:(?:view_play_list|my_playlists|artist)\\?.*?(p|a)=|user/.*?/user/|p/|user/.*?#[pg]/c/)([0-9A-Za-z]+)(?:/.*?/([0-9A-Za-z_-]+))?.*',
                 '^(?i)(?:https?://)?(?:www\\.)?dailymotion\\.[a-z]{2,3}/video/([^_/]+)_([^/]+)'
             ]
         }
 
         action {
             // XXX: keep this up-to-date
-            $youtube_dl_compatible = '2010.12.09' // version the regexes were copied from
+            $youtube_dl_compatible = '2011.01.30' // version the regexes were copied from
         }
     }
 
@@ -52,9 +54,27 @@ check {
     // it also simplifies custom matchers e.g. check for 'YouTube Medatata' in $MATCHES
     // rather than repeating the regex
 
+    profile ('YouTube-DL') {
+        pattern {
+            match 'YouTube-DL Compatible'
+            match { PYTHON && YOUTUBE_DL }
+        }
+
+        action {
+            $youtube_dl_enabled = true
+            $URI = quoteURI($URI)
+            if (YOUTUBE_DL_MAX_QUALITY) {
+                $DOWNLOADER = "$PYTHON $YOUTUBE_DL --max-quality $YOUTUBE_DL_MAX_QUALITY --quiet -o $DOWNLOADER_OUT ${$URI}"
+            } else {
+                $DOWNLOADER = "$PYTHON $YOUTUBE_DL --quiet -o $DOWNLOADER_OUT ${$URI}"
+            }
+        }
+    }
+
     profile ('YouTube') {
         pattern {
-            match { $youtube_video_id != null }
+            // fall back to the native handler if youtube-dl is not installed/enabled
+            match { $youtube_video_id && !$youtube_dl_enabled }
         }
 
         // Now, with $video_id and $t defined, call the builtin YouTube handler.
