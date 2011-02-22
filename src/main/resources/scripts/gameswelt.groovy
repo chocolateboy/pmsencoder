@@ -3,7 +3,7 @@
 script {
    profile ('Gameswelt') {
         pattern {
-            match $URI: '^http://www\\.gameswelt\\.de/videos/videos/'
+            match $URI: '^http://www\\.gameswelt\\.de/videos/'
         }
 
         action {
