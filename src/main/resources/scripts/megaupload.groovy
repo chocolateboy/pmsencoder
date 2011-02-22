@@ -2,6 +2,7 @@
 
 script {
     // redirect Megaupload links to Megavideo
+    /*
     profile ('Megaupload') {
         pattern {
             domain 'megaupload.com'
@@ -11,6 +12,7 @@ script {
             $URI = browse (uri: $HTTP.target($URI)) { $('a.mvlink').@href }
         }
     }
+    */
 
     profile ('Megavideo') {
         pattern {
@@ -18,7 +20,6 @@ script {
         }
 
         action {
-            // $PARAMS.waitbeforestart = 10000L
             set '-r': '24'
         }
     }

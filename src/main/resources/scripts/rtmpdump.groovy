@@ -25,8 +25,10 @@ init {
 
                 switch (name) {
                     case 'url':
-                        $URI = quoteURI(value)
-                        seenURL = true
+                        if (value) {
+                            $URI = quoteURI(value)
+                            seenURL = true
+                        }
                         break
                     default:
                         rtmpdumpArgs << name

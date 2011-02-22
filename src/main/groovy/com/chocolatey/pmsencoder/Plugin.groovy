@@ -67,7 +67,7 @@ public class Plugin implements ExternalListener, FileListener {
         int candidateScriptPollInterval = guard (0) { scriptPollString.toInteger() }
 
         // handle scripts
-        if (candidateScriptDirectory != null) {
+        if (candidateScriptDirectory) {
             def candidateScriptDirectoryFile = new File(candidateScriptDirectory)
 
             if (directoryExists(candidateScriptDirectoryFile)) {
@@ -84,7 +84,7 @@ public class Plugin implements ExternalListener, FileListener {
             }
         }
 
-        if (scriptDirectory != null) {
+        if (scriptDirectory) {
             info("script directory: $scriptDirectory")
 
             if (candidateScriptPollInterval > 0) {
@@ -100,7 +100,7 @@ public class Plugin implements ExternalListener, FileListener {
         // set up log4j
         def customLogConfig
 
-        if (customLogConfigPath != null) {
+        if (customLogConfigPath) {
             def customLogConfigFile = new File(customLogConfigPath)
 
             if (fileExists(customLogConfigFile)) {
@@ -112,7 +112,7 @@ public class Plugin implements ExternalListener, FileListener {
         }
 
         // load log4j config file
-        if (customLogConfig != null) {
+        if (customLogConfig) {
             info("loading custom log4j config file: $customLogConfig")
 
             try {

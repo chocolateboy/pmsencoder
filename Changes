@@ -14,6 +14,7 @@
         - profiles that require external tools no longer match unless relevant globals are defined
         - profiles are now matched in stages: begin, init, script, check and end
     - add support for rtmpdump:// pseudo-protocol
+    - add support for navix:// pseudo-protocol
     - add preliminary support for pmsencoder:// pseudo-protocol
     - refactor to replace inheritance with composition
 
