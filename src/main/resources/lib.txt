@@ -15,7 +15,6 @@ scripts/megaupload.groovy
 scripts/mplayer.groovy
 scripts/navix.groovy
 scripts/pc_games.groovy
-scripts/pmsencoder.groovy
 scripts/politiek24.groovy
 scripts/pplive.groovy
 scripts/redirect.groovy

@@ -7,7 +7,7 @@
         url     // required: media URL - note: this *can't* be an rtmpdump:// URL
         agent   // optional: HTTP user-agent
         referer // optional: HTTP referrer
-        player  // optional: currently ignored (and a warning is logged)
+        player  // optional: currently ignored
 
     Although most fields are optional, there is no point using this protocol unless
     at least one additional field is supplied.
@@ -50,7 +50,7 @@ init {
                         break
                     case 'player':
                         if (value)
-                            log.warn("player option for navix:// protocol currently ignored: ${value}")
+                            log.info("player option for navix:// protocol currently ignored: ${value}")
                         break
                     default:
                         log.warn("unsupported navix:// option: ${name}=${value}")
