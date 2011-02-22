@@ -15,7 +15,6 @@
         - profiles are now matched in stages: begin, init, script, check and end
     - add support for rtmpdump:// pseudo-protocol
     - add support for navix:// pseudo-protocol
-    - add preliminary support for pmsencoder:// pseudo-protocol
     - refactor to replace inheritance with composition
 
 1.4.0 Wed Feb 9 20:24:39 GMT 2011

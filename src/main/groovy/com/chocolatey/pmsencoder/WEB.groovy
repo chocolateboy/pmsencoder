@@ -30,7 +30,6 @@ public class WEB extends net.pms.formats.WEB {
         "mpst",
         "navix", // PMSEncoder pseudo-protocol
         "noicyx",
-        "pmsencoder", // PMSEncoder pseudo-protocol
         "pvr",
         "rtmpdump", // PMSEncoder pseudo-protocol
         "rtmpe", // mencoder and ffmpeg
