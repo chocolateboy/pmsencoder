@@ -17,11 +17,11 @@ init {
         action {
             def rtmpdumpArgs = []
             def pairs = URLEncodedUtils.parse($URI)
+            def seenURL = false
 
             for (pair in pairs) {
                 def name = URLDecoder.decode(pair.name)
                 def value = URLDecoder.decode(pair.value)
-                def seenURL = false
 
                 switch (name) {
                     case 'url':
@@ -34,13 +34,13 @@ init {
                             rtmpdumpArgs << value
                         }
                 }
+            }
 
-                if (seenURL) {
-                    $DOWNLOADER = "$RTMPDUMP -q -o $DOWNLOADER_OUT -r ${$URI}"
-                    $DOWNLOADER += rtmpdumpArgs
-                } else {
-                    log.error("invalid rtmpdump:// URI: no url parameter supplied: ${$URI}")
-                }
+            if (seenURL) {
+                $DOWNLOADER = "$RTMPDUMP -q -o $DOWNLOADER_OUT -r ${$URI}"
+                $DOWNLOADER += rtmpdumpArgs
+            } else {
+                log.error("invalid rtmpdump:// URI: no url parameter supplied: ${$URI}")
             }
         }
     }
