@@ -271,3 +271,38 @@ reject $URI: '^concat:'
             -vcodec mpeg2video -qscale 2 -vframes 1 transcoder.out
 
 */
+
+/*
+
+Players:
+
+    MEncoder
+    FFmpeg
+
+Downloaders:
+
+    SopCast
+    MPlayer
+    GetFlashVideos
+    YoutubeDL
+*/
+
+// Ruby-style initialization blocks?
+
+transcoder = new MEncoder() { // silly example
+    downloader = new MPlayer() {
+        set '-referrer': 'http://whatever.com'
+    }
+}
+
+// add a navix:// protocol e.g. navix://default?referrer=url_encoded_uri&url=...
+
+// need to be more precise/verbose with the names e.g. MPlayer could be used as a "null"/identity transcoder
+// (-oac copy -ovc copy):
+
+transcoder = new CopyTranscoder()
+transcoder = new MPlayerTranscoder()
+transcoder = new NullTranscoder()
+transcoder = new PassthroughTranscoder()
+
+// need to pass in the renderer

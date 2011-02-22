@@ -1,14 +1,14 @@
 script {
     profile ('SopCast') {
         pattern {
-            match { SOPCAST_PLAYER && SOPCAST_URI }
+            match { SOPCAST_SERVER }
             protocol 'sop'
         }
 
         action {
-            $URI = quoteURI($URI)
-            $HOOK = "$SOPCAST ${$URI}"
-            $URI = SOPCAST_URI
+            def quotedURI = quoteURI($URI)
+            $HOOK = "$SOPCAST ${quotedURI}"
+            $URI = SOPCAST_URI ?: 'http://127.0.0.1:8902/stream'
         }
     }
 }

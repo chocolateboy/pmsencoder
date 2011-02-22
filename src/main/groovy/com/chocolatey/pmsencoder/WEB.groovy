@@ -5,7 +5,7 @@ import net.pms.encoders.Player
 import net.pms.PMS
 
 public class WEB extends net.pms.formats.WEB {
-    // unless otherwise indicate, these protocols are only supported by MEncoder
+    // unless otherwise indicated, these protocols are only supported by MEncoder
     private static final String[] PROTOCOLS = [
         "br",
         "concat", // ffmpeg
@@ -28,6 +28,7 @@ public class WEB extends net.pms.formats.WEB {
         "mmst",
         "mmsu",
         "mpst",
+        "navix", // PMSEncoder pseudo-protocol
         "noicyx",
         "pmsencoder", // PMSEncoder pseudo-protocol
         "pvr",

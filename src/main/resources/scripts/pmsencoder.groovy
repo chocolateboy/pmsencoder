@@ -13,7 +13,7 @@ init {
             def setDownloaderArg = { key, value ->
                 if (!$DOWNLOADER) {
                     $DOWNLOADER = $MPLAYER + [ key, value ]
-                } else if ($DOWNLOADER.size() > 0 && $DOWNLOADER[0] == 'MPLAYER') {
+                } else if ($DOWNLOADER && $DOWNLOADER[0] == 'MPLAYER') {
                     downloader {
                         set([ (key): value ]) // (key) - don't treat it as 'key'
                     }

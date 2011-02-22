@@ -13,9 +13,9 @@
         - global variable support allows config details to be kept in one place e.g. BEGIN.groovy
         - profiles that require external tools no longer match unless relevant globals are defined
         - profiles are now matched in stages: begin, init, script, check and end
-    - add support for pmsencoder:// and rtmpdump:// pseudo-protocols
+    - add support for rtmpdump:// pseudo-protocol
+    - add preliminary support for pmsencoder:// pseudo-protocol
     - refactor to replace inheritance with composition
-    - remove last vestige of dynamic typing from the core
 
 1.4.0 Wed Feb 9 20:24:39 GMT 2011
     - Breaking changes:
