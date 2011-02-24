@@ -10,7 +10,7 @@
         player  // optional: currently ignored
 
     Although most fields are optional, there is no point using this protocol unless
-    at least one additional field is supplied.
+    at least one optional field is supplied.
 
     boolean values (none currently) can be set without a value e.g. navix://channel?url=http%3A//example.com&foo
     values *must* be URL-encoded
@@ -58,8 +58,7 @@ init {
             }
 
             if (seenURL) {
-                $DOWNLOADER = $MPLAYER
-                $DOWNLOADER += mplayerArgs
+                $DOWNLOADER = $MPLAYER + mplayerArgs
             } else {
                 log.error("invalid navix:// URI: no url parameter supplied: ${$URI}")
             }

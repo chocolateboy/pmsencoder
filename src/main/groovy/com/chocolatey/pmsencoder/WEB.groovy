@@ -49,7 +49,8 @@ public class WEB extends net.pms.formats.WEB {
         "tv",
         "udp", // mencoder and ffmpeg
         "unsv",
-        "vcd"
+        "vcd",
+        "x11grab" // pseudo-protocol for X11 screen capture via ffmpeg
     ]
 
     @Override

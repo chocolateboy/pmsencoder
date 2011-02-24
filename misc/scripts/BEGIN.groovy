@@ -9,7 +9,6 @@ begin {
     YOUTUBE_DL_MAX_QUALITY = 22
 
     if ($PMS.isWindows()) {
-        // CVLC = 'C:\\Path\\To\\cvlc.exe'
         // GET_FLASH_VIDEOS = 'C:\\Perl\\Scripts\\get_flash_videos'
         // HLS_PLAYER = 'C:\\Python\\bin\\hls-player''
         // PERL = 'C:\\Perl\\bin\\perl'
@@ -18,7 +17,6 @@ begin {
         // SOPCAST_SERVER = 'C:\\Path\\To\\SopCast.exe'
         // YOUTUBE_DL = 'C:\\Python\\Scripts\\youtube-dl'
     } else {
-        // CVLC = '/usr/bin/cvlc'
         // GET_FLASH_VIDEOS = '/usr/bin/get_flash_videos'
         // HLS_PLAYER = '/usr/bin/hls-player'
         // NOTIFY_SEND = '/usr/bin/notify-send'

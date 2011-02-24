@@ -19,7 +19,7 @@ scripts/politiek24.groovy
 scripts/pplive.groovy
 scripts/redirect.groovy
 scripts/rtmpdump.groovy
-scripts/screen_unix.groovy
 scripts/sopcast.groovy
 scripts/winfuture.groovy
+scripts/x11grab.groovy
 scripts/youtube.groovy

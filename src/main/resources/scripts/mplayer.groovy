@@ -3,7 +3,7 @@ end {
         pattern {
             match {
                 // http://www.ffmpeg.org/ffmpeg-doc.html#SEC33
-                !($PROTOCOL in [
+                $PROTOCOL && !($PROTOCOL in [
                     'concat',
                     'file',
                     'gopher',

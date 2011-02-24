@@ -32,9 +32,8 @@ init {
                         break
                     default:
                         rtmpdumpArgs << name
-                        if (value) {
+                        if (value)
                             rtmpdumpArgs << value
-                        }
                 }
             }
 
