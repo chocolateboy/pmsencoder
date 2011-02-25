@@ -289,10 +289,14 @@ Downloaders:
 
 // Ruby-style initialization blocks?
 
-transcoder = new MEncoder() { // silly example
-    downloader = new MPlayer() {
-        set '-referrer': 'http://whatever.com'
+profile ('Whatever') {
+    transcoder = new FFmpegTranscoder() {
+        downloader = new CustomDownloader() {
+            executable = '/path/to/mydownloader'
+            args = "-referrer $referrer -o $downloaderOut -i $uri"
+        }
     }
+    hook = "foo bar baz"
 }
 
 // add a navix:// protocol e.g. navix://default?referrer=url_encoded_uri&url=...
@@ -300,9 +304,6 @@ transcoder = new MEncoder() { // silly example
 // need to be more precise/verbose with the names e.g. MPlayer could be used as a "null"/identity transcoder
 // (-oac copy -ovc copy):
 
-transcoder = new CopyTranscoder()
-transcoder = new MPlayerTranscoder()
 transcoder = new NullTranscoder()
-transcoder = new PassthroughTranscoder()
 
 // need to pass in the renderer
