@@ -307,3 +307,5 @@ profile ('Whatever') {
 transcoder = new NullTranscoder()
 
 // need to pass in the renderer
+
+// test Pattern.scrape

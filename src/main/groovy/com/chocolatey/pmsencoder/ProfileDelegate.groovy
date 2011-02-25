@@ -141,7 +141,13 @@ class ProfileDelegate {
     // DSL method - can be called from a pattern or an action.
     // actions inherit this method, whereas patterns add the
     // short-circuiting behaviour and delegate to this via super.scrape(...)
-    public boolean scrape(Object regex, Map options = [:]) {
+    // XXX: we need to declare these two signatures explicitly to work around
+    // issues with @Delegate and default parameters
+    public boolean scrape(Object regex) {
+        scrape(regex, [:])
+    }
+
+    public boolean scrape(Object regex, Map options) {
         String uri = (options['uri'] == null) ? command.getVar('$URI') : options['uri'].toString()
         String document = (options['source'] == null) ? cache[uri] : options['source'].toString()
         boolean decode = options['decode'] == null ? false : options['decode']

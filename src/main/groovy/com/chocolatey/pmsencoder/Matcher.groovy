@@ -7,7 +7,7 @@ import net.pms.PMS
 
 enum Stage { BEGIN, INIT, SCRIPT, CHECK, END }
 
-class PMSConf { // no need to extends HashMap<...>; we only need the subscript (i.e. getAt) syntax
+class PMSConf { // no need to extend HashMap<...>: we only need the subscript - i.e. getAt() - syntax
     public String getAt(String key) {
         return PMS.getConfiguration().getCustomProperty(key?.toString())
     }

@@ -1,4 +1,4 @@
-// videofeed.Web,GiantBomb=http://pipes.yahoo.com/pipes/pipe.run?_id=cf668f0d78945d30144d7d48d5021edc&_render=rss
+// videofeed.Web,OCD,GiantBomb=http://pipes.yahoo.com/pipes/pipe.run?_id=0a51536967fd09f9e85f37bddb6bb91d&_render=rss
 
 script {
     profile ('GiantBomb') {

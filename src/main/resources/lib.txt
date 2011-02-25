@@ -8,6 +8,7 @@ scripts/gamestar.groovy
 scripts/gameswelt.groovy
 scripts/gametrailers.groovy
 scripts/get_flash_videos.groovy
+scripts/giantbomb.groovy
 scripts/hls_player.groovy
 scripts/hook.groovy
 scripts/icanhascheezburger.groovy

@@ -58,9 +58,15 @@ class Pattern {
     */
 
     // DSL method
-    @Override // for documentation; Groovy doesn't require it
-    protected boolean scrape(Object regex, Map options = [:]) {
-        if (scrape(regex, options)) {
+    // XXX squashed bug: avoid infinite loop on scrape by explicitly calling it through profileDelegate
+    // XXX: we need to declare these signatures separately to work around issues
+    // with @Delegate and default parameters
+    protected boolean scrape(Object regex) {
+        scrape(regex, [:])
+    }
+
+    protected boolean scrape(Object regex, Map options) {
+        if (profileDelegate.scrape(regex, options)) {
             return true
         } else {
             throw STOP_MATCHING
