@@ -7,6 +7,12 @@ import net.pms.PMS
 
 enum Stage { BEGIN, INIT, SCRIPT, CHECK, END }
 
+class PMSConf { // no need to extends HashMap<...>; we only need the subscript (i.e. getAt) syntax
+    public String getAt(String key) {
+        return PMS.getConfiguration().getCustomProperty(key?.toString())
+    }
+}
+
 // XXX note: only public methods can be delegated to
 class Matcher implements LoggerMixin {
     // this is the default Map type, but let's be explicit as we strictly need this type
@@ -18,6 +24,7 @@ class Matcher implements LoggerMixin {
     private List<String> ffmpegOut = []
     private List<Integer> youtubeAccept = []
     private Map<String, Object> stash = new HashMap<String, Object>()
+    PMSConf pmsConf = new PMSConf()
 
     Matcher(PMS pms) {
         this.pms = pms

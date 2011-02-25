@@ -23,6 +23,11 @@ abstract class PMSEncoderTestCase extends GroovyTestCase {
         new MockUp<PmsConfiguration>() {
             @Mock
             public int getNumberOfCpuCores() { 3 }
+
+            @Mock
+            public Object getCustomProperty(String key) {
+                return key == 'rtmpdump.path' ? '/usr/bin/rtmpdump' : null
+            }
         }
 
         new MockUp<PMS>() {
@@ -79,13 +84,13 @@ abstract class PMSEncoderTestCase extends GroovyTestCase {
         }
 
         Stash stash
-        String uri = spec['uri']
 
-        if (uri != null) {
-            stash = new Stash([ $URI: uri ])
-        } else if (spec.containsKey('stash')) {
+        if (spec.containsKey('stash')) {
             Map<String, String> map = spec['stash']
             stash = new Stash(map)
+        } else { // uri can be null (not all tests need it)
+            String uri = spec['uri']
+            stash = new Stash([ $URI: uri ])
         }
 
         List<String> wantMatches = getValue(spec, 'wantMatches')
