@@ -1,4 +1,4 @@
-1.5.0 TBC
+1.5.0 Sat Feb 26 17:58:24 2011
     - Breaking changes:
         - user scripts are now bundled as a standard library
         - application paths are now lower-case e.g. $MENCODER -> $mencoder

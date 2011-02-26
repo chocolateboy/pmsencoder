@@ -1,7 +1,7 @@
 script {
     profile ('SopCast') {
         pattern {
-            match { SOPCAST_SERVER }
+            match { SOPCAST }
             protocol 'sop'
         }
 
