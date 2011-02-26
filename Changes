@@ -1,5 +1,5 @@
 1.5.1 Sat Feb 26 19:13:06 2011
-    - add missing import to pseudo-protocol scripts
+    - fix query-string parsing in pseudo-protocol profiles
 
 1.5.0 Sat Feb 26 17:58:24 2011
     - Breaking changes:
