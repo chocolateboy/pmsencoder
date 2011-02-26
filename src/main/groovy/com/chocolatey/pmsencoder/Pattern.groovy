@@ -99,7 +99,7 @@ class Pattern {
     // DSL method
     // either (String , String) or (String, List)
     protected void match(Object key, Object value) {
-        def matched
+        boolean matched // Groovy++ type inference fail (introduced in 0.4.170)
 
         if (value instanceof List) {
             matched = (value as List).any({ matchString(key, it) })
