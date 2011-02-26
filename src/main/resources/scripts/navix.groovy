@@ -25,7 +25,7 @@ init {
 
         action {
             def mplayerArgs = []
-            def pairs = URLEncodedUtils.parse($URI)
+            def pairs = $HTTP.getNameValuePairs($URI)
             def seenURL = false
 
             for (pair in pairs) {

@@ -9,7 +9,9 @@ import groovyx.net.http.ParserRegistry
 import net.sf.json.JSON
 
 import org.apache.http.client.methods.HttpUriRequest
+import org.apache.http.client.utils.URLEncodedUtils
 import org.apache.http.HttpHost
+import org.apache.http.NameValuePair
 import org.apache.http.protocol.ExecutionContext
 import org.apache.http.protocol.HttpContext
 
@@ -41,6 +43,14 @@ class HTTPClient implements LoggerMixin {
 
     public JSON getJSON(String uri) {
         return getType(uri, ContentType.JSON)
+    }
+
+    public List<NameValuePair> getNameValuePairs(String str) {
+        return getNameValuePairs(new URI(str))
+    }
+
+    public List<NameValuePair> getNameValuePairs(URI uri) {
+        return URLEncodedUtils.parse(uri, 'UTF-8')
     }
 
     @Typed(TypePolicy.MIXED)

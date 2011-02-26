@@ -1,3 +1,6 @@
+1.5.1 Sat Feb 26 19:13:06 2011
+    - add missing import to pseudo-protocol scripts
+
 1.5.0 Sat Feb 26 17:58:24 2011
     - Breaking changes:
         - user scripts are now bundled as a standard library
@@ -17,7 +20,7 @@
     - add support for navix:// pseudo-protocol
     - refactor to replace inheritance with composition
 
-1.4.0 Wed Feb 9 20:24:39 GMT 2011
+1.4.0 Wed Feb 9 20:24:39 2011
     - Breaking changes:
         - DSL: change $DEFAULT_TRANSCODER_ARGS back to $DEFAULT_MENCODER_ARGS
         - DSL: remove Pattern.reject()
