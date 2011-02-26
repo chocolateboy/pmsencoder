@@ -42,7 +42,7 @@ check {
 
         action {
             // XXX: keep this up-to-date
-            $youtube_dl_compatible = '2011.01.30' // version the regexes were copied from
+            $youtube_dl_compatible = '2011.02.25c' // version the regexes were copied from
         }
     }
 
@@ -78,7 +78,7 @@ check {
         }
 
         // Now, with $video_id and $t defined, call the builtin YouTube handler.
-        // Note: the parentheses are required for a no-arg action
+        // Note: the parentheses are required for a no-arg method call
         action {
             youtube()
         }
