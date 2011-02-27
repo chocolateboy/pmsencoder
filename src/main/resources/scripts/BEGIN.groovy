@@ -15,6 +15,7 @@ begin {
     RTMPDUMP = pmsConf['rtmpdump.path']
     SOPCAST = pmsConf['sopcast.path']
     SOPCAST_URI = pmsConf['sopcast.uri'] ?: 'http://127.0.0.1:8902/stream' // only used if SOPCAST is defined
+    VLC = pmsConf['vlc.path']
     // see https://secure.wikimedia.org/wikipedia/en/wiki/YouTube#Quality_and_codecs
     YOUTUBE_DL = pmsConf['youtube-dl.path']
     YOUTUBE_DL_MAX_QUALITY = pmsConf['youtube-dl.max-quality'] ?: 22

@@ -309,3 +309,7 @@ transcoder = new NullTranscoder()
 // need to pass in the renderer
 
 // test Pattern.scrape
+
+/// FIXME: MPlayer can't dump to stdout: http://lists.mplayerhq.hu/pipermail/mplayer-users/2006-April/059898.html
+
+// need better vlc detection

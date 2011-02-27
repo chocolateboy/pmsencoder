@@ -5,3 +5,4 @@ pmsencoder.log
 tags
 target/
 pom.xml.versionsBackup
+*.exe

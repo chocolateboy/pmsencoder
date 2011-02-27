@@ -13,7 +13,7 @@
 init {
     def nbcores = $PMS.getConfiguration().getNumberOfCpuCores()
     // have to be completely silent on Windows as stdout is sent to the transcoder
-    def mplayerLogLevel = $PMS.isWindows() ? 'all=-1' : 'all=2'
+    def mplayerLogLevel = $PMS.isWindows() ? 'all=1' : 'all=2'
 
     /*
         Matcher-level (global) lists of strings that provide provide useful default options

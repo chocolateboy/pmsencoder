@@ -1,3 +1,4 @@
+// videostream.Web,SopCast=SopCast,sop://sop.sopcast.org:1234/5678
 script {
     profile ('SopCast') {
         pattern {
