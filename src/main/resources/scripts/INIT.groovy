@@ -26,10 +26,10 @@ init {
         $TRANSCODER = $FFMPEG:
 
             $TRANSCODER = "ffmpeg -v 0 -y -threads nbcores \
-                -i ${$URI} -threads nbcores -target pal-dvd $TRANSCODER_OUT"
+                -i ${$URI} -threads nbcores -target ntsc-dvd $TRANSCODER_OUT"
 
             $TRANSCODER = "ffmpeg -v 0 -y -threads nbcores \
-                -i $DOWNLOADER_OUT -threads nbcores -target pal-dvd $TRANSCODER_OUT"
+                -i $DOWNLOADER_OUT -threads nbcores -target ntsc-dvd $TRANSCODER_OUT"
 
         $TRANSCODER = $MENCODER:
 
@@ -59,7 +59,7 @@ init {
 
     // default ffmpeg output options
     if (!$FFMPEG_OUT)
-        $FFMPEG_OUT = "-threads ${nbcores} -target pal-dvd"
+        $FFMPEG_OUT = "-threads ${nbcores} -target ntsc-dvd"
 
     // default mencoder transcode command
     if (!$MENCODER) {
