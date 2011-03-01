@@ -1,3 +1,7 @@
+1.5.2 Tue Mar 1 23:37:59 2011
+    - tweak/fix rtmpdump:// + navix:// protocol handling
+    - compatibility tweak
+
 1.5.1 Sat Feb 26 19:13:06 2011
     - fix query-string parsing in pseudo-protocol profiles
 
