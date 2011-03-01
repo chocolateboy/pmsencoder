@@ -313,3 +313,7 @@ transcoder = new NullTranscoder()
 /// FIXME: MPlayer can't dump to stdout: http://lists.mplayerhq.hu/pipermail/mplayer-users/2006-April/059898.html
 
 // need better vlc detection
+
+// make the rtmp2pms functionality available via a web page (e.g. GitHub page) using JavaScript:
+// i.e. enter 1) name/path 2) the command line 3) optional thumbnail URI and click to generate the WEB.conf
+// line

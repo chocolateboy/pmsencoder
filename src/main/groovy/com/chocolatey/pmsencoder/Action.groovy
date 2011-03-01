@@ -99,12 +99,6 @@ class Action {
         Util.quoteURI(uri)
     }
 
-    /*
-        1) get the URI pointed to by options['uri'] or command.getVar('$URI') (if it hasn't already been retrieved)
-        2) perform a regex match against the document
-        3) update the stash with any named captures
-    */
-
     // define a variable in the stash
     // DSL method
     void let(Map map) {
@@ -256,7 +250,7 @@ class Action {
                         // TODO support named captures
                         log.debug("replacing $search with $replace in $name")
                         def value = context[ index + 1 ]
-                        // XXX bugfix: strings are immutable!
+                        // XXX squashed bug: strings are immutable!
                         context[ index + 1 ] = value.replaceAll(search.toString(), replace.toString())
                     } else {
                         log.warn("can't replace $search with $replace in $name: target out of bounds")

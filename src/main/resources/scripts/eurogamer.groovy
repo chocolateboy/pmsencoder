@@ -10,7 +10,7 @@ script {
             $DOWNLOADER = $MPLAYER
 
             downloader {
-                // -referrer requires a recent-ish MEncoder (from June 2010)
+                // -referrer requires a recent-ish MEncoder (>= June 2010)
                 set '-referrer': $URI
             }
 

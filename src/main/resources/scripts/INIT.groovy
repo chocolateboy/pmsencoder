@@ -16,7 +16,7 @@ init {
     def mplayerLogLevel = $PMS.isWindows() ? 'all=1' : 'all=2'
 
     /*
-        Matcher-level (global) lists of strings that provide provide useful default options
+        Matcher-level (global) lists of strings that provide useful default options
         for ffmpeg (downloader/transcoder), mplayer (downloader) and mencoder (downloader, transcoder)
 
         $DOWNLOADER = $MPLAYER:
@@ -47,7 +47,8 @@ init {
         matcher-scoped (i.e. global): $FFMPEG, $FFMPEG_OUT, $MENCODER, and $MPLAYER are lists of strings,
         but, as seen below, can be assigned strings (which are split on whitespace).
 
-        profile-scoped: $DOWNLOADER, $TRANSCODER, $OUTPUT and $HOOK are similar, but only have profile-scope
+        profile-scoped: $DOWNLOADER, $TRANSCODER, $OUTPUT and $HOOK are similar, but are only defined in the context
+        of a profile block.
     */
 
     // default ffmpeg transcode command - all of these defaults can be (p)redefined in a userscript (e.g. BEGIN.groovy)
@@ -64,7 +65,7 @@ init {
     // default mencoder transcode command
     if (!$MENCODER) {
         $MENCODER = [
-            'MENCODER', // XXX add support for mencoder-mt
+            'MENCODER', // TODO add support for mencoder-mt
             '-msglevel', 'all=2',
             '-quiet',
             '-prefer-ipv4',
@@ -94,7 +95,7 @@ init {
 
             youtube $YOUTUBE_ACCEPT - [ 37 ]
 
-        add '2304p':
+        add '3072p':
 
             youtube([ 38 ] + $YOUTUBE_ACCEPT)
 

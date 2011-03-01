@@ -33,7 +33,7 @@ init {
                 def value = pair.value
 
                 if (value)
-                    value = URLDecoder.decode(pair.value)
+                    value = URLDecoder.decode(value)
 
                 switch (name) {
                     case 'url':

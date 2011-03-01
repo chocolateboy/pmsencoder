@@ -1,5 +1,4 @@
 begin {
-    // see https://secure.wikimedia.org/wikipedia/en/wiki/YouTube#Quality_and_codecs
     IPAD_USER_AGENT = 'Mozilla/5.0 (iPad; U; CPU OS 3_2 like Mac OS X; en-us) ' +
         'AppleWebKit/531.21.10 (KHTML, like Gecko) ' +
         'Version/4.0.4 Mobile/7B334b Safari/531.21.10'
@@ -16,7 +15,7 @@ begin {
     SOPCAST = pmsConf['sopcast.path']
     SOPCAST_URI = pmsConf['sopcast.uri'] ?: 'http://127.0.0.1:8902/stream' // only used if SOPCAST is defined
     VLC = pmsConf['vlc.path']
-    // see https://secure.wikimedia.org/wikipedia/en/wiki/YouTube#Quality_and_codecs
     YOUTUBE_DL = pmsConf['youtube-dl.path']
+    // see https://secure.wikimedia.org/wikipedia/en/wiki/YouTube#Quality_and_codecs
     YOUTUBE_DL_MAX_QUALITY = pmsConf['youtube-dl.max-quality'] ?: 22
 }

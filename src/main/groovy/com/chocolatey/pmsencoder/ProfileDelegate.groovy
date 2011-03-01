@@ -146,6 +146,11 @@ class ProfileDelegate {
         scrape(regex, [:])
     }
 
+    /*
+        1) get the URI pointed to by options['uri'] or command.getVar('$URI') (if it hasn't already been retrieved)
+        2) perform a regex match against the document
+        3) update the stash with any named captures
+    */
     public boolean scrape(Object regex, Map options) {
         String uri = (options['uri'] == null) ? command.getVar('$URI') : options['uri'].toString()
         String document = (options['source'] == null) ? cache[uri] : options['source'].toString()

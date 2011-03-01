@@ -1,8 +1,8 @@
 /*
-    rtmpdump://channel?url=http%3A//example.com&-y=yvalue&-c=cvalue
+    rtmpdump://channel?-v&-r=http%3A//example.com&-y=yvalue&-W=Wvalue
 
     -o is set automatically
-    -r or -rtmp is required
+    -r or --rtmp is required
     boolean values can be set without a value e.g. rtmpdump://channel?url=http%3A//example.com&--live&--foo=bar
     values *must* be URL-encoded
     keys can be, but hyphens are not special characters, so they don't need to be
@@ -25,7 +25,7 @@ init {
                 def value = pair.value
 
                 if (value)
-                    value = URLDecoder.decode(pair.value)
+                    value = URLDecoder.decode(value)
 
                 switch (name) {
                     case 'url': // deprecated
@@ -45,10 +45,11 @@ init {
             }
 
             if (seenURL) {
+                // rtmpdump doesn't log to stdout, so no need to use -q on Windows
                 $DOWNLOADER = "$RTMPDUMP -o $DOWNLOADER_OUT -r ${$URI}"
                 $DOWNLOADER += rtmpdumpArgs
             } else {
-                log.error("invalid rtmpdump:// URI: no url parameter supplied: ${$URI}")
+                log.error("invalid rtmpdump:// URI: no -r or --rtmp parameter supplied: ${$URI}")
             }
         }
     }
