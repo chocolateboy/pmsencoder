@@ -30,7 +30,10 @@ init {
 
             for (pair in pairs) {
                 def name = URLDecoder.decode(pair.name)
-                def value = URLDecoder.decode(pair.value)
+                def value = pair.value
+
+                if (value)
+                    value = URLDecoder.decode(pair.value)
 
                 switch (name) {
                     case 'url':
