@@ -1,6 +1,9 @@
-1.5.2 Tue Mar 1 23:37:59 2011
-    - tweak/fix rtmpdump:// + navix:// protocol handling
-    - compatibility tweak
+1.5.3 Thu Mar 3 19:36:04 2011
+    - YouTube fix (thanks, SharkHunter)
+
+1.5.2 Tue Mar 1 23:42:22 2011
+    - improve rtmpdump:// and navix:// handling
+    - compatibility tweak: default to ntsc-dvd target rather than pal-dvd
 
 1.5.1 Sat Feb 26 19:13:06 2011
     - fix query-string parsing in pseudo-protocol profiles

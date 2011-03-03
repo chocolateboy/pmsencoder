@@ -23,7 +23,7 @@ import no.geosoft.cc.io.FileMonitor
 import org.apache.log4j.xml.DOMConfigurator
 
 public class Plugin implements ExternalListener, FileListener {
-    private static final String VERSION = '1.5.2'
+    private static final String VERSION = '1.5.3'
     private static final String DEFAULT_SCRIPT_DIRECTORY = 'pmsencoder'
     private static final String LOG_CONFIG = 'pmsencoder.log.config'
     private static final String SCRIPT_DIRECTORY = 'pmsencoder.script.directory'
