@@ -145,7 +145,7 @@ public class PMSEncoder extends MEncoderWebVideo implements LoggerMixin {
         // TODO: add support for GET_FLASH_VIDEOS, YOUTUBE_DL and RTMPDUMP "macros" (any others?)
         if (downloaderArgs && downloaderArgs[0] == 'MPLAYER') {
             /*
-                plugin the input/output e.g. before:
+                plug in the input/output e.g. before:
 
                     mplayer -prefer-ipv4 -quiet -dumpstream
 
@@ -177,7 +177,7 @@ public class PMSEncoder extends MEncoderWebVideo implements LoggerMixin {
 
                         after (without downloader):
 
-                             /path/to/ffmpeg -v 0 -y -threads nbcores -i $URI -threads 3 \
+                             /path/to/ffmpeg -v 0 -y -threads nbcores -i $URI -threads nbcores \
                                  -target ntsc-dvd $TRANSCODER_OUT
                     */
 

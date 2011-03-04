@@ -15,6 +15,7 @@ class PMSConf { // no need to extend HashMap<...>: we only need the subscript - 
 
 // XXX note: only public methods can be delegated to
 class Matcher implements LoggerMixin {
+    @Lazy private HTTPClient http = new HTTPClient()
     // this is the default Map type, but let's be explicit as we strictly need this type
     private Map<String, Profile> profiles = new LinkedHashMap<String, Profile>()
     private PMS pms
@@ -235,6 +236,11 @@ class Matcher implements LoggerMixin {
     }
 
     // DSL properties
+
+    // $HTTP: getter
+    public HTTPClient get$HTTP() {
+        http
+    }
 
     // $PMS: getter
     public final PMS get$PMS() {

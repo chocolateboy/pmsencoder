@@ -1,6 +1,7 @@
 end {
     profile ('MPlayer') {
         pattern {
+            match { !$DOWNLOADER }
             match {
                 // http://www.ffmpeg.org/ffmpeg-doc.html#SEC33
                 $PROTOCOL && !($PROTOCOL in [
@@ -22,9 +23,7 @@ end {
         }
 
         action {
-            if (!$DOWNLOADER) {
-                $DOWNLOADER = $MPLAYER
-            }
+            $DOWNLOADER = $MPLAYER
         }
     }
 }

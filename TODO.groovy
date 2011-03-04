@@ -317,3 +317,38 @@ transcoder = new NullTranscoder()
 // make the rtmp2pms functionality available via a web page (e.g. GitHub page) using JavaScript:
 // i.e. enter 1) name/path 2) the command line 3) optional thumbnail URI and click to generate the WEB.conf
 // line
+
+// Env.js + jQuery + Rhino:
+
+/*
+    var stage = new Stage('script');
+    var profile = new Profile('Foo');
+    stage.addProfile(profile);
+
+    profile.pattern = function() {
+        if (url.match(/^http:\/\/www.whatever.com/) {
+            return true;
+        }
+        return false
+    };
+
+    profile.action = ...
+*/
+
+// spock-esque?
+
+    pattern:
+
+        if (uri.whatever()) {
+            return true;
+        } else {
+            return false;
+        }
+
+    action:
+
+        uri = $(...)
+
+// propertyMissing + methodMissing
+
+    uri = query { $(...).foo().bar().baz() }

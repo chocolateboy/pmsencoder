@@ -24,7 +24,6 @@ import org.apache.http.NameValuePair
 
 class ProfileDelegate {
     private final Map<String, String> cache = [:] // only needed/used by this.scrape()
-    @Lazy private HTTPClient http = new HTTPClient()
     @Lazy private WebDriver driver = new HtmlUnitDriver()
     // FIXME: sigh: transitive delegation doesn't work (groovy bug)
     // so make this public so dependent classes can manually delegate to it
@@ -89,11 +88,6 @@ class ProfileDelegate {
     // DSL accessor ($OUTPUT): setter
     public List<String> set$OUTPUT(Object args) {
         command.output = Util.stringList(args)
-    }
-
-    // $HTTP: getter
-    public HTTPClient get$HTTP() {
-        http
     }
 
     // FIXME: use the URI class
@@ -161,8 +155,8 @@ class ProfileDelegate {
 
         if (document == null) {
             log.debug("getting $uri")
-            assert http != null
-            document = cache[uri] = http.get(uri)
+            assert $HTTP != null
+            document = cache[uri] = $HTTP.get(uri)
         }
 
         if (document == null) {
