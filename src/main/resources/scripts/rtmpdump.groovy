@@ -17,15 +17,12 @@ init {
 
         action {
             def rtmpdumpArgs = []
-            def pairs = $HTTP.getNameValuePairs($URI)
+            def pairs = $HTTP.getNameValuePairs($URI) // uses URLDecoder.decode to decode the name and value
             def seenURL = false
 
             for (pair in pairs) {
-                def name = URLDecoder.decode(pair.name)
+                def name = pair.name
                 def value = pair.value
-
-                if (value)
-                    value = URLDecoder.decode(value)
 
                 switch (name) {
                     case 'url': // deprecated

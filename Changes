@@ -1,4 +1,6 @@
-1.5.4 TBC
+1.5.4 Fri Mar 4 20:54:37 2011
+    - fix double URL-decoding bug in navix:// and rtmpdump:// handlers (thanks, SharkHunter)
+    - make $HTTP global
 
 1.5.3 Thu Mar 3 19:36:04 2011
     - YouTube fix (thanks, SharkHunter)
