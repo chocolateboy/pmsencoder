@@ -4,7 +4,7 @@ package com.chocolatey.pmsencoder
 import static com.chocolatey.pmsencoder.Util.guard
 
 import static groovy.io.FileType.FILES
-import groovy.swing.SwingBuilder
+import groovy.swing.SwingBuilder // TODO
 
 import javax.swing.JComponent
 import javax.swing.JFrame
@@ -125,7 +125,7 @@ public class Plugin implements ExternalListener, FileListener {
             loadDefaultLogConfig()
         }
 
-        // make sure we have a matcher before we create the transcoder
+        // make sure we have a matcher before we create the transcoding engine
         createMatcher()
 
         // initialize the transcoding engine

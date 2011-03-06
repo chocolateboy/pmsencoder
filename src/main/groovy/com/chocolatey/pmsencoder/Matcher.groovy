@@ -85,7 +85,7 @@ class Matcher implements LoggerMixin {
         def profile = new Profile(this, name, stage)
 
         try {
-            // run the profile block at compile-time to extract its pattern and action blocks,
+            // run the profile block at compile-time to extract its (optional) pattern and action blocks,
             // but invoke them at runtime
             profile.extractBlocks(closure)
 
@@ -133,6 +133,7 @@ class Matcher implements LoggerMixin {
             check:  this.&check,
             end:    this.&end
         )
+
         def groovy = new GroovyShell(binding)
 
         groovy.evaluate(reader, filename)

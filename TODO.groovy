@@ -349,6 +349,24 @@ transcoder = new NullTranscoder()
 
         uri = $(...)
 
-// propertyMissing + methodMissing
+// propertyMissing + methodMissing?
 
     uri = query { $(...).foo().bar().baz() }
+
+// complement (asynchronous) $HOOK with $BEFORE and $AFTER. $AFTER attaches a dummy process started by stopProcess()
+
+    script {
+        // .js files use common.js exports object to export jsPattern and jsAction
+        // e.g. exports['jsPattern'] = function(uri) { ... };
+        // methods looked up in map via methodMissing?
+        jsLoadResource('jspattern.js')
+        jsLoadFile('jsaction.js')
+
+        pattern {
+            match { jsPattern(uri) }
+        }
+
+        action {
+            transcoder = jsAction(uri)
+        }
+    }
