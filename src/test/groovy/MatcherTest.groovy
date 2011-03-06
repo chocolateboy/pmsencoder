@@ -34,8 +34,8 @@ class MatcherTest extends PMSEncoderTestCase {
         assertMatch([
             loadDefaultScripts: true,
             uri: 'http://www.apple.com/foobar.mov',
-            wantDownloader: { List<String> downloader ->
-                downloader[-2] == '-user-agent' && downloader[-1] == 'QuickTime/7.6.2'
+            wantTranscoder: { List<String> transcoder ->
+                transcoder[-2] == '-user-agent' && transcoder[-1] == 'QuickTime/7.6.2'
             },
             wantMatches: [ 'Apple Trailers' ]
         ])

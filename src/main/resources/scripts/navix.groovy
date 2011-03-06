@@ -4,7 +4,7 @@
     This protocol uses MPlayer as the downloader
     Only the following Navi-X output fields are supported:
 
-        url     // required: media URL - note: this *can't* be an rtmpdump:// URL
+        url     // required: media URL
         agent   // optional: HTTP user-agent
         referer // optional: HTTP referrer
         player  // optional: currently ignored
@@ -24,7 +24,7 @@ init {
         }
 
         action {
-            def mplayerArgs = []
+            def mencoderArgs = []
             def pairs = $HTTP.getNameValuePairs($URI) // uses URLDecoder.decode to decode the name and value
             def seenURL = false
 
@@ -42,11 +42,11 @@ init {
                         break
                     case 'referer':
                         if (value)
-                            mplayerArgs << '-referrer' << value // requires a recent (>= June 2010) mplayer
+                            mencoderArgs << '-referrer' << value // requires a recent (>= June 2010) mplayer
                         break
                     case 'agent':
                         if (value)
-                            mplayerArgs << '-user-agent' << value
+                            mencoderArgs << '-user-agent' << value
                         break
                     case 'player':
                         if (value)
@@ -58,7 +58,7 @@ init {
             }
 
             if (seenURL) {
-                $DOWNLOADER = $MPLAYER + mplayerArgs
+                $TRANSCODER = $MENCODER + mencoderArgs
             } else {
                 log.error("invalid navix:// URI: no url parameter supplied: ${$URI}")
             }
