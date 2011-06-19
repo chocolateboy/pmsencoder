@@ -5,6 +5,7 @@ import static com.chocolatey.pmsencoder.Util.quoteURI
 
 import net.pms.configuration.PmsConfiguration
 import net.pms.dlna.DLNAMediaInfo
+import net.pms.dlna.DLNAResource
 import net.pms.encoders.MEncoderWebVideo
 import net.pms.io.OutputParams
 import net.pms.io.ProcessWrapper
@@ -63,8 +64,12 @@ public class PMSEncoder extends MEncoderWebVideo implements LoggerMixin {
     }
 
     @Override
-    public ProcessWrapper launchTranscode(String oldURI, DLNAMediaInfo media, OutputParams params)
-    throws IOException {
+    public ProcessWrapper launchTranscode(
+        String oldURI,
+        DLNAResource dlna,
+        DLNAMediaInfo media,
+        OutputParams params
+    ) throws IOException {
         def processManager = new ProcessManager(this, params)
         def threadId = currentThreadId() // make sure concurrent threads don't use the same filename
         def uniqueId = System.currentTimeMillis() + '_' + threadId
