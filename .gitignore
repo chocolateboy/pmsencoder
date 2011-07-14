@@ -6,3 +6,4 @@ tags
 target/
 pom.xml.versionsBackup
 *.exe
+debug.log
