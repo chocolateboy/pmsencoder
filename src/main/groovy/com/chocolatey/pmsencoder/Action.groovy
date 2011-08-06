@@ -265,18 +265,35 @@ class Action {
 
         def found = [ '&el=embedded', '&el=detailspage', '&el=vevo' , '' ].any { String param ->
             def uri = "http://www.youtube.com/get_video_info?video_id=${video_id}${param}&ps=default&eurl=&gl=US&hl=en"
-            def regex = '\\bfmt_url_map=(?<youtube_fmt_url_map>[^&]+)'
+            def regex = '\\burl_encoded_fmt_stream_map=(?<youtube_fmt_url_map>[^&]+)'
             def newStash = new Stash()
             def document = $HTTP.get(uri)
 
             if ((document != null) && RegexHelper.match(document, regex, newStash)) {
-                // XXX type-inference fail
-                List<String> fmt_url_pairs = URLDecoder.decode(newStash.get('$youtube_fmt_url_map')).tokenize(',')
-                fmt_url_pairs.inject(fmt_url_map) { Map<String, String> map, String pair ->
-                    // XXX type-inference fail
-                    List<String> kv = pair.tokenize('|')
-                    map[kv[0]] = kv[1]
-                    return map
+                /*
+                    each url_data_str in url_data_strs is a URL-encoded map containing the following keys:
+
+                        fallback_host
+                        itag
+                        quality
+                        type
+                        url
+
+                    we only care about:
+
+                        itag: the YouTube fmt number
+                        url: the stream URL
+                */
+
+                // XXX numerous type-inference fails
+                def url_data_strs = URLDecoder.decode(newStash.get('$youtube_fmt_url_map')).tokenize(',')
+                url_data_strs.inject(fmt_url_map) { Map<String, String> _fmt_url_map, String url_data_str ->
+                    // collectEntries (new in Groovy 1.7.9) makes a map out of a list of pairs
+                    Map<String, String> url_data_map = url_data_str.tokenize('&').collectEntries { String pair ->
+                        pair.tokenize('=')
+                    }
+                    _fmt_url_map[URLDecoder.decode(url_data_map['itag'])] = URLDecoder.decode(url_data_map['url'])
+                    return _fmt_url_map
                 }
                 return true
             } else {

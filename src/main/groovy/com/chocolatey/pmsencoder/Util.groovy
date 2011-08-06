@@ -24,10 +24,10 @@ class Util {
         }
     }
 
-    public static <T> T guard(T defaultValue, Closure closure) {
+    public static <T> T guard(T defaultValue, Function0<T> closure) {
         T result
         try {
-            result = closure() as T
+            result = closure()
         } catch (Exception e) {
             result = defaultValue
         }

@@ -92,25 +92,14 @@ class MatcherTest extends PMSEncoderTestCase {
     }
 
     void testGameTrailers() {
-        def page_id = '48298'
-        def movie_id = '5162'
-        def filename = 't_ufc09u_educate_int_gt'
-        def uri = "http://www.gametrailers.com/download/$page_id/${filename}.flv"
-        def wantURI = "http://trailers-ak.gametrailers.com/gt_vault/${movie_id}/${filename}.flv"
+        def uri = 'http://www.gametrailers.com/video/educate-interview-ufc-2009/48298'
+        def wantURI = 'http://download.gametrailers.com/gt_vault/48298/t_ufc09u_educate_int_gt.flv'
 
         assertMatch([
             loadDefaultScripts: true,
             uri: uri,
-            wantStash: [
-                $URI:                   wantURI,
-                $gametrailers_movie_id: movie_id,
-                $gametrailers_page_id:  page_id,
-                $gametrailers_filename: filename
-            ],
-            wantMatches: [
-                'GameTrailers (Revert PMS Workaround)',
-                'GameTrailers',
-            ]
+            wantURI: wantURI,
+            wantMatches: [ 'GameTrailers' ]
         ])
     }
 }

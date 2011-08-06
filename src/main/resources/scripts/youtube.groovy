@@ -18,7 +18,7 @@ check {
             // extract the title and uploader ("creator") so that scripts can use them
             youtube_title = browse (uri: youtube_scrape_uri) { $('meta', name: 'title').@content }
             youtube_uploader = browse (uri: youtube_scrape_uri) {
-                $('span', 'data-subscription-type': 'user').'@data-subscription-username'
+                $('span', 'data-subscription-type': 'user').'@data-subscription-value'
             }
         }
     }

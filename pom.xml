@@ -4,12 +4,12 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>com.chocolatey.pmsencoder</groupId>
   <artifactId>pmsencoder</artifactId>
-  <version>1.5.6</version>
+  <version>1.5.7</version>
   <name>PMSEncoder</name>
   <description>A plugin for PS3 Media Server that adds support for scriptable web video streaming.</description>
   <properties>
     <groovypp-repo>http://groovypp.artifactoryonline.com/groovypp</groovypp-repo>
-    <groovypp-version>0.4.170</groovypp-version>
+    <groovypp-version>0.4.296_1.7.10</groovypp-version>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <junit-version>4.8.2</junit-version>
   </properties>
@@ -57,7 +57,7 @@
     <dependency>
       <groupId>com.google.code</groupId>
       <artifactId>ps3mediaserver</artifactId>
-      <version>1.20.412</version>
+      <version>1.30.1</version>
       <scope>provided</scope>
     </dependency>
     <dependency>
@@ -246,16 +246,16 @@
               <checksum>b31c60f99a3c163af1658e6d894f579af98011d6</checksum>
             </artifactItem>
             <artifactItem>
-              <groupId>com.google.code</groupId>
-              <artifactId>ps3mediaserver</artifactId>
-              <version>1.20.412</version>
-              <packaging>jar</packaging>
-              <downloadUrl>http://ps3mediaserver.googlecode.com/files/pms-generic-linux-unix-1.20.412.tgz</downloadUrl>
-              <install>true</install>
-              <force>false</force>
-              <checksum>c7b609a27aeab358e870b5c490425206e067bd01</checksum>
-              <extractFile>pms-linux-1.20.412/pms.jar</extractFile>
-              <extractFileChecksum>4644fd515cb9c4f9a24e7629ecbca0626b961f45</extractFileChecksum>
+                <groupId>com.google.code</groupId>
+                <artifactId>ps3mediaserver</artifactId>
+                <version>1.30.1</version>
+                <packaging>jar</packaging>
+                <downloadUrl>http://ps3mediaserver.googlecode.com/files/pms-generic-linux-unix-1.30.1.tgz</downloadUrl>
+                <install>true</install>
+                <force>false</force>
+                <checksum>51705ad32a882431a9c5e155bdaf9740d9757d6f</checksum>
+                <extractFile>pms-linux-1.30.1/pms.jar</extractFile>
+                <extractFileChecksum>1bf73cdaa7b49379c028afe252e245f4ec274c40</extractFileChecksum>
             </artifactItem>
           </artifactItems>
         </configuration>
