@@ -4,13 +4,13 @@ This is a plugin for [PS3 Media Server](http://code.google.com/p/ps3mediaserver/
 
 # Prerequisites <a name="Prerequisites"></a>
 
-Due to an [issue](http://code.google.com/p/ps3mediaserver/issues/detail?id=766) in the Mac OS X build of PMS, PMSEncoder doesn't currently work on Macs. In addition, PMS doesn't support web streams for the Xbox 360. PMSEncoder should work on all other platforms/renderers supported by PS3 Media Server.
+PMS doesn't support web streams for the Xbox 360. PMSEncoder should work on all other platforms/renderers supported by PS3 Media Server.
 
 These instructions assume you have the [latest version](http://www.ps3mediaserver.org/forum/viewtopic.php?f=6&t=3507&p=36904#p36904) of PS3 Media Server, the [latest version](http://www.java.com/en/download/index.jsp) of Java, and a recent (post June 2010) MPlayer/MEncoder.
 
 # Installation <a name="Install"></a>
 
-* download the [PMSEncoder jar file](http://github.com/downloads/chocolateboy/pmsencoder/pmsencoder-1.5.5.jar) and place it in the PMS `plugins` directory
+* download the [PMSEncoder jar file](http://github.com/downloads/chocolateboy/pmsencoder/pmsencoder-1.5.7.jar) and place it in the PMS `plugins` directory
 * shut down PMS; open `PMS.conf` in a text editor; and add `pmsencoder` to the front of the list of engines e.g.
   * `engines = pmsencoder,mencoder,tsmuxer,mplayeraudio` &c.
 * restart PMS
@@ -20,7 +20,7 @@ These instructions assume you have the [latest version](http://www.ps3mediaserve
 To upgrade to a new version of the plugin:
 
 * check the [release notes](https://github.com/chocolateboy/pmsencoder/wiki/Release-Notes) to see if there any breaking changes or other incompatibilities
-* replace the old jar file in the `plugins` directory with the [new version](http://github.com/downloads/chocolateboy/pmsencoder/pmsencoder-1.5.5.jar) and restart PMS
+* replace the old jar file in the `plugins` directory with the [new version](http://github.com/downloads/chocolateboy/pmsencoder/pmsencoder-1.5.7.jar) and restart PMS
 
 ## Uninstalling <a name="Uninstall"></a>
 
@@ -43,7 +43,7 @@ To build PMSEncoder from source, see the [Wiki](https://github.com/chocolateboy/
 * If PMS.conf doesn't exist (see [here](http://ps3mediaserver.org/forum/viewtopic.php?f=6&t=3507&p=32731#p32731) for the default locations), create it by clicking the "Save" icon in the PMS GUI.
 * If the list of engines doesn't exist in PMS.conf, follow the instructions [here](http://ps3mediaserver.org/forum/viewtopic.php?f=6&t=7435&p=34674#p34674).
 * Make sure there's only one version of the plugin in the `plugins` directory.
-* Make sure the edited PMS.conf is the one PMS is using (search the filesystem for other copies).
+* Make sure the edited PMS.conf is the one PMS is using (see [here](http://www.ps3mediaserver.org/forum/viewtopic.php?f=6&t=3507&p=32731#p32731) for the default locations).
 * Make sure `pmsencoder` is still first in the engines list.
 * Make sure `mencoder_path` is not set (or is not pointing to the old, standalone version of PMSEncoder).
 * Make sure the error is reproducible after a PMS restart. Caching in PMS and/or the PS3 often produces one-off errors.
@@ -65,7 +65,7 @@ For more details, discussion and troubleshooting tips, see the [wiki](http://wik
 
 # Version <a name="Version"></a>
 
-1.5.5
+1.5.7
 
 # License <a name="License"></a>
 
