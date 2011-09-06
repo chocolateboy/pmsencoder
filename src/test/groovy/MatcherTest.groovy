@@ -42,7 +42,7 @@ class MatcherTest extends PMSEncoderTestCase {
     }
 
     /*
-        we can't use assertMatch here due to the volatility of the token (and possibly)
+        we can't use assertMatch here due to the volatility of the token and (possibly)
         the highest available resolution.
     */
     void testYouTube() {
