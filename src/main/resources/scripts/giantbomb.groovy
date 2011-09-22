@@ -4,7 +4,7 @@ script {
     profile ('GiantBomb') {
         pattern {
             domain 'giantbomb.com'
-            scrape '"streaming_\\w+":\\s*"(?<extension>\\w+):(?<path>[^"]+)"'
+            scrape '&quot;streaming_\\w+&quot;:\\s*&quot;(?<extension>\\w+):(?<path>.+?)&quot;'
         }
 
         action {

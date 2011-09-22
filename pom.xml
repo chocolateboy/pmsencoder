@@ -4,7 +4,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>com.chocolatey.pmsencoder</groupId>
   <artifactId>pmsencoder</artifactId>
-  <version>1.5.8-b1</version>
+  <version>1.5.8</version>
   <name>PMSEncoder</name>
   <description>A plugin for PS3 Media Server that adds support for scriptable web video streaming.</description>
   <properties>
@@ -59,7 +59,7 @@
     <dependency>
       <groupId>com.google.code</groupId>
       <artifactId>ps3mediaserver</artifactId>
-      <version>1.40.0-b2a</version>
+      <version>1.40.0</version>
       <scope>provided</scope>
     </dependency>
     <dependency>
@@ -250,12 +250,14 @@
             <artifactItem>
                 <groupId>com.google.code</groupId>
                 <artifactId>ps3mediaserver</artifactId>
-                <version>1.40.0-b2a</version>
+                <version>1.40.0</version>
                 <packaging>jar</packaging>
-                <downloadUrl>file:///home/chocolateboy/opt/PMS/pms-linux-1.30.0/pms.jar</downloadUrl>
+                <downloadUrl>https://ps3mediaserver.googlecode.com/files/pms-generic-linux-unix-1.40.0.tgz</downloadUrl>
                 <install>true</install>
                 <force>false</force>
-                <checksum>ecfacdcfe94e0be6a830b2917042dc80fd4aaaab</checksum>
+                <checksum>856024890f4e024da32169c1243deba08e597c08</checksum>
+                <extractFile>pms-linux-1.40.0/pms.jar</extractFile>
+                <extractFileChecksum>a00814be99104a1e63496978a234b8f54e39f575</extractFileChecksum>
             </artifactItem>
           </artifactItems>
         </configuration>
