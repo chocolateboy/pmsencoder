@@ -38,12 +38,12 @@ To build PMSEncoder from source, see the [Wiki](https://github.com/chocolateboy/
 
 # Troubleshooting <a name="Troubleshooting"></a>
 
+* Make sure the WEB.conf and the edited PMS.conf are in the profile directory (see [here](http://www.ps3mediaserver.org/forum/viewtopic.php?f=6&t=3507&p=32731#p32731) for the default locations).
 * Internet Explorer saves .jar files as .zip files. Either save the file with a [different](http://www.mozilla.com/firefox/) [browser](http://www.google.com/chrome), or rename it, replacing the .zip extension with .jar.
 * <a name="HTTPEngine"></a>If you [disabled "HTTP Engine V2"](#Tips), try re-enabling it as some renderers, such as the Sony Bravia KDL-37V5500, require it.
 * If PMS.conf doesn't exist (see [here](http://ps3mediaserver.org/forum/viewtopic.php?f=6&t=3507&p=32731#p32731) for the default locations), create it by clicking the "Save" icon in the PMS GUI.
 * If the list of engines doesn't exist in PMS.conf, follow the instructions [here](http://ps3mediaserver.org/forum/viewtopic.php?f=6&t=7435&p=34674#p34674).
 * Make sure there's only one version of the plugin in the `plugins` directory.
-* Make sure the edited PMS.conf is the one PMS is using (see [here](http://www.ps3mediaserver.org/forum/viewtopic.php?f=6&t=3507&p=32731#p32731) for the default locations).
 * Make sure `pmsencoder` is still first in the engines list.
 * Make sure `mencoder_path` is not set (or is not pointing to the old, standalone version of PMSEncoder).
 * Make sure the error is reproducible after a PMS restart. Caching in PMS and/or the PS3 often produces one-off errors.
