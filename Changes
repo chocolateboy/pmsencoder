@@ -1,5 +1,6 @@
-1.5.78-b1 Tue Sep 6 21:52:54 2011
+1.5.8 Thu Sep 22 20:06:17 2011
     - compatibility with PMS >= 1.40.0
+    - fix scripts: gameswelt, giantbomb and pc_games
 
 1.5.7 Sat Aug 6 18:59:49 2011
     - compatibility with latest YouTube changes
