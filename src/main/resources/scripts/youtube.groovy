@@ -4,7 +4,7 @@ check {
     profile ('YouTube Metadata') {
         // extract the resource's video_id from the URI of the standard YouTube page
         pattern {
-            match $URI: '^http://(?:\\w+\\.)?youtube\\.com/watch\\?v=(?<youtube_video_id>[^&]+)'
+            match $URI: '^https?://(?:\\w+\\.)?youtube\\.com/watch\\?v=(?<youtube_video_id>[^&]+)'
         }
 
         action {
@@ -27,22 +27,30 @@ check {
         pattern {
             // match any of the sites youtube-dl supports - copied from the source
             match $URI: [
+                '^gvsearch(\\d+|all)?:[\\s\\S]+',
                 '^(?:http://)?(?:[a-z0-9]+\\.)?photobucket\\.com/.*[\\?\\&]current=(.*\\.flv)',
                 '^(?:http://)?(?:[a-z]+\\.)?video\\.yahoo\\.com/(?:watch|network)/([0-9]+)(?:/|\\?v=)([0-9]+)(?:[#\\?].*)?',
-                '^(?:https?://)?(?:\\w+\\.)?facebook.com/video/video.php\\?(?:.*?)v=(?P<ID>\\d+)(?:.*)',
-                '^((?:https?://)?(?:youtu\\.be/|(?:\\w+\\.)?youtube(?:-nocookie)?\\.com/)(?:(?:(?:v|embed)/)|(?:(?:watch(?:_popup)?(?:\\.php)?)?(?:\\?|#!?)(?:.+&)?v=)))?([0-9A-Za-z_-]+)(?(1).+)?$',
+                '^(?:https?://)?(?:\\w+\\.)?blip\\.tv(/.+)$',
+                '^(?:https?://)?(?:\\w+\\.)?facebook.com/video/video.php\\?(?:.*?)v=(\\d+)(?:.*)',
+                '^(https?://)?(www\\.)?escapistmagazine.com/videos/view/([^/]+)/([^/?]+)[/?]?.*$',
+                '^(?:https?://)?(?:(?:www|player).)?vimeo\\.com/(?:groups/[^/]+/)?(?:videos?/)?([0-9]+)',
+                '^((?:https?://)?(?:youtu\\.be/|(?:\\w+\\.)?youtube(?:-nocookie)?\\.com/)(?!view_play_list|my_playlists|artist|playlist)(?:(?:(?:v|embed|e)/)|(?:(?:watch(?:_popup)?(?:\\.php)?)?(?:\\?|#!?)(?:.+&)?v=))?)?([0-9A-Za-z_-]+)(?(1).+)?$',
                 '^(?:http://)?video\\.google\\.(?:com(?:\\.au)?|co\\.(?:uk|jp|kr|cr)|ca|de|es|fr|it|nl|pl)/videoplay\\?docid=([^\\&]+).*',
                 '^(?:http://)?(?:\\w+\\.)?depositfiles.com/(?:../(?#locale))?files/(.+)',
                 '^(?:http://)?(?:www\\.)?metacafe\\.com/watch/([^/]+)/([^/]+)/.*',
+                '^(?:http://)?(?:www\\.)?myvideo\\.de/watch/([0-9]+)/([^?/]+).*',
                 '^(?:(?:(?:http://)?(?:\\w+\\.)?youtube.com/user/)|ytuser:)([A-Za-z0-9_-]+)',
-                '^(?:http://)?(?:\\w+\\.)?youtube.com/(?:(?:view_play_list|my_playlists|artist)\\?.*?(p|a)=|user/.*?/user/|p/|user/.*?#[pg]/c/)([0-9A-Za-z]+)(?:/.*?/([0-9A-Za-z_-]+))?.*',
-                '^(?i)(?:https?://)?(?:www\\.)?dailymotion\\.[a-z]{2,3}/video/([^_/]+)_([^/]+)'
+                '^(?:http://)?(?:\\w+\\.)?youtube.com/(?:(?:view_play_list|my_playlists|artist|playlist)\\?.*?(p|a|list)=|user/.*?/user/|p/|user/.*?#[pg]/c/)([0-9A-Za-z]+)(?:/.*?/([0-9A-Za-z_-]+))?.*',
+                '^(?i)(?:https?://)?(?:www\\.)?dailymotion\\.[a-z]{2,3}/video/([^_/]+)_([^/]+)',
+                '^(:(tds|thedailyshow|cr|colbert|colbertnation|colbertreport))|(https?://)?(www\\.)?(thedailyshow|colbertnation)\\.com/full-episodes/(.*)$',
+                '^ytsearch(\\d+|all)?:[\\s\\S]+',
+                '^yvsearch(\\d+|all)?:[\\s\\S]+'
             ]
         }
 
         action {
             // XXX: keep this up-to-date
-            $youtube_dl_compatible = '2011.02.25c' // version the regexes were copied from
+            $youtube_dl_compatible = '2011.09.18c' // version the regexes were copied from
         }
     }
 

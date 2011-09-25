@@ -9,6 +9,7 @@ end {
                     'file',
                     'gopher',
                     'http',
+                    'https',
                     'pipe',
                     'rtmp',
                     'rtmpe',
