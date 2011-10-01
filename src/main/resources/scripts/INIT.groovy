@@ -65,7 +65,7 @@ init {
     // default mencoder transcode command
     if (!$MENCODER) {
         $MENCODER = [
-            'MENCODER', // TODO add support for mencoder-mt
+            'MENCODER',
             '-msglevel', 'all=2',
             '-quiet',
             '-prefer-ipv4',

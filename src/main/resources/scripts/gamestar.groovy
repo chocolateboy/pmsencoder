@@ -8,7 +8,7 @@ script {
 
         action {
             // set the scrape URI to the URI of the XML file containing the video's metadata
-            scrape '/jw4/player\\.swf\\?config=(?<URI>[^"]+)'
+            scrape '/jw\\d+/player\\.swf\\?config=(?<URI>[^"]+)'
             // now extract the video URI from the XML's <file>...</file> element
             scrape '<file>(?<URI>[^<]+)</file>'
         }

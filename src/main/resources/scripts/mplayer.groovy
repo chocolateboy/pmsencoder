@@ -25,8 +25,9 @@ end {
 
         action {
             // don't clobber MEncoder options if they've already been set
-            if (!($TRANSCODER[0] == 'MENCODER' || $TRANSCODER[0] == 'MENCODER_MT'))
+            if ($TRANSCODER[0] != 'MENCODER') {
                 $TRANSCODER = $MENCODER
+            }
         }
     }
 }

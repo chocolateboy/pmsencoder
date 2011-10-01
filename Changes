@@ -1,3 +1,8 @@
+1.5.10 Sat Oct 1 17:47:36 2011
+    - breaking changes:
+        - remove support for separate multi-threaded MEncoder path (fixes support for recent SubJunk builds)
+    - fix gamestar script
+
 1.5.9 Sun Sep 25 11:01:57 2011
     - native YouTube handler: support https URLs
     - update youtube-dl compatibility to 2011.09.18c

@@ -89,7 +89,6 @@ public class PMSEncoder extends MEncoderWebVideo implements LoggerMixin {
 
         def ffmpeg = normalizePath(configuration.getFfmpegPath())
         def mencoder = normalizePath(configuration.getMencoderPath())
-        def mencoder_mt = normalizePath(configuration.getMencoderMTPath())
         def mplayer = normalizePath(configuration.getMplayerPath())
 
         oldStash.put('$URI', oldURI)
@@ -97,7 +96,6 @@ public class PMSEncoder extends MEncoderWebVideo implements LoggerMixin {
         oldStash.put('$TRANSCODER_OUT', transcoderOutputPath)
         oldStash.put('$ffmpeg', ffmpeg);
         oldStash.put('$mencoder', mencoder)
-        oldStash.put('$mencoder_mt', mencoder_mt)
         oldStash.put('$mplayer', mplayer)
 
         log.info('invoking matcher for: ' + oldURI)
@@ -166,7 +164,7 @@ public class PMSEncoder extends MEncoderWebVideo implements LoggerMixin {
         if (transcoderArgs) {
             def transcoder = transcoderArgs[0]
 
-            if (transcoder != null && transcoder in [ 'FFMPEG', 'MENCODER', 'MENCODER_MT' ]) {
+            if (transcoder != null && transcoder in [ 'FFMPEG', 'MENCODER' ]) {
                 def transcoderInput = downloaderArgs ? downloaderOutputPath : newURI
 
                 if (transcoder == 'FFMPEG') {
@@ -207,7 +205,7 @@ public class PMSEncoder extends MEncoderWebVideo implements LoggerMixin {
                              /path/to/mencoder -mencoder -options -o $TRANSCODER_OUT $URI
                     */
 
-                    transcoderArgs[0] = transcoder == 'MENCODER' ? mencoder : mencoder_mt
+                    transcoderArgs[0] = mencoder
                     transcoderArgs += [ '-o', transcoderOutputPath, transcoderInput ]
                 }
             }
