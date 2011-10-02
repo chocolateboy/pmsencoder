@@ -6,7 +6,7 @@ This is a plugin for [PS3 Media Server](http://code.google.com/p/ps3mediaserver/
 
 PMS doesn't support web streams for the Xbox 360. PMSEncoder should work on all other platforms/renderers supported by PS3 Media Server.
 
-These instructions assume you have the [latest version](http://www.ps3mediaserver.org/forum/viewtopic.php?f=6&t=3507&p=36904#p36904) of PS3 Media Server, the [latest version](http://www.java.com/en/download/index.jsp) of Java, and a recent (post June 2010) MPlayer/MEncoder.
+These instructions assume you have the [latest version](http://www.ps3mediaserver.org/forum/viewtopic.php?f=6&t=3507&p=36904#p36904) (bottom post) of PS3 Media Server, the [latest version](http://www.java.com/en/download/index.jsp) of Java, and a recent (post June 2010) MPlayer/MEncoder.
 
 # Installation <a name="Install"></a>
 
@@ -40,6 +40,7 @@ To build PMSEncoder from source, see the [Wiki](https://github.com/chocolateboy/
 
 # Troubleshooting <a name="Troubleshooting"></a>
 
+* Make sure you're using the [latest version of PMS](http://www.ps3mediaserver.org/forum/viewtopic.php?f=6&t=3507&p=38376#p38376) and the latest version of PMSEncoder.
 * Make sure the WEB.conf and the edited PMS.conf are in the profile directory (see [here](http://www.ps3mediaserver.org/forum/viewtopic.php?f=6&t=3507&p=32731#p32731) for the default locations).
 * Internet Explorer saves .jar files as .zip files. Either save the file with a [different](http://www.mozilla.com/firefox/) [browser](http://www.google.com/chrome), or rename it, replacing the .zip extension with .jar.
 * <a name="HTTPEngine"></a>If you [disabled "HTTP Engine V2"](#Tips), try re-enabling it as some renderers, such as the Sony Bravia KDL-37V5500, require it.
