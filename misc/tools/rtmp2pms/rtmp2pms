@@ -2,7 +2,7 @@
 
 # rtmp2pms -u: convert rtmpdump command lines to PMSEncoder rtmpdump:// URIs
 # rtmp2pms -p: convert simple text files with stream names, (optional) thumbnail URLs
-#              and rtmpdump commands to PMS WEB.conf lines
+#              and rtmpdump commands to PMS WEB.conf lines (see news.txt for an example)
 #
 # usage:
 #

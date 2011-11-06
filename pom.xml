@@ -4,7 +4,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>com.chocolatey.pmsencoder</groupId>
   <artifactId>pmsencoder</artifactId>
-  <version>1.5.10</version>
+  <version>1.5.11-b1</version>
   <name>PMSEncoder</name>
   <description>A plugin for PS3 Media Server that adds support for scriptable web video streaming.</description>
   <properties>
@@ -12,6 +12,7 @@
     <groovypp-version>0.9.0_1.7.10</groovypp-version>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <junit-version>4.9</junit-version>
+    <pms-version>1.50.0-b2</pms-version>
   </properties>
   <dependencies>
     <dependency>
@@ -59,7 +60,7 @@
     <dependency>
       <groupId>com.google.code</groupId>
       <artifactId>ps3mediaserver</artifactId>
-      <version>1.40.0</version>
+      <version>${pms-version}</version>
       <scope>provided</scope>
     </dependency>
     <dependency>
@@ -250,14 +251,14 @@
             <artifactItem>
                 <groupId>com.google.code</groupId>
                 <artifactId>ps3mediaserver</artifactId>
-                <version>1.40.0</version>
+                <version>${pms-version}</version>
                 <packaging>jar</packaging>
-                <downloadUrl>https://ps3mediaserver.googlecode.com/files/pms-generic-linux-unix-1.40.0.tgz</downloadUrl>
+                <downloadUrl>https://ps3mediaserver.googlecode.com/files/pms-generic-linux-unix-${pms-version}.tgz</downloadUrl>
                 <install>true</install>
                 <force>false</force>
-                <checksum>856024890f4e024da32169c1243deba08e597c08</checksum>
-                <extractFile>pms-linux-1.40.0/pms.jar</extractFile>
-                <extractFileChecksum>a00814be99104a1e63496978a234b8f54e39f575</extractFileChecksum>
+                <checksum>dfcaa20c9e442664b0ed0cdefd32240b3933636e</checksum>
+                <extractFile>pms-linux-1.50.0/pms.jar</extractFile>
+                <extractFileChecksum>8ac692d4324c102e6838542b8892937c4b8d90da</extractFileChecksum>
             </artifactItem>
           </artifactItems>
         </configuration>

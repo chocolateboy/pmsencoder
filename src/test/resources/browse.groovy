@@ -5,7 +5,7 @@ script {
 
             // confirm that it works in the pattern block
             match {
-                browse { $('title').text() } == 'Uncharted 3 chateau gameplay part 2 - Eurogamer Videos | Eurogamer.net'
+                browse { $('title').text() } == 'Uncharted 3 chateau gameplay part 2 &bull; Eurogamer.net'
             }
         }
 
