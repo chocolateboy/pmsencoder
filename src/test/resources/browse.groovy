@@ -1,17 +1,18 @@
 script {
     profile ('Browse') {
         pattern {
-            domain 'eurogamer.net'
+            domain 'example.org'
 
             // confirm that it works in the pattern block
             match {
-                browse { $('title').text() } == 'Uncharted 3 chateau gameplay part 2 &bull; Eurogamer.net'
+                // XXX: why are these entities - this is &mdash; - being translated?
+                browse { $('title').text() } == 'IANA — Example domains'
             }
         }
 
         action {
             // confirm that it works in the action block
-            $URI = 'http://www.eurogamer.net/' + browse { $('a.download').@href }
+            title = browse { $('title').text() }
         }
     }
 }

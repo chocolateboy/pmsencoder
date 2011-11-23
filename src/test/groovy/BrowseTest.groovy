@@ -10,11 +10,11 @@ class BrowseTest extends PMSEncoderTestCase {
 
     void testBrowseReturn() {
         assertMatch([
-            uri: 'http://www.eurogamer.net/videos/uncharted-3-chateau-gameplay-part-2',
+            uri: 'http://www.example.org',
             wantMatches: [ 'Browse' ],
             wantStash: [
-                '$URI':
-                'http://www.eurogamer.net/downloads/80345/uncharted-3-chateau-gameplay-part-2_stream_h264v2_large.mp4'
+                '$title': 'IANA — Example domains',
+                '$URI':   'http://www.example.org'
             ]
         ])
     }
