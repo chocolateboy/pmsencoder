@@ -12,7 +12,6 @@ scripts/giantbomb.groovy
 scripts/hls_player.groovy
 scripts/hook.groovy
 scripts/icanhascheezburger.groovy
-scripts/megaupload.groovy
 scripts/movshare.groovy
 scripts/mplayer.groovy
 scripts/navix.groovy

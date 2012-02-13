@@ -1,279 +1,288 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd" xmlns="http://maven.apache.org/POM/4.0.0"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-  <modelVersion>4.0.0</modelVersion>
-  <groupId>com.chocolatey.pmsencoder</groupId>
-  <artifactId>pmsencoder</artifactId>
-  <version>1.5.12</version>
-  <name>PMSEncoder</name>
-  <description>A plugin for PS3 Media Server that adds support for scriptable web video streaming.</description>
-  <properties>
-    <groovypp-repo>http://groovypp.artifactoryonline.com/groovypp</groovypp-repo>
-    <groovypp-version>0.9.0_1.7.10</groovypp-version>
-    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <junit-version>4.9</junit-version>
-    <pms-version>1.50.0</pms-version>
-  </properties>
-  <dependencies>
-    <dependency>
-      <groupId>org.mbte.groovypp</groupId>
-      <artifactId>groovypp-all</artifactId>
-      <version>${groovypp-version}</version>
-      <scope>compile</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.codehaus.groovy.modules.http-builder</groupId>
-      <artifactId>http-builder</artifactId>
-      <version>0.5.1</version>
-      <scope>compile</scope>
-    </dependency>
-    <dependency>
-      <groupId>log4j</groupId>
-      <artifactId>log4j</artifactId>
-      <version>1.2.16</version>
-    </dependency>
-    <dependency>
-      <groupId>mockit</groupId>
-      <artifactId>jmockit</artifactId>
-      <version>0.999.4</version>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>junit</groupId>
-      <artifactId>junit</artifactId>
-      <version>${junit-version}</version>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.codehaus.geb</groupId>
-      <artifactId>geb-core</artifactId>
-      <!-- 0.6.0 doesn't work -->
-      <version>0.5.1</version>
-    </dependency>
-    <dependency>
-      <groupId>org.seleniumhq.selenium</groupId>
-      <artifactId>selenium-htmlunit-driver</artifactId>
-      <!-- XXX 2.0b2 doesn't work -->
-      <!-- XXX 2.5.0 doesn't work -->
-      <version>2.0b1</version>
-    </dependency>
-    <dependency>
-      <groupId>com.google.code</groupId>
-      <artifactId>ps3mediaserver</artifactId>
-      <version>${pms-version}</version>
-      <scope>provided</scope>
-    </dependency>
-    <dependency>
-      <groupId>info.codesaway</groupId>
-      <artifactId>regexplus</artifactId>
-      <version>2010-04-16</version>
-    </dependency>
-  </dependencies>
-  <repositories>
-    <repository>
-      <id>libs-releases</id>
-      <url>${groovypp-repo}/libs-releases</url>
-    </repository>
-    <repository>
-      <id>libs-snapshots</id>
-      <url>${groovypp-repo}/libs-snapshots</url>
-    </repository>
-    <repository>
-      <snapshots>
-        <enabled>true</enabled>
-      </snapshots>
-      <id>java.net</id>
-      <name>Java.net Repository</name>
-      <url>http://download.java.net/maven/2/</url>
-    </repository>
-    <repository>
-      <snapshots>
-        <enabled>true</enabled>
-      </snapshots>
-      <id>offical</id>
-      <name>Maven Official Repository</name>
-      <url>http://repo1.maven.org/maven2</url>
-    </repository>
-  </repositories>
-  <pluginRepositories>
-    <pluginRepository>
-      <id>plugins-releases</id>
-      <url>${groovypp-repo}/plugins-releases</url>
-    </pluginRepository>
-    <pluginRepository>
-      <id>plugins-snapshots</id>
-      <url>${groovypp-repo}/plugins-snapshots</url>
-    </pluginRepository>
-    <pluginRepository>
-      <id>ossrh</id>
-      <name>Sonatype OSS Repository</name>
-      <url>http://oss.sonatype.org/content/groups/public</url>
-    </pluginRepository>
-  </pluginRepositories>
-  <build>
-    <sourceDirectory>${project.basedir}/src/main/groovy</sourceDirectory>
-    <testSourceDirectory>${project.basedir}/src/test/groovy</testSourceDirectory>
-    <defaultGoal>surefire-report:report</defaultGoal>
-    <plugins>
-      <plugin>
-        <artifactId>maven-compiler-plugin</artifactId>
-        <version>2.3.2</version>
-        <configuration>
-          <source>1.6</source>
-          <target>1.6</target>
-        </configuration>
-      </plugin>
-      <plugin>
-        <groupId>org.codehaus.gmaven</groupId>
-        <artifactId>gmaven-plugin</artifactId>
-        <version>1.3</version>
-        <executions>
-          <execution>
-            <goals>
-              <goal>compile</goal>
-              <goal>testCompile</goal>
-            </goals>
-          </execution>
-          <execution>
-              <id>generate-script-manifest</id>
-              <phase>validate</phase>
-              <goals>
-                  <goal>execute</goal>
-              </goals>
-              <configuration>
-                  <source>
-                      <!-- http://veithen.blogspot.com/2010/03/improve-your-maven-builds-with-groovy.html -->
-                      <!-- This generates a manifest of scripts for use by Matcher.loadDefaultsScripts -->
-                      <![CDATA[
-                            def resources = 'src/main/resources'
-                            def manifest = new File(project.basedir, "$resources/lib.txt")
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>com.chocolatey.pmsencoder</groupId>
+    <artifactId>pmsencoder</artifactId>
+    <version>1.5.12</version>
+    <name>PMSEncoder</name>
+    <description>A plugin for PS3 Media Server that adds support for scriptable web video streaming.</description>
+    <properties>
+        <groovypp-repo>http://groovypp.artifactoryonline.com/groovypp</groovypp-repo>
+        <groovypp-version>0.9.0_1.7.10</groovypp-version>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <junit-version>4.9</junit-version>
+        <pms-version>1.50.1</pms-version>
+        <regexplus-version>2010-04-16</regexplus-version>
+    </properties>
 
-                            manifest.parentFile.mkdirs();
-
-                            if (manifest.exists())
-                                manifest.delete()
-
-                            def files = []
-                            new File(project.basedir, "$resources/scripts").eachFileRecurse(groovy.io.FileType.FILES) {
-                                if (it.file && it.name.endsWith(".groovy")) {
-                                    files << "scripts/$it.name\n"
-                                }
-                            }
-
-                            files.sort().each { manifest.append(it) }
-                      ]]>
-                  </source>
-              </configuration>
-          </execution>
-
-        </executions>
-        <dependencies>
-          <dependency>
-            <groupId>org.codehaus.gmaven.runtime</groupId>
-            <artifactId>gmaven-runtime-1.7</artifactId>
-            <version>1.3</version>
-            <exclusions>
-              <exclusion>
-                <artifactId>groovy-all</artifactId>
-                <groupId>org.codehaus.groovy</groupId>
-              </exclusion>
-              <exclusion>
-                <artifactId>junit</artifactId>
-                <groupId>junit</groupId>
-              </exclusion>
-            </exclusions>
-          </dependency>
-          <dependency>
+    <dependencies>
+        <dependency>
             <groupId>org.mbte.groovypp</groupId>
-            <artifactId>groovypp</artifactId>
+            <artifactId>groovypp-all</artifactId>
             <version>${groovypp-version}</version>
-          </dependency>
-          <dependency>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.codehaus.groovy.modules.http-builder</groupId>
+            <artifactId>http-builder</artifactId>
+            <version>0.5.1</version>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>log4j</groupId>
+            <artifactId>log4j</artifactId>
+            <version>1.2.16</version>
+        </dependency>
+        <dependency>
+            <groupId>mockit</groupId>
+            <artifactId>jmockit</artifactId>
+            <version>0.999.4</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
             <version>${junit-version}</version>
-          </dependency>
-        </dependencies>
-        <configuration>
-          <providerSelection>1.7</providerSelection>
-          <verbose>true</verbose>
-          <debug>true</debug>
-          <stacktrace>true</stacktrace>
-        </configuration>
-      </plugin>
-      <plugin>
-        <artifactId>maven-assembly-plugin</artifactId>
-        <version>2.1</version>
-        <configuration>
-          <descriptorRefs>
-            <descriptorRef>jar-with-dependencies</descriptorRef>
-          </descriptorRefs>
-        </configuration>
-      </plugin>
-      <plugin>
-        <groupId>com.savage7.maven.plugins</groupId>
-        <artifactId>maven-external-dependency-plugin</artifactId>
-        <version>0.5-SNAPSHOT</version>
-        <executions>
-          <execution>
-            <id>clean-external-dependencies</id>
-            <phase>clean</phase>
-            <goals>
-              <goal>clean-external</goal>
-            </goals>
-          </execution>
-          <execution>
-            <id>resolve-install-external-dependencies</id>
-            <phase>process-resources</phase>
-            <goals>
-              <goal>resolve-external</goal>
-              <goal>install-external</goal>
-            </goals>
-          </execution>
-        </executions>
-        <inherited>true</inherited>
-        <configuration>
-          <stagingDirectory>${project.build.directory}/dependencies/</stagingDirectory>
-          <createChecksum>true</createChecksum>
-          <skipChecksumVerification>false</skipChecksumVerification>
-          <force>false</force>
-          <artifactItems>
-            <artifactItem>
-              <groupId>info.codesaway</groupId>
-              <artifactId>regexplus</artifactId>
-              <version>2010-04-16</version>
-              <packaging>jar</packaging>
-              <downloadUrl>http://codesaway.info/RegExPlus/RegExPlus.jar</downloadUrl>
-              <install>true</install>
-              <force>false</force>
-              <checksum>b31c60f99a3c163af1658e6d894f579af98011d6</checksum>
-            </artifactItem>
-            <artifactItem>
-                <groupId>com.google.code</groupId>
-                <artifactId>ps3mediaserver</artifactId>
-                <version>${pms-version}</version>
-                <packaging>jar</packaging>
-                <downloadUrl>https://ps3mediaserver.googlecode.com/files/pms-generic-linux-unix-${pms-version}.tgz</downloadUrl>
-                <install>true</install>
-                <force>false</force>
-                <checksum>2bd968a792a4409f45aa4cf25c8796c021fd1dd2</checksum>
-                <extractFile>pms-linux-${pms-version}/pms.jar</extractFile>
-                <extractFileChecksum>cb0a68b0e9c63324c06c7b22d5cbf491f1380d57</extractFileChecksum>
-            </artifactItem>
-          </artifactItems>
-        </configuration>
-      </plugin>
-    </plugins>
-  </build>
-  <reporting>
-    <plugins>
-      <plugin>
-        <artifactId>maven-surefire-report-plugin</artifactId>
-        <version>2.7</version>
-        <configuration>
-          <showSuccess>false</showSuccess>
-        </configuration>
-      </plugin>
-    </plugins>
-  </reporting>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.codehaus.geb</groupId>
+            <artifactId>geb-core</artifactId>
+            <!-- 0.6.0 doesn't work -->
+            <version>0.5.1</version>
+        </dependency>
+        <dependency>
+            <groupId>org.seleniumhq.selenium</groupId>
+            <artifactId>selenium-htmlunit-driver</artifactId>
+            <!-- XXX 2.0b2 doesn't work -->
+            <!-- XXX 2.5.0 doesn't work -->
+            <version>2.0b1</version>
+        </dependency>
+        <dependency>
+            <groupId>com.google.code</groupId>
+            <artifactId>ps3mediaserver</artifactId>
+            <version>${pms-version}</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>info.codesaway</groupId>
+            <artifactId>regexplus</artifactId>
+            <version>${regexplus-version}</version>
+        </dependency>
+    </dependencies>
+
+    <repositories>
+        <repository>
+            <id>libs-releases</id>
+            <url>${groovypp-repo}/libs-releases</url>
+        </repository>
+        <repository>
+            <id>libs-snapshots</id>
+            <url>${groovypp-repo}/libs-snapshots</url>
+        </repository>
+        <repository>
+            <snapshots>
+                <enabled>true</enabled>
+            </snapshots>
+            <id>java.net</id>
+            <name>Java.net Repository</name>
+            <url>http://download.java.net/maven/2/</url>
+        </repository>
+        <repository>
+            <snapshots>
+                <enabled>true</enabled>
+            </snapshots>
+            <id>offical</id>
+            <name>Maven Official Repository</name>
+            <url>http://repo1.maven.org/maven2</url>
+        </repository>
+    </repositories>
+
+    <pluginRepositories>
+        <pluginRepository>
+            <id>plugins-releases</id>
+            <url>${groovypp-repo}/plugins-releases</url>
+        </pluginRepository>
+        <pluginRepository>
+            <id>plugins-snapshots</id>
+            <url>${groovypp-repo}/plugins-snapshots</url>
+        </pluginRepository>
+        <pluginRepository>
+            <id>ossrh</id>
+            <name>Sonatype OSS Repository</name>
+            <url>http://oss.sonatype.org/content/groups/public</url>
+        </pluginRepository>
+    </pluginRepositories>
+
+    <build>
+        <sourceDirectory>${project.basedir}/src/main/groovy</sourceDirectory>
+        <testSourceDirectory>${project.basedir}/src/test/groovy</testSourceDirectory>
+        <defaultGoal>surefire-report:report</defaultGoal>
+
+        <plugins>
+            <plugin>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>2.3.2</version>
+                <configuration>
+                    <source>1.6</source>
+                    <target>1.6</target>
+                </configuration>
+            </plugin>
+
+            <plugin>
+                <groupId>org.codehaus.gmaven</groupId>
+                <artifactId>gmaven-plugin</artifactId>
+                <version>1.3</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>compile</goal>
+                            <goal>testCompile</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>generate-script-manifest</id>
+                        <phase>generate-sources</phase>
+                        <goals>
+                            <goal>execute</goal>
+                        </goals>
+                        <configuration>
+                            <source>
+                                <!-- http://veithen.blogspot.com/2010/03/improve-your-maven-builds-with-groovy.html -->
+                                <!-- This generates a manifest of scripts for use by Matcher.loadDefaultsScripts -->
+                                <![CDATA[
+                                    def resources = 'src/main/resources'
+                                    def manifest = new File(project.basedir, "$resources/lib.txt")
+
+                                    manifest.parentFile.mkdirs();
+
+                                    if (manifest.exists())
+                                        manifest.delete()
+
+                                    def files = []
+                                    new File(project.basedir, "$resources/scripts").eachFileRecurse(groovy.io.FileType.FILES) {
+                                        if (it.file && it.name.endsWith(".groovy")) {
+                                            files << "scripts/$it.name\n"
+                                        }
+                                    }
+
+                                    files.sort().each { manifest.append(it) }
+                                ]]>
+                            </source>
+                        </configuration>
+                    </execution>
+                </executions>
+                <dependencies>
+                    <dependency>
+                        <groupId>org.codehaus.gmaven.runtime</groupId>
+                        <artifactId>gmaven-runtime-1.7</artifactId>
+                        <version>1.3</version>
+                        <exclusions>
+                            <exclusion>
+                                <artifactId>groovy-all</artifactId>
+                                <groupId>org.codehaus.groovy</groupId>
+                            </exclusion>
+                            <exclusion>
+                                <artifactId>junit</artifactId>
+                                <groupId>junit</groupId>
+                            </exclusion>
+                        </exclusions>
+                    </dependency>
+                    <dependency>
+                        <groupId>org.mbte.groovypp</groupId>
+                        <artifactId>groovypp</artifactId>
+                        <version>${groovypp-version}</version>
+                    </dependency>
+                    <dependency>
+                        <groupId>junit</groupId>
+                        <artifactId>junit</artifactId>
+                        <version>${junit-version}</version>
+                    </dependency>
+                </dependencies>
+                <configuration>
+                    <providerSelection>1.7</providerSelection>
+                    <verbose>true</verbose>
+                    <debug>true</debug>
+                    <stacktrace>true</stacktrace>
+                </configuration>
+            </plugin>
+
+            <plugin>
+                <artifactId>maven-assembly-plugin</artifactId>
+                <version>2.1</version>
+                <configuration>
+                    <descriptorRefs>
+                        <descriptorRef>jar-with-dependencies</descriptorRef>
+                    </descriptorRefs>
+                </configuration>
+            </plugin>
+
+            <plugin>
+                <groupId>com.savage7.maven.plugins</groupId>
+                <artifactId>maven-external-dependency-plugin</artifactId>
+                <version>0.5-SNAPSHOT</version>
+                <executions>
+                    <execution>
+                        <id>clean-external-dependencies</id>
+                        <phase>clean</phase>
+                        <goals>
+                            <goal>clean-external</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>resolve-install-external-dependencies</id>
+                        <phase>validate</phase>
+                        <goals>
+                            <goal>resolve-external</goal>
+                            <goal>install-external</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <inherited>false</inherited>
+                <configuration>
+                    <stagingDirectory>${project.build.directory}/dependencies/</stagingDirectory>
+                    <createChecksum>true</createChecksum>
+                    <skipChecksumVerification>false</skipChecksumVerification>
+                    <force>false</force>
+                    <artifactItems>
+                        <artifactItem>
+                            <groupId>info.codesaway</groupId>
+                            <artifactId>regexplus</artifactId>
+                            <version>${regexplus-version}</version>
+                            <packaging>jar</packaging>
+                            <downloadUrl>http://codesaway.info/RegExPlus/RegExPlus.jar</downloadUrl>
+                            <install>true</install>
+                            <force>false</force>
+                            <checksum>b31c60f99a3c163af1658e6d894f579af98011d6</checksum>
+                        </artifactItem>
+                        <artifactItem>
+                            <groupId>com.google.code</groupId>
+                            <artifactId>ps3mediaserver</artifactId>
+                            <version>${pms-version}</version>
+                            <packaging>jar</packaging>
+                            <downloadUrl>https://ps3mediaserver.googlecode.com/files/pms-generic-linux-unix-${pms-version}.tgz</downloadUrl>
+                            <install>true</install>
+                            <force>false</force>
+                            <checksum>9def50c8757802ad76e927dc729d2abcb8dd650f</checksum>
+                            <extractFile>pms-linux-${pms-version}/pms.jar</extractFile>
+                            <extractFileChecksum>ebefe2346aad2316e36874674d1a60d9270efe68</extractFileChecksum>
+                        </artifactItem>
+                    </artifactItems>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+
+    <reporting>
+        <plugins>
+            <plugin>
+                <artifactId>maven-surefire-report-plugin</artifactId>
+                <version>2.7</version>
+                <configuration>
+                    <showSuccess>false</showSuccess>
+                </configuration>
+            </plugin>
+        </plugins>
+    </reporting>
 </project>
