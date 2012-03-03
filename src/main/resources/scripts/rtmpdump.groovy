@@ -3,7 +3,7 @@
 
     -o is set automatically
     -r or --rtmp is required
-    boolean values can be set without a value e.g. rtmpdump://channel?url=http%3A//example.com&--live&--foo=bar
+    boolean values can be set without a value e.g. rtmpdump://channel?--rtmp=http%3A//example.com&--live&--foo=bar
     values *must* be URL-encoded
     keys can be, but hyphens are not special characters, so they don't need to be
 */
