@@ -1,3 +1,6 @@
+1.5.14 Sun Mar 25 04:05:11 2012
+    - fix an incompatibility in 1.5.13 that broke support for PMS 1.50.0 and 1.50.1
+
 1.5.13 Sun Mar 25 02:15:33 2012
     - log to same directory as the debug.log by default
     - allow the pmsencoder.log directory to be overridden by 1) a system property or 2) a PMS.conf option

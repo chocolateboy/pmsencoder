@@ -13,7 +13,6 @@ import net.pms.configuration.PmsConfiguration
 import net.pms.dlna.DLNAMediaInfo
 import net.pms.dlna.DLNAResource
 import net.pms.encoders.Player
-import net.pms.encoders.PlayerFactory
 import net.pms.external.ExternalListener
 import net.pms.formats.Format
 import net.pms.logging.DebugLogPathDefiner
@@ -25,7 +24,7 @@ import no.geosoft.cc.io.FileMonitor
 import org.apache.log4j.xml.DOMConfigurator
 
 public class Plugin implements ExternalListener, FileListener {
-    private static final String VERSION = '1.5.13'
+    private static final String VERSION = '1.5.14'
     private static final String DEFAULT_SCRIPT_DIRECTORY = 'pmsencoder'
     private static final String LOG_CONFIG = 'pmsencoder.log.config'
     private static final String LOG_DIRECTORY = 'pmsencoder.log.directory'
@@ -153,7 +152,7 @@ public class Plugin implements ExternalListener, FileListener {
          * */
         def extensions = pms.getExtensions()
         extensions.set(0, new WEB())
-        PlayerFactory.registerPlayer(pmsencoder)
+        pms.registerPlayer(pmsencoder)
     }
 
     private void loadDefaultLogConfig() {
