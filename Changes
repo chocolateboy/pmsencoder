@@ -1,6 +1,6 @@
 1.5.13 Sun Mar 25 02:15:33 2012
     - log to same directory as the debug.log by default
-    - allow the pmsencoder.log directory to be overridden by 1) system property or 2) PMS.conf option
+    - allow the pmsencoder.log directory to be overridden by 1) a system property or 2) a PMS.conf option
 
 1.5.12 Sun Jan 29 06:21:46 2012
     - YouTube fix
