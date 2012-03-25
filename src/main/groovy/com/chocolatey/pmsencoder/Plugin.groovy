@@ -13,8 +13,10 @@ import net.pms.configuration.PmsConfiguration
 import net.pms.dlna.DLNAMediaInfo
 import net.pms.dlna.DLNAResource
 import net.pms.encoders.Player
+import net.pms.encoders.PlayerFactory
 import net.pms.external.ExternalListener
 import net.pms.formats.Format
+import net.pms.logging.DebugLogPathDefiner
 import net.pms.PMS
 
 import no.geosoft.cc.io.FileListener
@@ -23,9 +25,10 @@ import no.geosoft.cc.io.FileMonitor
 import org.apache.log4j.xml.DOMConfigurator
 
 public class Plugin implements ExternalListener, FileListener {
-    private static final String VERSION = '1.5.12'
+    private static final String VERSION = '1.5.13'
     private static final String DEFAULT_SCRIPT_DIRECTORY = 'pmsencoder'
     private static final String LOG_CONFIG = 'pmsencoder.log.config'
+    private static final String LOG_DIRECTORY = 'pmsencoder.log.directory'
     private static final String SCRIPT_DIRECTORY = 'pmsencoder.script.directory'
     private static final String SCRIPT_POLL = 'pmsencoder.script.poll'
     // 1 second is flaky - it results in overlapping file change events
@@ -47,6 +50,7 @@ public class Plugin implements ExternalListener, FileListener {
 
         // get optional overrides from PMS.conf
         String customLogConfigPath = configuration.getCustomProperty(LOG_CONFIG)
+        String customLogDirectory = configuration.getCustomProperty(LOG_DIRECTORY)
         String candidateScriptDirectory = configuration.getCustomProperty(SCRIPT_DIRECTORY)
 
         /*
@@ -98,6 +102,17 @@ public class Plugin implements ExternalListener, FileListener {
         }
 
         // set up log4j
+
+        // set the log path as a system property so that it can be used in log4j_default.xml
+        // 1) system property
+        // 2) PMS.conf option
+        // 3) same directory as the debug.log
+        if (!System.getProperty(LOG_DIRECTORY)) {
+            System.setProperty(LOG_DIRECTORY, customLogDirectory ?: (new DebugLogPathDefiner()).getPropertyValue())
+        }
+
+        info("log directory: " + System.getProperty(LOG_DIRECTORY))
+
         def customLogConfig
 
         if (customLogConfigPath) {
@@ -138,7 +153,7 @@ public class Plugin implements ExternalListener, FileListener {
          * */
         def extensions = pms.getExtensions()
         extensions.set(0, new WEB())
-        registerPlayer(pmsencoder)
+        PlayerFactory.registerPlayer(pmsencoder)
     }
 
     private void loadDefaultLogConfig() {
@@ -194,16 +209,6 @@ public class Plugin implements ExternalListener, FileListener {
             } catch (Exception e) {
                 error('error loading scripts', e)
             }
-        }
-    }
-
-    private void registerPlayer(PMSEncoder pmsencoder) {
-        try {
-            def pmsRegisterPlayer = pms.getClass().getDeclaredMethod('registerPlayer', Player.class)
-            pmsRegisterPlayer.setAccessible(true)
-            pmsRegisterPlayer.invoke(pms, pmsencoder)
-        } catch (Exception e) {
-            error('error calling PMS.registerPlayer', e)
         }
     }
 

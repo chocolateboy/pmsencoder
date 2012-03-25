@@ -40,9 +40,9 @@ public class PMSEncoderProcessWrapper extends Thread implements ProcessWrapper {
     private boolean success;
 
     @Override
-        public String toString() {
-            return super.getName();
-        }
+    public String toString() {
+        return super.getName();
+    }
 
     public boolean isSuccess() {
         return success;
@@ -77,6 +77,7 @@ public class PMSEncoderProcessWrapper extends Thread implements ProcessWrapper {
 
     public void run() {
         ProcessBuilder pb = new ProcessBuilder(cmdArray);
+
         try {
             PMS.info("Starting " + cmdLine);
 

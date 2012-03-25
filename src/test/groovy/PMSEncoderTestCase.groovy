@@ -37,7 +37,7 @@ abstract class PMSEncoderTestCase extends GroovyTestCase {
             public boolean init () { true }
 
             @Mock
-            public static void minimal(String msg) {
+            public static void info(String msg) {
                 println msg
             }
 
