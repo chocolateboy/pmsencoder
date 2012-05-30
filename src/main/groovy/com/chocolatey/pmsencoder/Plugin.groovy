@@ -27,7 +27,7 @@ import ch.qos.logback.classic.Logger
 import org.slf4j.LoggerFactory
 
 public class Plugin implements ExternalListener, FileListener {
-    private static final String VERSION = '1.5.15'
+    private static final String VERSION = '1.6.0'
     private static final String DEFAULT_SCRIPT_DIRECTORY = 'pmsencoder'
     private static final String LOG_CONFIG = 'pmsencoder.log.config'
     private static final String LOG_DIRECTORY = 'pmsencoder.log.directory'
@@ -162,6 +162,36 @@ public class Plugin implements ExternalListener, FileListener {
         def extensions = pms.getExtensions()
         extensions.set(0, new WEB())
         pms.registerPlayer(pmsencoder)
+
+        // add to the PMS.conf engines list
+        enable()
+    }
+
+    // make sure "pmsencoder" is first in the list of engines
+    private void enable() {
+        def engines = configuration.getEnginesAsList(pms.getRegistry())
+        def id = pmsencoder.id()
+        def index = engines.indexOf(id)
+
+        info("checking engine list: $engines")
+
+        if (index == 0) {
+            info('engine enabled')
+        } else {
+            def newEngines = new ArrayList<String>(engines)
+            def msg
+
+            if (index == -1) {
+                msg = 'enabled engine'
+            } else {
+                newEngines.removeAll([ id ])
+                msg = 'prioritised engine'
+            }
+
+            newEngines.add(0, id)
+            configuration.setEnginesAsList(newEngines)
+            info("$msg: $newEngines")
+        }
     }
 
     private void loadDefaultLogConfig() {

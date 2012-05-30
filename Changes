@@ -1,7 +1,10 @@
+1.6.0 Wed May 30 16:36:29 2012
+    - easy installation/uninstallation - no PMS.conf changes needed
+
 1.5.15 Wed May 30 01:32:33 2012
     - don't require python.path to be set if youtube-dl.path is executable
     - update list of youtube-dl-compatible sites
-    - workaround for verbose logging
+    - workaround for log spam
     - update dependencies
 
 1.5.14 Sun Mar 25 04:05:11 2012
