@@ -1,3 +1,9 @@
+1.5.15 Wed May 30 01:32:33 2012
+    - don't require python.path to be set if youtube-dl.path is executable
+    - update list of youtube-dl-compatible sites
+    - workaround for verbose logging
+    - update dependencies
+
 1.5.14 Sun Mar 25 04:05:11 2012
     - fix an incompatibility in 1.5.13 that broke support for PMS 1.50.0 and 1.50.1
 

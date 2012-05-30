@@ -7,12 +7,23 @@ import net.pms.configuration.PmsConfiguration
 import net.pms.PMS
 import org.apache.log4j.xml.DOMConfigurator
 
+import ch.qos.logback.classic.Logger
+import org.slf4j.LoggerFactory
+
 // there's no point trying to optimize this while we're still using JUnit:
 // http://tinyurl.com/6k6z6dj
 abstract class PMSEncoderTestCase extends GroovyTestCase {
     protected Matcher matcher
     private PMS pms
     private URL defaultScript
+
+    static {
+        // FIXME hack to shut httpclient and htmlunit the hell up
+        Logger logger = (Logger) LoggerFactory.getLogger("org.apache.http");
+        logger.setLevel(ch.qos.logback.classic.Level.WARN)
+        logger = (Logger) LoggerFactory.getLogger("com.gargoylesoftware.htmlunit");
+        logger.setLevel(ch.qos.logback.classic.Level.ERROR)
+    }
 
     void setUp() {
         def log4jConfig = this.getClass().getResource('/log4j_test.xml')

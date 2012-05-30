@@ -23,8 +23,11 @@ import no.geosoft.cc.io.FileMonitor
 
 import org.apache.log4j.xml.DOMConfigurator
 
+import ch.qos.logback.classic.Logger
+import org.slf4j.LoggerFactory
+
 public class Plugin implements ExternalListener, FileListener {
-    private static final String VERSION = '1.5.14'
+    private static final String VERSION = '1.5.15'
     private static final String DEFAULT_SCRIPT_DIRECTORY = 'pmsencoder'
     private static final String LOG_CONFIG = 'pmsencoder.log.config'
     private static final String LOG_DIRECTORY = 'pmsencoder.log.directory'
@@ -138,6 +141,12 @@ public class Plugin implements ExternalListener, FileListener {
         } else {
             loadDefaultLogConfig()
         }
+
+        // FIXME hack to shut httpclient and htmlunit the hell up
+        Logger logger = (Logger) LoggerFactory.getLogger("org.apache.http");
+        logger.setLevel(ch.qos.logback.classic.Level.WARN)
+        logger = (Logger) LoggerFactory.getLogger("com.gargoylesoftware.htmlunit");
+        logger.setLevel(ch.qos.logback.classic.Level.ERROR)
 
         // make sure we have a matcher before we create the transcoding engine
         createMatcher()

@@ -30,17 +30,24 @@ check {
                 '^gvsearch(\\d+|all)?:[\\s\\S]+',
                 '^(?:http://)?(?:[a-z0-9]+\\.)?photobucket\\.com/.*[\\?\\&]current=(.*\\.flv)',
                 '^(?:http://)?(?:[a-z]+\\.)?video\\.yahoo\\.com/(?:watch|network)/([0-9]+)(?:/|\\?v=)([0-9]+)(?:[#\\?].*)?',
+                '^(?:https?://)?openclassroom.stanford.edu(/?|(/MainFolder/(?:HomePage|CoursePage|VideoPage)\\.php([?]course=([^&]+)(&video=([^&]+))?(&.*)?)?))$',
                 '^(?:https?://)?(?:\\w+\\.)?blip\\.tv(/.+)$',
-                '^(?:https?://)?(?:\\w+\\.)?facebook.com/video/video.php\\?(?:.*?)v=(\\d+)(?:.*)',
-                '^(https?://)?(www\\.)?escapistmagazine.com/videos/view/([^/]+)/([^/?]+)[/?]?.*$',
+                '^(?:https?://)?(?:\\w+\\.)?facebook\\.com/(?:video/video|photo)\\.php\\?(?:.*?)v=(\\d+)(?:.*)',
+                '^(?:https?://)?(?:www\\.)?collegehumor\\.com/video/([0-9]+)/(.*)$',
+                '^(https?://)?(www\\.)?escapistmagazine\\.com/videos/view/([^/]+)/([^/?]+)[/?]?.*$',
+                '^(?:https?://)?(?:www\\.)?infoq\\.com/[^/]+/[^/]+$',
+                '^(?:https?://)?(?:www\\.)?mixcloud\\.com/([\\w\\d-]+)/([\\w\\d-]+)',
+                '^(https?://)?(?:www\\.)?mtv\\.com/videos/[^/]+/([0-9]+)/[^/]+$',
                 '^(?:https?://)?(?:(?:www|player).)?vimeo\\.com/(?:groups/[^/]+/)?(?:videos?/)?([0-9]+)',
+                '^(?:https?://)?(?:www\\.)?soundcloud\\.com/([\\w\\d-]+)/([\\w\\d-]+)',
+                '^(?:https?://)?(?:www\\.)?xvideos\\.com/video([0-9]+)(?:.*)',
+                '^(?:https?://)?(?:\\w+\\.)?youtube\\.com/(?:(?:course|view_play_list|my_playlists|artist|playlist)\\?.*?(p|a|list)=|user/.*?/user/|p/|user/.*?#[pg]/c/)(?:PL)?([0-9A-Za-z-_]+)(?:/.*?/([0-9A-Za-z_-]+))?.*',
+                '^(?:(?:(?:https?://)?(?:\\w+\\.)?youtube\\.com/user/)|ytuser:)([A-Za-z0-9_-]+)',
                 '^((?:https?://)?(?:youtu\\.be/|(?:\\w+\\.)?youtube(?:-nocookie)?\\.com/)(?!view_play_list|my_playlists|artist|playlist)(?:(?:(?:v|embed|e)/)|(?:(?:watch(?:_popup)?(?:\\.php)?)?(?:\\?|#!?)(?:.+&)?v=))?)?([0-9A-Za-z_-]+)(?(1).+)?$',
                 '^(?:http://)?video\\.google\\.(?:com(?:\\.au)?|co\\.(?:uk|jp|kr|cr)|ca|de|es|fr|it|nl|pl)/videoplay\\?docid=([^\\&]+).*',
-                '^(?:http://)?(?:\\w+\\.)?depositfiles.com/(?:../(?#locale))?files/(.+)',
+                '^(?:http://)?(?:\\w+\\.)?depositfiles\\.com/(?:../(?#locale))?files/(.+)',
                 '^(?:http://)?(?:www\\.)?metacafe\\.com/watch/([^/]+)/([^/]+)/.*',
                 '^(?:http://)?(?:www\\.)?myvideo\\.de/watch/([0-9]+)/([^?/]+).*',
-                '^(?:(?:(?:http://)?(?:\\w+\\.)?youtube.com/user/)|ytuser:)([A-Za-z0-9_-]+)',
-                '^(?:http://)?(?:\\w+\\.)?youtube.com/(?:(?:view_play_list|my_playlists|artist|playlist)\\?.*?(p|a|list)=|user/.*?/user/|p/|user/.*?#[pg]/c/)([0-9A-Za-z]+)(?:/.*?/([0-9A-Za-z_-]+))?.*',
                 '^(?i)(?:https?://)?(?:www\\.)?dailymotion\\.[a-z]{2,3}/video/([^_/]+)_([^/]+)',
                 '^(:(tds|thedailyshow|cr|colbert|colbertnation|colbertreport))|(https?://)?(www\\.)?(thedailyshow|colbertnation)\\.com/full-episodes/(.*)$',
                 '^ytsearch(\\d+|all)?:[\\s\\S]+',
@@ -50,7 +57,7 @@ check {
 
         action {
             // XXX: keep this up-to-date
-            $youtube_dl_compatible = '2011.09.18c' // version the regexes were copied from
+            $youtube_dl_compatible = '2012.02.27' // version the regexes were copied from
         }
     }
 
@@ -63,18 +70,29 @@ check {
     // rather than repeating the regex
 
     profile ('YouTube-DL') {
+        def YOUTUBE_DL_PATH
+
+        if (YOUTUBE_DL) {
+            if ((new File(YOUTUBE_DL)).canExecute()) {
+                YOUTUBE_DL_PATH = YOUTUBE_DL
+            } else if (PYTHON) {
+                YOUTUBE_DL_PATH = "$PYTHON $YOUTUBE_DL"
+            }
+        }
+
         pattern {
             match 'YouTube-DL Compatible'
-            match { PYTHON && YOUTUBE_DL }
+            match { YOUTUBE_DL_PATH }
         }
 
         action {
             $youtube_dl_enabled = true
             $URI = quoteURI($URI)
+
             if (YOUTUBE_DL_MAX_QUALITY) {
-                $DOWNLOADER = "$PYTHON $YOUTUBE_DL --max-quality $YOUTUBE_DL_MAX_QUALITY --quiet -o $DOWNLOADER_OUT ${$URI}"
+                $DOWNLOADER = "$YOUTUBE_DL_PATH --max-quality $YOUTUBE_DL_MAX_QUALITY --quiet -o $DOWNLOADER_OUT ${$URI}"
             } else {
-                $DOWNLOADER = "$PYTHON $YOUTUBE_DL --quiet -o $DOWNLOADER_OUT ${$URI}"
+                $DOWNLOADER = "$YOUTUBE_DL_PATH --quiet -o $DOWNLOADER_OUT ${$URI}"
             }
         }
     }

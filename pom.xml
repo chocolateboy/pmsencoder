@@ -4,14 +4,14 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.chocolatey.pmsencoder</groupId>
     <artifactId>pmsencoder</artifactId>
-    <version>1.5.14</version>
+    <version>1.5.15</version>
     <name>PMSEncoder</name>
     <description>A plugin for PS3 Media Server that adds support for scriptable web video streaming.</description>
     <properties>
         <groovypp-repo>http://groovypp.artifactoryonline.com/groovypp</groovypp-repo>
         <groovypp-version>0.9.0_1.7.10</groovypp-version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <junit-version>4.9</junit-version>
+        <junit-version>4.10</junit-version>
         <pms-version>1.52.0</pms-version>
         <regexplus-version>2010-04-16</regexplus-version>
     </properties>
@@ -26,13 +26,13 @@
         <dependency>
             <groupId>org.codehaus.groovy.modules.http-builder</groupId>
             <artifactId>http-builder</artifactId>
-            <version>0.5.1</version>
+            <version>0.5.2</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>log4j</groupId>
             <artifactId>log4j</artifactId>
-            <version>1.2.16</version>
+            <version>1.2.17</version>
         </dependency>
         <dependency>
             <groupId>mockit</groupId>
@@ -150,7 +150,7 @@
                         <configuration>
                             <source>
                                 <!-- http://veithen.blogspot.com/2010/03/improve-your-maven-builds-with-groovy.html -->
-                                <!-- This generates a manifest of scripts for use by Matcher.loadDefaultsScripts -->
+                                <!-- This generates a manifest of scripts for use by Matcher.loadDefaultScripts -->
                                 <![CDATA[
                                     def resources = 'src/main/resources'
                                     def manifest = new File(project.basedir, "$resources/lib.txt")
