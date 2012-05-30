@@ -23,4 +23,12 @@ class ProtocolVarTest extends PMSEncoderTestCase {
             wantTranscoder: [ '-protocol', 'http' ]
         ])
     }
+
+    void testSetProtocol() {
+        assertMatch([
+            uri: 'mms://www.example.com',
+            wantMatches: [ 'mms://' ],
+            wantURI: 'mmsh://www.example.com',
+        ])
+    }
 }

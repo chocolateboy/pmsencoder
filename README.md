@@ -10,15 +10,15 @@ These instructions assume you have the [latest version](http://www.ps3mediaserve
 
 # Installation <a name="Install"></a>
 
-* download the [PMSEncoder jar file](https://github.com/downloads/chocolateboy/pmsencoder/pmsencoder-1.6.1.jar) and place it in the PMS `plugins` directory
+* download the [PMSEncoder jar file](https://github.com/downloads/chocolateboy/pmsencoder/pmsencoder-1.6.2.jar) and place it in the PMS `plugins` directory
 * restart PMS
 
 ## Upgrading <a name="Upgrade"></a>
 
 To upgrade to a new version of the plugin:
 
-* check the [release notes](https://github.com/chocolateboy/pmsencoder/wiki/Release-Notes) to see if there are any breaking changes or other incompatibilities
-* replace the old jar file in the `plugins` directory with the [new version](https://github.com/downloads/chocolateboy/pmsencoder/pmsencoder-1.6.1.jar) and restart PMS
+* check the [release notes](https://github.com/chocolateboy/pmsencoder/wiki/Release-Notes) to see if there any breaking changes or other incompatibilities
+* replace the old jar file in the `plugins` directory with the [new version](https://github.com/downloads/chocolateboy/pmsencoder/pmsencoder-1.6.2.jar) and restart PMS
 
 ## Uninstalling <a name="Uninstall"></a>
 
@@ -30,7 +30,7 @@ To build PMSEncoder from source, see the [Wiki](https://github.com/chocolateboy/
 
 # Tips <a name="Tips"></a>
 
-* To work around the PMS [bug](http://code.google.com/p/ps3mediaserver/issues/detail?id=759) that causes web video playback to be delayed for ~40s, uncheck "HTTP Engine V2" in the PMS "General Configuration" tab. This can also be done by setting `http_engine_v2 = false` in PMS.conf. Then restart PMS. See [below](#HTTPEngine) for caveats.
+* To work around the PMS [bug](http://code.google.com/p/ps3mediaserver/issues/detail?id=759) that causes web video playback to be delayed for ~40s, uncheck "HTTP Engine V2" in the PMS "General Configuration" tab. This can also be done by setting `http_engine_v2 = false` in PMS.conf. Then save and restart PMS. See [below](#HTTPEngine) for caveats.
 * To take PMSEncoder for a spin, try [this WEB.conf](https://raw.github.com/chocolateboy/pmsencoder/release/misc/conf/WEB.conf), which contains a list of feeds that are regularly tested.
 * For help with particular feeds/streams/sites, see [here](http://www.ps3mediaserver.org/forum/viewtopic.php?f=6&t=8776&p=46696#p46696).
 
@@ -62,7 +62,7 @@ For more details, discussion and troubleshooting tips, see the [wiki](http://wik
 
 # Version <a name="Version"></a>
 
-1.6.1
+1.6.2
 
 # License <a name="License"></a>
 

@@ -5,7 +5,6 @@ begin {
 
     // pull globals from PMS.conf i.e. translate PMS.conf settings into global PMSEncoder values
     GET_FLASH_VIDEOS = pmsConf['get-flash-videos.path']
-    HLS_PLAYER = pmsConf['hls-player.path']
     NOTIFY_SEND = pmsConf['notify-send.path']
     PERL = pmsConf['perl.path']
     PPLIVE = pmsConf['pplive.path']
@@ -18,4 +17,20 @@ begin {
     YOUTUBE_DL = pmsConf['youtube-dl.path']
     // see https://secure.wikimedia.org/wikipedia/en/wiki/YouTube#Quality_and_codecs
     YOUTUBE_DL_MAX_QUALITY = pmsConf['youtube-dl.max-quality'] ?: 22
+
+    // determine if ffmpeg supports the -headers option
+    if (pmsConf['ffmpeg.http-headers']) { // non-empty string
+        FFMPEG_HTTP_HEADERS = Boolean.parseBoolean(pmsConf['ffmpeg.http-headers'])
+    } else {
+        def ffmpeg = $PMS.getConfiguration().getFfmpegPath()
+        def proc = [ ffmpeg, '-headers', 'Foo' ].execute()
+
+        proc.waitFor()
+
+        if (proc.err.text =~ /Unrecognized\s+option\s+'headers'/) {
+            FFMPEG_HTTP_HEADERS = false
+        } else {
+            FFMPEG_HTTP_HEADERS = true
+        }
+    }
 }

@@ -23,4 +23,16 @@ script {
             set '-protocol': $PROTOCOL
         }
     }
+
+    profile ('mms://') {
+        pattern {
+            protocol 'mms'
+            match { $PROTOCOL == 'mms' }
+            match { $PROTOCOL != 'file' }
+        }
+
+        action {
+            $PROTOCOL = 'mmsh'
+        }
+    }
 }

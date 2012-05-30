@@ -25,10 +25,10 @@ init {
 
         $TRANSCODER = $FFMPEG:
 
-            $TRANSCODER = "ffmpeg -v 0 -y -threads nbcores \
+            $TRANSCODER = "ffmpeg -loglevel warning -y -threads nbcores \
                 -i ${$URI} -threads nbcores -target ntsc-dvd $TRANSCODER_OUT"
 
-            $TRANSCODER = "ffmpeg -v 0 -y -threads nbcores \
+            $TRANSCODER = "ffmpeg -loglevel warning -y -threads nbcores \
                 -i $DOWNLOADER_OUT -threads nbcores -target ntsc-dvd $TRANSCODER_OUT"
 
         $TRANSCODER = $MENCODER:
@@ -56,7 +56,7 @@ init {
     // all four of these values are initialized to empty lists, so we're relying on the "is nonempty"
     // meaning for these checks
     if (!$FFMPEG)
-        $FFMPEG = "FFMPEG -v 0 -y -threads ${nbcores}" // -threads 0 doesn't work for all codecs - better to specify
+        $FFMPEG = "FFMPEG -loglevel warning -y -threads ${nbcores}" // -threads 0 doesn't work for all codecs - better to specify
 
     // default ffmpeg output options
     if (!$FFMPEG_OUT)

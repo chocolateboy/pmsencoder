@@ -95,6 +95,7 @@ class Action {
         }
     }
 
+    // DSL method
     String quoteURI(String uri) {
         Util.quoteURI(uri)
     }

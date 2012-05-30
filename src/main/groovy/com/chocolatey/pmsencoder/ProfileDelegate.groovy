@@ -90,10 +90,9 @@ class ProfileDelegate {
         command.output = Util.stringList(args)
     }
 
-    // FIXME: use the URI class
-    private String getProtocol(String uri) {
-        if (uri != null) {
-            return RegexHelper.match(uri, '^(\\w+)://')[1]
+    private String getProtocol(Object u) {
+        if (u != null) {
+            return uri(u.toString()).scheme
         } else {
             return null
         }
@@ -102,6 +101,30 @@ class ProfileDelegate {
     // $PROTOCOL: getter
     public String get$PROTOCOL() {
         return getProtocol(command.getVar('$URI'))
+    }
+
+    // $PROTOCOL: setter
+    public String set$PROTOCOL(Object newProtocol) {
+        def u = command.getVar('$URI')
+        def oldProtocol = getProtocol(u)
+
+        if (oldProtocol) { // not null and not empty
+            if (newProtocol == null) {
+                newProtocol = ''
+            }
+            u = newProtocol.toString() + u.substring(oldProtocol.length())
+            command.setVar('$URI', u)
+        }
+    }
+
+    // delegated to so must be public
+    public URI uri() {
+        uri(command.getVar('$URI'))
+    }
+
+    // delegated to so must be public
+    public URI uri(Object u) {
+        new URI(u?.toString())
     }
 
     // DSL accessor ($PARAMS): getter

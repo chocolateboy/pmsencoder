@@ -28,9 +28,12 @@ script {
         }
 
         action {
-            // FIXME: temporary while MPlayer doesn't work as a downloader on Windows
-            $TRANSCODER = $MENCODER
-            set '-user-agent': IPAD_USER_AGENT
+            if (FFMPEG_HTTP_HEADERS) {
+                set '-headers': 'User-Agent: ' + IPAD_USER_AGENT
+            } else {
+                $TRANSCODER = $MENCODER
+                set '-user-agent': IPAD_USER_AGENT
+            }
         }
     }
 }
