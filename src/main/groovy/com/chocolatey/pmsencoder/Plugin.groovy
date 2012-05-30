@@ -163,7 +163,7 @@ public class Plugin implements ExternalListener, FileListener {
         extensions.set(0, new WEB())
         pms.registerPlayer(pmsencoder)
 
-        // add to the PMS.conf engines list
+        // add to the engines list
         enable()
     }
 
@@ -176,7 +176,7 @@ public class Plugin implements ExternalListener, FileListener {
         info("checking engine list: $engines")
 
         if (index == 0) {
-            info('enabled in PMS.conf')
+            info('already enabled')
         } else {
             def newEngines = new ArrayList<String>(engines)
             def msg
