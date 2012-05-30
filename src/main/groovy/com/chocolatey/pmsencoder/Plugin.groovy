@@ -176,13 +176,13 @@ public class Plugin implements ExternalListener, FileListener {
         info("checking engine list: $engines")
 
         if (index == 0) {
-            info('engine enabled')
+            info('enabled in PMS.conf')
         } else {
             def newEngines = new ArrayList<String>(engines)
             def msg
 
             if (index == -1) {
-                msg = 'enabled engine'
+                msg = 'added engine'
             } else {
                 newEngines.removeAll([ id ])
                 msg = 'prioritised engine'
