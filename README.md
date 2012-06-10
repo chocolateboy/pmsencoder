@@ -1,6 +1,6 @@
 # Synopsis <a name="Synopsis"></a>
 
-This is a plugin for [PS3 Media Server](http://code.google.com/p/ps3mediaserver/) (PMS) that adds configurable support for web video streaming.
+This is a plugin for [PS3 Media Server](http://code.google.com/p/ps3mediaserver/) (PMS) that adds scriptable support for web video streaming.
 
 # Prerequisites <a name="Prerequisites"></a>
 
