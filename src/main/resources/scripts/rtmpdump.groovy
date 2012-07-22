@@ -25,7 +25,6 @@ init {
                 def value = pair.value
 
                 switch (name) {
-                    case 'url': // deprecated
                     case '-r':
                     case '--rtmp':
                         if (value) {
@@ -33,6 +32,9 @@ init {
                             seenURL = true
                         }
                         break
+                    case '-o':
+                    case '--flv':
+                        break // ignore
                     default:
                         rtmpdumpArgs << name
                         // not all values are URIs, but quoteURI() is harmless on Windows and a no-op on other platforms

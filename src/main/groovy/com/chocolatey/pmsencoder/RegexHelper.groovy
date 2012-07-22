@@ -52,7 +52,7 @@ class RegexHelper {
 
     static boolean match(Object string, Object regex, Map<String, String> named, List<String> positional) {
         // Compile and use regular expression
-        def pattern = Pattern.compile(regex.toString())
+        def pattern = Pattern.compile(regex.toString(), Pattern.DOTALL)
         def matcher = pattern.matcher(string.toString())
         def matched = matcher.find()
 

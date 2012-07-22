@@ -10,7 +10,7 @@ script {
             // extract the script path from the HTML
             scrape '<script\\s+src="(?<path>/video/video\\.php\\?video_id=\\d+&amp;autostart)"'
             // now grab the URI from the script
-            scrape "wfv\\d+_flowplayer_init\\(\\s*\\d+,\\s*'(?<escaped>[^']+)'", [ uri: "http://winfuture.de${path}" ]
+            scrape(uri: "http://winfuture.de${path}")("wfv\\d+_flowplayer_init\\(\\s*\\d+,\\s*'(?<escaped>[^']+)'")
             // and 1) unescape it 2) resolve redirects (to work around a bug in MEncoder/MPlayer's HTTP support):
             // XXX 2) may not be needed for ffmpeg
             // http://lists.mplayerhq.hu/pipermail/mplayer-dev-eng/2010-December/067084.html

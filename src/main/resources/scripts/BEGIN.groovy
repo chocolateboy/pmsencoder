@@ -1,3 +1,5 @@
+import com.google.gson.Gson
+
 begin {
     IPAD_USER_AGENT = 'Mozilla/5.0 (iPad; U; CPU OS 3_2 like Mac OS X; en-us) ' +
         'AppleWebKit/531.21.10 (KHTML, like Gecko) ' +
@@ -19,7 +21,7 @@ begin {
     YOUTUBE_DL_MAX_QUALITY = pmsConf['youtube-dl.max-quality'] ?: 22
 
     // determine if ffmpeg supports the -headers option
-    if (pmsConf['ffmpeg.http-headers']) { // non-empty string
+    if (pmsConf['ffmpeg.http-headers'] != null) {
         FFMPEG_HTTP_HEADERS = Boolean.parseBoolean(pmsConf['ffmpeg.http-headers'])
     } else {
         def ffmpeg = $PMS.getConfiguration().getFfmpegPath()

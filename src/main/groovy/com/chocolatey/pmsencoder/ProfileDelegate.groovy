@@ -2,10 +2,11 @@
 package com.chocolatey.pmsencoder
 
 import net.pms.io.OutputParams
-import geb.*
-import org.openqa.selenium.WebDriver
-import org.openqa.selenium.htmlunit.HtmlUnitDriver
 import org.apache.http.NameValuePair
+
+import org.jsoup.Jsoup
+import org.jsoup.nodes.Document
+import org.jsoup.select.Elements
 
 // XXX some (most? all?) of these DSL properties could just be exposed/documented as-is i.e.
 // log.info(..), http.get(...) &c.
@@ -23,8 +24,8 @@ import org.apache.http.NameValuePair
 */
 
 class ProfileDelegate {
-    private final Map<String, String> cache = [:] // only needed/used by this.scrape()
-    @Lazy private WebDriver driver = new HtmlUnitDriver()
+    private final Map<String, String> httpCache = [:] // only needed/used by this.scrape()
+    private final Map<String, Document> jsoupCache = [:]
     // FIXME: sigh: transitive delegation doesn't work (groovy bug)
     // so make this public so dependent classes can manually delegate to it
     @Delegate Matcher matcher
@@ -117,16 +118,6 @@ class ProfileDelegate {
         }
     }
 
-    // delegated to so must be public
-    public URI uri() {
-        uri(command.getVar('$URI'))
-    }
-
-    // delegated to so must be public
-    public URI uri(Object u) {
-        new URI(u?.toString())
-    }
-
     // DSL accessor ($PARAMS): getter
     // $PARAMS: getter
     public OutputParams get$PARAMS() {
@@ -134,7 +125,7 @@ class ProfileDelegate {
     }
 
     // DSL getter
-    public String propertyMissing(String name) {
+    public Object propertyMissing(String name) {
         if (matcher.hasVar(name)) {
             return matcher.getVar(name)
         } else {
@@ -148,10 +139,15 @@ class ProfileDelegate {
     }
 
     // DSL method
-    public Object browse(Map options = [:], Closure closure) {
-        String uri = (options['uri'] == null) ? command.getVar('$URI') : options['uri'].toString()
-        driver.get(uri)
-        Browser.drive(driver, closure)
+    // delegated to so must be public
+    public URI uri() {
+        uri(command.getVar('$URI'))
+    }
+
+    // DSL method
+    // delegated to so must be public
+    public URI uri(Object u) {
+        new URI(u?.toString())
     }
 
     // DSL method - can be called from a pattern or an action.
@@ -159,8 +155,13 @@ class ProfileDelegate {
     // short-circuiting behaviour and delegate to this via super.scrape(...)
     // XXX: we need to declare these two signatures explicitly to work around
     // issues with @Delegate and default parameters
+    public Function1<Object, Boolean> scrape(Map options) { // curry
+        return { Object regex -> scrape(options, regex) }
+    }
+
+    // DSL method
     public boolean scrape(Object regex) {
-        scrape(regex, [:])
+        return scrape([:], regex)
     }
 
     /*
@@ -168,9 +169,11 @@ class ProfileDelegate {
         2) perform a regex match against the document
         3) update the stash with any named captures
     */
-    public boolean scrape(Object regex, Map options) {
-        String uri = (options['uri'] == null) ? command.getVar('$URI') : options['uri'].toString()
-        String document = (options['source'] == null) ? cache[uri] : options['source'].toString()
+
+    // DSL method
+    public boolean scrape(Map options, Object regex) {
+        String uri = (options['uri'] == null) ? command.getVar('$URI') : options['uri']
+        String document = (options['source'] == null) ? httpCache[uri] : options['source']
         boolean decode = options['decode'] == null ? false : options['decode']
 
         def newStash = new Stash()
@@ -178,8 +181,8 @@ class ProfileDelegate {
 
         if (document == null) {
             log.debug("getting $uri")
-            assert $HTTP != null
-            document = cache[uri] = $HTTP.get(uri)
+            assert http != null
+            document = httpCache[uri] = http.get(uri)
         }
 
         if (document == null) {
@@ -194,7 +197,7 @@ class ProfileDelegate {
 
         log.debug("matching content of $uri against $regex")
 
-        if (RegexHelper.match(document, regex.toString(), newStash)) {
+        if (RegexHelper.match(document, regex, newStash)) {
             log.debug('success')
             newStash.each { name, value -> command.let(name, value) }
             scraped = true
@@ -203,5 +206,62 @@ class ProfileDelegate {
         }
 
         return scraped
+    }
+
+    // DSL method
+    public Function1<Object, Elements> $(Map options) { // curry
+        return { Object query -> $(options, query) }
+    }
+
+    // DSL method
+    public Elements $(Object query) {
+        $([:], query)
+    }
+
+    // DSL method
+    public Elements $(Map options, Object query) {
+        def jsoup
+
+        if (options['source']) {
+            jsoup = getJsoupForString(options['source'].toString())
+        } else if (options['uri']) {
+            jsoup = getJsoupForUri(options['uri'].toString())
+        } else {
+            jsoup = getJsoupForUri(command.getVar('$URI'))
+        }
+
+        return jsoup.select(query.toString())
+    }
+
+    // DSL method
+    // spell these out (no default parameters) to work arounbd Groovy bugs
+    public Document jsoup() {
+        jsoup([:])
+    }
+
+    // DSL method
+    public Document jsoup(Map options) {
+        def jsoup
+
+        if (options['source']) {
+            jsoup = getJsoupForString(options['source'].toString())
+        } else if (options['uri']) {
+            jsoup = getJsoupForUri(options['uri'].toString())
+        } else {
+            jsoup = getJsoupForUri(command.getVar('$URI'))
+        }
+
+        return jsoup
+    }
+
+    private Document getJsoupForUri(Object obj) {
+        def uri = obj.toString()
+        def cached = httpCache[uri] ?: (httpCache[uri] = http.get(uri))
+        return getJsoupForString(cached)
+    }
+
+    private Document getJsoupForString(Object obj) {
+        def string = obj.toString()
+        return jsoupCache[string] ?: (jsoupCache[string] = Jsoup.parse(string))
     }
 }

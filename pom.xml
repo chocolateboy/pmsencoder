@@ -4,12 +4,12 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.chocolatey.pmsencoder</groupId>
     <artifactId>pmsencoder</artifactId>
-    <version>1.6.2</version>
+    <version>1.7.0</version>
     <name>PMSEncoder</name>
     <description>A plugin for PS3 Media Server that adds support for scriptable web video streaming.</description>
     <properties>
         <groovypp-repo>http://groovypp.artifactoryonline.com/groovypp</groovypp-repo>
-        <groovypp-version>0.9.0_1.7.10</groovypp-version>
+        <groovypp-version>0.9.0_1.8.2</groovypp-version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <junit-version>4.10</junit-version>
         <pms-version>1.52.0</pms-version>
@@ -47,19 +47,6 @@
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>org.codehaus.geb</groupId>
-            <artifactId>geb-core</artifactId>
-            <!-- 0.6.0 doesn't work -->
-            <version>0.5.1</version>
-        </dependency>
-        <dependency>
-            <groupId>org.seleniumhq.selenium</groupId>
-            <artifactId>selenium-htmlunit-driver</artifactId>
-            <!-- XXX 2.0b2 doesn't work -->
-            <!-- XXX 2.5.0 doesn't work -->
-            <version>2.0b1</version>
-        </dependency>
-        <dependency>
             <groupId>com.google.code</groupId>
             <artifactId>ps3mediaserver</artifactId>
             <version>${pms-version}</version>
@@ -69,6 +56,11 @@
             <groupId>info.codesaway</groupId>
             <artifactId>regexplus</artifactId>
             <version>${regexplus-version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.jsoup</groupId>
+            <artifactId>jsoup</artifactId>
+            <version>1.6.3</version>
         </dependency>
     </dependencies>
 

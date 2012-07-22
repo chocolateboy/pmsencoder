@@ -13,13 +13,12 @@ check {
             def youtube_scrape_uri = "${$URI}&has_verified=1"
 
             // extract the resource's sekrit identifier ($t) from the HTML
-            scrape '\\bflashvars\\s*=\\s*.+?amp;t=(?<youtube_t>.+?%3D)', [ uri: youtube_scrape_uri ]
+            scrape(uri: youtube_scrape_uri)('\\bflashvars\\s*=\\s*.+?amp;t=(?<youtube_t>.+?%3D)')
 
             // extract the title and uploader ("creator") so that scripts can use them
-            youtube_title = browse (uri: youtube_scrape_uri) { $('meta', name: 'title').@content }
-            youtube_uploader = browse (uri: youtube_scrape_uri) {
-                $('a', 'id': 'watch-userbanner').@title
-            }
+            def $j = $(uri: youtube_scrape_uri) // curry
+            youtube_title = $j('meta[name=title]').attr('content')
+            youtube_uploader = $j('a[id=watch-userbanner]').attr('title')
         }
     }
 

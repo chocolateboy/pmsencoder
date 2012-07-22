@@ -5,7 +5,7 @@ script {
         }
 
         action {
-            scrape 'RFC\\s+(?<rfc>\\d+)', [ uri: 'http://example.com' ]
+            scrape uri: 'http://example.com', 'RFC\\s+(?<rfc>\\d+)'
         }
     }
 

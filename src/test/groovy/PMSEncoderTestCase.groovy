@@ -18,11 +18,11 @@ abstract class PMSEncoderTestCase extends GroovyTestCase {
     private URL defaultScript
 
     static {
-        // FIXME hack to shut httpclient and htmlunit the hell up
-        Logger logger = (Logger) LoggerFactory.getLogger("org.apache.http");
-        logger.setLevel(ch.qos.logback.classic.Level.WARN)
-        logger = (Logger) LoggerFactory.getLogger("com.gargoylesoftware.htmlunit");
-        logger.setLevel(ch.qos.logback.classic.Level.ERROR)
+        // FIXME hack to shut httpclient the hell up
+        Logger tempLogger = LoggerFactory.getLogger("org.apache.http");
+        tempLogger.setLevel(ch.qos.logback.classic.Level.WARN)
+        tempLogger = LoggerFactory.getLogger("groovyx.net.http");
+        tempLogger.setLevel(ch.qos.logback.classic.Level.WARN)
     }
 
     void setUp() {
@@ -37,7 +37,13 @@ abstract class PMSEncoderTestCase extends GroovyTestCase {
 
             @Mock
             public Object getCustomProperty(String key) {
-                return key == 'rtmpdump.path' ? '/usr/bin/rtmpdump' : null
+                if (key == 'rtmpdump.path') {
+                    return '/usr/bin/rtmpdump'
+                } else if (key == 'ffmpeg.http-headers') {
+                    return "false"
+                } else {
+                    return null
+                }
             }
         }
 
@@ -66,6 +72,11 @@ abstract class PMSEncoderTestCase extends GroovyTestCase {
         } else {
             return defaultValue
         }
+    }
+
+    // allow ProfileDelegate methods to be tested without having to do so indirectly through scripts
+    public ProfileDelegate getProfileDelegate(Command command = null) {
+        return new ProfileDelegate(matcher, command ?: new Command())
     }
 
     protected void assertMatch(Map<String, Object> spec) {
