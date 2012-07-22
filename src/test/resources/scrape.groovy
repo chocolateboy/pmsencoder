@@ -6,7 +6,9 @@ script {
 
         action {
             // scraping from a string
-            scrape '^(?<first>\\w+)\\s+(?<second>\\w+$)', [ source: 'scrape string' ]
+            scrape(source: 'scrape string')('^(?<first>\\w+)\\s+(?<second>\\w+$)')
+            scrape([ source: 'scrape string' ])('^(?<third>\\w+)\\s+(?<fourth>\\w+$)')
+            scrape source: 'scrape string', '^(?<fith>\\w+)\\s+(?<sixth>\\w+$)'
         }
     }
 }

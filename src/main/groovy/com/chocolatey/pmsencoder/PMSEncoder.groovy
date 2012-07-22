@@ -48,11 +48,6 @@ public class PMSEncoder extends MEncoderWebVideo implements LoggerMixin {
     }
 
     @Override
-    public String executable() {
-        normalizePath(super.executable())
-    }
-
-    @Override
     public String id() {
         ID
     }
@@ -94,33 +89,12 @@ public class PMSEncoder extends MEncoderWebVideo implements LoggerMixin {
         oldStash.put('$URI', oldURI)
         oldStash.put('$DOWNLOADER_OUT', downloaderOutputPath)
         oldStash.put('$TRANSCODER_OUT', transcoderOutputPath)
-        oldStash.put('$ffmpeg', ffmpeg);
-        oldStash.put('$mencoder', mencoder)
-        oldStash.put('$mplayer', mplayer)
 
-        log.info('invoking matcher for: ' + oldURI)
-
-        try {
-            plugin.match(command)
-        } catch (Throwable e) {
-            log.error('match error: ' + e)
-            PMS.error('PMSEncoder: match error', e)
-        }
+        plugin.match(command)
 
         // the whole point of the command abstraction is that the stash Map/transcoder command List
         // can be changed by the matcher, so make sure we refresh
         def newStash = command.getStash()
-        def matches = command.getMatches()
-        def nMatches = matches.size()
-
-        if (nMatches == 0) {
-            log.info('0 matches for: ' + oldURI)
-        } else if (nMatches == 1) {
-            log.info('1 match (' + matches + ') for: ' + oldURI)
-        } else {
-            log.info(nMatches + ' matches (' + matches + ') for: ' + oldURI)
-        }
-
         def mimeType = newStash.get('$MIME_TYPE')
 
         if (mimeType != null) {

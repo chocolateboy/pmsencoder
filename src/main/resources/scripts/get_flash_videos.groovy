@@ -2,14 +2,25 @@
 
 script {
     profile ('Get Flash Videos') {
+        def GET_FLASH_VIDEOS_PATH
+
+        if (GET_FLASH_VIDEOS) {
+            if ((new File(GET_FLASH_VIDEOS)).canExecute()) {
+                GET_FLASH_VIDEOS_PATH = GET_FLASH_VIDEOS
+            } else if (PERL) {
+                GET_FLASH_VIDEOS_PATH = "$PERL $GET_FLASH_VIDEOS"
+            }
+        }
+
         pattern {
-            match { PERL && GET_FLASH_VIDEOS }
-            domains([ 'wimp.com', 'megavideo.com' ]) // &c.
+            match { GET_FLASH_VIDEOS_PATH }
+            domains([ 'wimp.com' ]) // &c.
         }
 
         action {
             $URI = quoteURI($URI)
-            $DOWNLOADER = "$PERL $GET_FLASH_VIDEOS --quality high --quiet --yes --filename $DOWNLOADER_OUT ${$URI}"
+            def quiet = $PMS.isWindows() ? ' --quiet ' : ''
+            $DOWNLOADER = "$GET_FLASH_VIDEOS_PATH --quality high ${quiet} --yes --filename $DOWNLOADER_OUT ${$URI}"
         }
     }
 }

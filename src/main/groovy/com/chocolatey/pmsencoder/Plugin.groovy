@@ -12,22 +12,26 @@ import javax.swing.JFrame
 import net.pms.configuration.PmsConfiguration
 import net.pms.dlna.DLNAMediaInfo
 import net.pms.dlna.DLNAResource
+import net.pms.encoders.Player
 import net.pms.encoders.PlayerFactory
 import net.pms.external.ExternalListener
+import net.pms.external.FinalizeTranscoderArgsListener
 import net.pms.formats.Format
+import net.pms.io.OutputParams
 import net.pms.logging.DebugLogPathDefiner
 import net.pms.PMS
 
 import no.geosoft.cc.io.FileListener
 import no.geosoft.cc.io.FileMonitor
 
+import org.apache.log4j.Logger
 import org.apache.log4j.xml.DOMConfigurator
 
 import ch.qos.logback.classic.Logger
 import org.slf4j.LoggerFactory
 
-public class Plugin implements ExternalListener, FileListener {
-    private static final String VERSION = '1.6.2'
+public class Plugin implements ExternalListener, FinalizeTranscoderArgsListener, FileListener {
+    private static final String VERSION = '1.7.0'
     private static final String DEFAULT_SCRIPT_DIRECTORY = 'pmsencoder'
     private static final String LOG_CONFIG = 'pmsencoder.log.config'
     private static final String LOG_DIRECTORY = 'pmsencoder.log.directory'
@@ -35,6 +39,8 @@ public class Plugin implements ExternalListener, FileListener {
     private static final String SCRIPT_POLL = 'pmsencoder.script.poll'
     // 1 second is flaky - it results in overlapping file change events
     private static final int MIN_SCRIPT_POLL_INTERVAL = 2
+    private static org.apache.log4j.Logger pmsencoderLogger
+    private static final ch.qos.logback.classic.Logger PMS_LOGGER = LoggerFactory.getLogger(this.getClass())
 
     private PMSEncoder pmsencoder
     private FileMonitor fileMonitor
@@ -142,11 +148,15 @@ public class Plugin implements ExternalListener, FileListener {
             loadDefaultLogConfig()
         }
 
-        // FIXME hack to shut httpclient and htmlunit the hell up
-        Logger logger = (Logger) LoggerFactory.getLogger("org.apache.http");
-        logger.setLevel(ch.qos.logback.classic.Level.WARN)
-        logger = (Logger) LoggerFactory.getLogger("com.gargoylesoftware.htmlunit");
-        logger.setLevel(ch.qos.logback.classic.Level.ERROR)
+        // FIXME hack to shut httpclient the hell up
+        // Groovy++ type inference fail
+        ch.qos.logback.classic.Logger tempLogger = LoggerFactory.getLogger("org.apache.http");
+        tempLogger.setLevel(ch.qos.logback.classic.Level.WARN)
+        tempLogger = LoggerFactory.getLogger("groovyx.net.http");
+        tempLogger.setLevel(ch.qos.logback.classic.Level.WARN)
+
+        // now we've loaded the logger config file we can initialise the pmsencoder.log logger for this class
+        pmsencoderLogger = org.apache.log4j.Logger.getLogger(this.getClass().name)
 
         // make sure we have a matcher before we create the transcoding engine
         createMatcher()
@@ -216,11 +226,11 @@ public class Plugin implements ExternalListener, FileListener {
     }
 
     private void info(String message) {
-        PMS.minimal("PMSEncoder: $message")
+        PMS_LOGGER.info("PMSEncoder: $message")
     }
 
-    private void error(String message, Exception e) {
-        PMS.error("PMSEncoder: $message", e)
+    private void error(String message, Throwable e) {
+        PMS_LOGGER.error("PMSEncoder: $message", e)
     }
 
     private void monitorScriptDirectory() {
@@ -250,8 +260,67 @@ public class Plugin implements ExternalListener, FileListener {
         }
     }
 
+    private String normalizePath(String path) {
+        return pms.isWindows() ? path.replaceAll(~'/', '\\\\') : path
+    }
+
     public boolean match(Command command) {
-        matcher.match(command)
+        def stash = command.stash
+        def originalURI = command.getVar('$URI')
+        def ffmpeg = normalizePath(configuration.getFfmpegPath())
+        def mencoder = normalizePath(configuration.getMencoderPath())
+        def mplayer = normalizePath(configuration.getMplayerPath())
+        boolean matched // Groovy++ type inference fail
+
+        stash.put('$ffmpeg', ffmpeg);
+        stash.put('$mencoder', mencoder)
+        stash.put('$mplayer', mplayer)
+
+        pmsencoderLogger.info('invoking matcher for: ' + originalURI)
+
+        try {
+            matched = matcher.match(command)
+        } catch (Throwable e) {
+            pmsencoderLogger.error('match error: ' + e)
+            error('match error', e)
+        }
+
+        def matches = command.getMatches()
+        def nMatches = matches.size()
+
+        if (nMatches == 0) {
+            pmsencoderLogger.info('0 matches for: ' + originalURI)
+        } else if (nMatches == 1) {
+            pmsencoderLogger.info('1 match (' + matches + ') for: ' + originalURI)
+        } else {
+            pmsencoderLogger.info(nMatches + ' matches (' + matches + ') for: ' + originalURI)
+        }
+
+        return matched
+    }
+
+    @Override
+    public List<String> finalizeTranscoderArgs(
+        Player player,
+        String filename,
+        DLNAResource dlna,
+        DLNAMediaInfo media,
+        OutputParams params,
+        List<String> cmdList
+    ) {
+        def uri = new File(filename).toURI().toString() // file:// URI
+        def stash = new Stash([ $URI: uri, $FILENAME: filename, $ENGINE: player.id() ])
+        def command = new Command(stash, cmdList)
+
+        command.params = params
+
+        def matched = match(command)
+
+        if (matched) {
+            cmdList = command.transcoder
+        }
+
+        return cmdList
     }
 
     @Override

@@ -1,12 +1,11 @@
 @Typed
 package com.chocolatey.pmsencoder
 
+import groovy.json.JsonSlurper
 import groovy.util.slurpersupport.GPathResult
 
 import groovyx.net.http.HTTPBuilder
 import groovyx.net.http.ParserRegistry
-
-import net.sf.json.JSON
 
 import org.apache.http.client.methods.HttpUriRequest
 import org.apache.http.client.utils.URLEncodedUtils
@@ -25,6 +24,8 @@ import static groovyx.net.http.Method.HEAD
 // XXX the URLENC type can probably be used to simplify YouTube fmt_url_map handling
 
 class HTTPClient implements LoggerMixin {
+    private JsonSlurper jsonSlurper = new JsonSlurper()
+
     public String get(String uri) {
         getType(uri, ContentType.TEXT)
     }
@@ -41,8 +42,8 @@ class HTTPClient implements LoggerMixin {
         return getType(uri, ContentType.URLENC)
     }
 
-    public JSON getJSON(String uri) {
-        return getType(uri, ContentType.JSON)
+    public Object getJSON(String uri) {
+        return jsonSlurper.parseText(get(uri))
     }
 
     public List<NameValuePair> getNameValuePairs(String str) {

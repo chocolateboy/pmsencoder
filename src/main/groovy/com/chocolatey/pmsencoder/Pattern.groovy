@@ -61,23 +61,21 @@ class Pattern {
     // XXX squashed bug: avoid infinite loop on scrape by explicitly calling it through profileDelegate
     // XXX: we need to declare these signatures separately to work around issues
     // with @Delegate and default parameters
-    protected boolean scrape(Object regex) {
-        scrape(regex, [:])
-    }
-
-    protected boolean scrape(Object regex, Map options) {
-        if (profileDelegate.scrape(regex, options)) {
+    // note: we don't need to override scrape(Map options) or scrape(Object regex) as they both (via ProfileDelegate)
+    // polymorphically call this scrape(Map options, Object regex)
+    protected boolean scrape(Map options, Object regex) {
+        if (profileDelegate.scrape(options, regex)) {
             return true
         } else {
             throw STOP_MATCHING
         }
     }
 
-    // DSL method
-    // XXX so much for static typing...
+    // DSL method: match 'Apple Trailers'
     protected void match(Object object) {
         def matched = true
 
+        // XXX so much for static typing...
         if (object instanceof Closure) {
             matched = matchClosure(object as Closure)
         } else if (object instanceof Map) {
@@ -96,8 +94,10 @@ class Pattern {
         }
     }
 
-    // DSL method
-    // either (String , String) or (String, List)
+    // DSL method:
+    //    match $URI: 'http://www.example.com' // match the URI
+    //    match $URI: [ 'http://www.foo.com', 'http://www.bar.com' ] // match one of the URIs
+    // either (String, String) or (String, List)
     protected void match(Object key, Object value) {
         boolean matched // Groovy++ type inference fail (introduced in 0.4.170)
 
@@ -112,7 +112,7 @@ class Pattern {
         }
     }
 
-    // DSL method
+    // DSL method: match { foo > bar }
     private boolean matchClosure(Closure closure) {
         log.debug('running match block')
 
