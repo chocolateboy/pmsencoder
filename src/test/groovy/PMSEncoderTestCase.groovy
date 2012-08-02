@@ -112,7 +112,7 @@ abstract class PMSEncoderTestCase extends GroovyTestCase {
             stash = new Stash(map)
         } else { // uri can be null (not all tests need it)
             String uri = spec['uri']
-            stash = new Stash([ $URI: uri ])
+            stash = new Stash([ uri: uri ])
         }
 
         List<String> wantMatches = getValue(spec, 'wantMatches')

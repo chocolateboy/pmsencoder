@@ -1,5 +1,5 @@
 script {
-    def nbcores = $PMS.getConfiguration().getNumberOfCpuCores()
+    def nbcores = pms.getConfiguration().getNumberOfCpuCores()
     def var1 = "config$nbcores"
 
     profile ('GString Scope') {
@@ -13,7 +13,7 @@ script {
 
         action {
             def var4 = "action$nbcores"
-            $TRANSCODER = [ var1, var2, var3, var4 ]
+            transcoder = [ var1, var2, var3, var4 ]
         }
     }
 }

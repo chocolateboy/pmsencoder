@@ -8,7 +8,7 @@ script {
         }
 
         action {
-            $URI = "http://media.giantbomb.com/${path}.${extension}"
+            uri = "http://media.giantbomb.com/${path}.${extension}"
         }
     }
 }

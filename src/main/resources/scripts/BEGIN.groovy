@@ -24,8 +24,8 @@ begin {
     if (pmsConf['ffmpeg.http-headers'] != null) {
         FFMPEG_HTTP_HEADERS = Boolean.parseBoolean(pmsConf['ffmpeg.http-headers'])
     } else {
-        def ffmpeg = $PMS.getConfiguration().getFfmpegPath()
-        def proc = [ ffmpeg, '-headers', 'Foo' ].execute()
+        def ffmpegPath = pms.getConfiguration().getFfmpegPath()
+        def proc = [ ffmpegPath, '-headers', 'Foo' ].execute()
 
         proc.waitFor()
 

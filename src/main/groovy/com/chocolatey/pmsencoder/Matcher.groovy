@@ -15,7 +15,8 @@ class PMSConf { // no need to extend HashMap<...>: we only need the subscript - 
 
 // XXX note: only public methods can be delegated to
 class Matcher implements LoggerMixin {
-    @Lazy private HTTPClient http = new HTTPClient()
+    // XXX work around Groovy fail: getHttp goes into an infinite loop if this is lazy
+    private HTTPClient http = new HTTPClient()
     // this is the default Map type, but let's be explicit as we strictly need this type
     private Map<String, Profile> profiles = new LinkedHashMap<String, Profile>()
     private PMS pms
@@ -37,7 +38,7 @@ class Matcher implements LoggerMixin {
             command.output = ffmpegOut*.toString()
         }
 
-        def uri = command.stash.get('$URI')
+        def uri = command.stash.get('uri')
         log.debug("matching URI: $uri")
 
         // XXX this is horribly inefficient, but it's a) trivial to implement and b) has the right semantics
@@ -238,68 +239,68 @@ class Matcher implements LoggerMixin {
 
     // DSL properties
 
-    // $HTTP: getter
-    public HTTPClient get$HTTP() {
-        http
+    // http: getter
+    public HTTPClient getHttp() {
+        this.http
     }
 
-    // $PMS: getter
-    public final PMS get$PMS() {
-        pms
+    // pms: getter
+    public final PMS getPms() {
+        this.pms
     }
 
-    // DSL getter: $MENCODER
-    public List<String> get$MENCODER() {
-        mencoder
+    // DSL getter: MENCODER
+    public List<String> getMENCODER() {
+        this.mencoder
     }
 
-    // DSL setter: $MENCODER
-    public List<String> set$MENCODER(Object stringOrList) {
-        mencoder = Util.stringList(stringOrList)
+    // DSL setter: MENCODER
+    public List<String> setMENCODER(Object stringOrList) {
+        this.mencoder = Util.stringList(stringOrList)
     }
 
-    // DSL getter: $MPLAYER
-    public List<String> get$MPLAYER() {
-        mplayer
+    // DSL getter: MPLAYER
+    public List<String> getMPLAYER() {
+        this.mplayer
     }
 
-    // DSL setter: $MPLAYER
-    public List<String> set$MPLAYER(Object stringOrList) {
-        mplayer = Util.stringList(stringOrList)
+    // DSL setter: MPLAYER
+    public List<String> setMPLAYER(Object stringOrList) {
+        this.mplayer = Util.stringList(stringOrList)
     }
 
-    // DSL getter: $FFMPEG
-    public List<String> get$FFMPEG() {
-        ffmpeg
+    // DSL getter: FFMPEG
+    public List<String> getFFMPEG() {
+        this.ffmpeg
     }
 
-    // DSL setter: $FFMPEG
-    public List<String> set$FFMPEG(Object stringOrList) {
-        ffmpeg = Util.stringList(stringOrList)
+    // DSL setter: FFMPEG
+    public List<String> setFFMPEG(Object stringOrList) {
+        this.ffmpeg = Util.stringList(stringOrList)
     }
 
-    // DSL getter: $FFMPEG_OUT
-    public List<String> get$FFMPEG_OUT() {
-        ffmpegOut
+    // DSL getter: FFMPEG_OUT
+    public List<String> getFFMPEG_OUT() {
+        this.ffmpegOut
     }
 
-    // DSL setter: $FFMPEG_OUT
-    public List<String> set$FFMPEG_OUT(Object stringOrList) {
-        ffmpegOut = Util.stringList(stringOrList)
+    // DSL setter: FFMPEG_OUT
+    public List<String> setFFMPEG_OUT(Object stringOrList) {
+        this.ffmpegOut = Util.stringList(stringOrList)
     }
 
-    // DSL getter: $YOUTUBE_ACCEPT
-    public List<Integer> get$YOUTUBE_ACCEPT() {
-        youtubeAccept
+    // DSL getter: YOUTUBE_ACCEPT
+    public List<Integer> getYOUTUBE_ACCEPT() {
+        this.youtubeAccept
     }
 
-    // DSL setter: $YOUTUBE_ACCEPT
-    public List<Integer> set$YOUTUBE_ACCEPT(List<Integer> args) {
-        youtubeAccept = args
+    // DSL setter: YOUTUBE_ACCEPT
+    public List<Integer> setYOUTUBE_ACCEPT(List<Integer> args) {
+        this.youtubeAccept = args
     }
 
-    // $OS: getter
-    public final String get$OS() {
+    // os: getter
+    public final String getOs() {
         System.getProperty('os.name')
     }
 }

@@ -18,9 +18,9 @@ script {
         }
 
         action {
-            $URI = quoteURI($URI)
-            def quiet = $PMS.isWindows() ? ' --quiet ' : ''
-            $DOWNLOADER = "$GET_FLASH_VIDEOS_PATH --quality high ${quiet} --yes --filename $DOWNLOADER_OUT ${$URI}"
+            uri = quoteURI(uri)
+            def quiet = pms.isWindows() ? ' --quiet ' : ''
+            downloader = "$GET_FLASH_VIDEOS_PATH --quality high${quiet} --yes --filename $DOWNLOADER_OUT ${uri}"
         }
     }
 }

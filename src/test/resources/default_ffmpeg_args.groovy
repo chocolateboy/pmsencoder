@@ -1,3 +1,3 @@
 script {
-    $FFMPEG = [ '-default', '-ffmpeg', '-args' ]
+    FFMPEG = [ '-default', '-ffmpeg', '-args' ]
 }

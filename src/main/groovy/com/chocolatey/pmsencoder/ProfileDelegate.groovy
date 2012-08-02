@@ -41,7 +41,7 @@ class ProfileDelegate {
     /*
         XXX Groovy fail: http://jira.codehaus.org/browse/GROOVY-2500
 
-        if two or more setters for a property (e.g. $DOWNLOADER) are defined (e.g. one for String and another
+        if two or more setters for a property (e.g. downloader) are defined (e.g. one for String and another
         for List<String>) Groovy/Groovy++ only uses one of them, complaining at runtime that
         it can't cast e.g. a String into a List:
 
@@ -51,43 +51,43 @@ class ProfileDelegate {
         workaround: define just one setter and determine the type with instanceof (via stringList)
     */
 
-    // DSL accessor ($DOWNLOADER): getter
-    public List<String> get$DOWNLOADER() {
+    // DSL accessor (downloader): getter
+    public List<String> getDownloader() {
         command.downloader
     }
 
-    // DSL accessor ($DOWNLOADER): setter
-    public List<String> set$DOWNLOADER(Object downloader) {
+    // DSL accessor (downloader): setter
+    public List<String> setDownloader(Object downloader) {
         command.downloader = Util.stringList(downloader)
     }
 
-    // DSL accessor ($TRANSCODER): getter
-    public List<String> get$TRANSCODER() {
+    // DSL accessor (transcoder): getter
+    public List<String> getTranscoder() {
         command.transcoder
     }
 
-    // DSL accessor ($TRANSCODER): setter
-    public List<String> set$TRANSCODER(Object transcoder) {
+    // DSL accessor (transcoder): setter
+    public List<String> setTranscoder(Object transcoder) {
         command.transcoder = Util.stringList(transcoder)
     }
 
-    // DSL accessor ($HOOK): getter
-    public List<String> get$HOOK() {
+    // DSL accessor (hook): getter
+    public List<String> getHook() {
         command.hook
     }
 
-    // DSL accessor ($HOOK): setter
-    public List<String> set$HOOK(Object hook) {
+    // DSL accessor (hook): setter
+    public List<String> setHook(Object hook) {
         command.hook = Util.stringList(hook)
     }
 
-    // DSL accessor ($OUTPUT): getter
-    public List<String> get$OUTPUT() {
+    // DSL accessor (output): getter
+    public List<String> getOutput() {
         command.output
     }
 
-    // DSL accessor ($OUTPUT): setter
-    public List<String> set$OUTPUT(Object args) {
+    // DSL accessor (output): setter
+    public List<String> setOutput(Object args) {
         command.output = Util.stringList(args)
     }
 
@@ -99,14 +99,14 @@ class ProfileDelegate {
         }
     }
 
-    // $PROTOCOL: getter
-    public String get$PROTOCOL() {
-        return getProtocol(command.getVar('$URI'))
+    // protocol: getter
+    public String getProtocol() {
+        return getProtocol(command.getVar('uri'))
     }
 
-    // $PROTOCOL: setter
-    public String set$PROTOCOL(Object newProtocol) {
-        def u = command.getVar('$URI')
+    // protocol: setter
+    public String setProtocol(Object newProtocol) {
+        def u = command.getVar('uri')
         def oldProtocol = getProtocol(u)
 
         if (oldProtocol) { // not null and not empty
@@ -114,13 +114,13 @@ class ProfileDelegate {
                 newProtocol = ''
             }
             u = newProtocol.toString() + u.substring(oldProtocol.length())
-            command.setVar('$URI', u)
+            command.setVar('uri', u)
         }
     }
 
-    // DSL accessor ($PARAMS): getter
-    // $PARAMS: getter
-    public OutputParams get$PARAMS() {
+    // DSL accessor (params): getter
+    // params: getter
+    public OutputParams getParams() {
         command.params
     }
 
@@ -141,7 +141,7 @@ class ProfileDelegate {
     // DSL method
     // delegated to so must be public
     public URI uri() {
-        uri(command.getVar('$URI'))
+        uri(command.getVar('uri'))
     }
 
     // DSL method
@@ -165,14 +165,14 @@ class ProfileDelegate {
     }
 
     /*
-        1) get the URI pointed to by options['uri'] or command.getVar('$URI') (if it hasn't already been retrieved)
+        1) get the URI pointed to by options['uri'] or command.getVar('uri') (if it hasn't already been retrieved)
         2) perform a regex match against the document
         3) update the stash with any named captures
     */
 
     // DSL method
     public boolean scrape(Map options, Object regex) {
-        String uri = (options['uri'] == null) ? command.getVar('$URI') : options['uri']
+        String uri = (options['uri'] == null) ? command.getVar('uri') : options['uri']
         String document = (options['source'] == null) ? httpCache[uri] : options['source']
         boolean decode = options['decode'] == null ? false : options['decode']
 
@@ -227,7 +227,7 @@ class ProfileDelegate {
         } else if (options['uri']) {
             jsoup = getJsoupForUri(options['uri'].toString())
         } else {
-            jsoup = getJsoupForUri(command.getVar('$URI'))
+            jsoup = getJsoupForUri(command.getVar('uri'))
         }
 
         return jsoup.select(query.toString())
@@ -248,7 +248,7 @@ class ProfileDelegate {
         } else if (options['uri']) {
             jsoup = getJsoupForUri(options['uri'].toString())
         } else {
-            jsoup = getJsoupForUri(command.getVar('$URI'))
+            jsoup = getJsoupForUri(command.getVar('uri'))
         }
 
         return jsoup

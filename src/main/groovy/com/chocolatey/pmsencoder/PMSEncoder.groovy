@@ -86,16 +86,16 @@ public class PMSEncoder extends MEncoderWebVideo implements LoggerMixin {
         def mencoder = normalizePath(configuration.getMencoderPath())
         def mplayer = normalizePath(configuration.getMplayerPath())
 
-        oldStash.put('$URI', oldURI)
-        oldStash.put('$DOWNLOADER_OUT', downloaderOutputPath)
-        oldStash.put('$TRANSCODER_OUT', transcoderOutputPath)
+        oldStash.put('uri', oldURI)
+        oldStash.put('DOWNLOADER_OUT', downloaderOutputPath)
+        oldStash.put('TRANSCODER_OUT', transcoderOutputPath)
 
         plugin.match(command)
 
         // the whole point of the command abstraction is that the stash Map/transcoder command List
         // can be changed by the matcher, so make sure we refresh
         def newStash = command.getStash()
-        def mimeType = newStash.get('$MIME_TYPE')
+        def mimeType = newStash.get('MIME_TYPE')
 
         if (mimeType != null) {
             log.debug('thread id: ' + threadId)
@@ -111,15 +111,14 @@ public class PMSEncoder extends MEncoderWebVideo implements LoggerMixin {
         List<String> hookArgs = command.getHook()
         List<String> downloaderArgs = command.getDownloader()
         List<String> transcoderArgs = command.getTranscoder()
-        def newURI = quoteURI(newStash.get('$URI'))
+        def newURI = quoteURI(newStash.get('uri')?.toString())
 
         if (hookArgs) {
             processManager.handleHook(hookArgs)
         }
 
-        // automagically add extra command-line options for the PMS-native downloaders/transformers
-        // and substitute the configured paths for 'MPLAYER', 'FFMPEG' &c.
-        // TODO: add support for GET_FLASH_VIDEOS, YOUTUBE_DL and RTMPDUMP "macros" (any others?)
+        // automagically add extra command-line options for the PMS-native downloaders/transcoders
+        // and substitute the configured paths for 'MPLAYER', 'MENCODER', and 'FFMPEG'
         if (downloaderArgs && downloaderArgs[0] == 'MPLAYER') {
             /*
                 plug in the input/output e.g. before:
@@ -128,7 +127,7 @@ public class PMSEncoder extends MEncoderWebVideo implements LoggerMixin {
 
                 after:
 
-                    /path/to/mplayer -prefer-ipv4 -quiet -dumpstream -dumpfile $DOWNLOADER_OUT $URI
+                    /path/to/mplayer -prefer-ipv4 -quiet -dumpstream -dumpfile $DOWNLOADER_OUT $uri
             */
 
             downloaderArgs[0] = mplayer
@@ -149,22 +148,24 @@ public class PMSEncoder extends MEncoderWebVideo implements LoggerMixin {
 
                         after (with downloader):
 
-                             /path/to/ffmpeg -loglevel warning -y -threads nbcores -i DOWNLOADER_OUT \
-                                -threads nbcores -target ntsc-dvd TRANSCODER_OUT
+                             /path/to/ffmpeg -loglevel warning -y -threads nbcores -i $DOWNLOADER_OUT \
+                                -threads nbcores -target ntsc-dvd $TRANSCODER_OUT
 
                         after (without downloader):
 
-                             /path/to/ffmpeg -loglevel warning -y -threads nbcores -i $URI -threads nbcores \
+                             /path/to/ffmpeg -loglevel warning -y -threads nbcores -i $uri -threads nbcores \
                                  -target ntsc-dvd TRANSCODER_OUT
                     */
 
+                    // TODO handle TranscodeVideo=WMV|MPEGTSAC3|MPEGPSAC3
+                    // XXX don't use output - handle output formating here (and below for MEncoder)
                     transcoderArgs[0] = ffmpeg
                     transcoderArgs += [ '-i', transcoderInput ]
                     if (command.output) {
                         transcoderArgs += command.output // defaults to: -target ntsc-dvd
                     }
                     transcoderArgs += [ transcoderOutputPath ]
-                } else { // mencoder
+                } else { // MEncoder
                     /*
                         before:
 
@@ -172,11 +173,11 @@ public class PMSEncoder extends MEncoderWebVideo implements LoggerMixin {
 
                         after (with downloader):
 
-                             /path/to/mencoder -mencoder -options -o TRANSCODER_OUT DOWNLOADER_OUT
+                             /path/to/mencoder -mencoder -options -o $TRANSCODER_OUT $DOWNLOADER_OUT
 
                         after (without downloader):
 
-                             /path/to/mencoder -mencoder -options -o TRANSCODER_OUT $URI
+                             /path/to/mencoder -mencoder -options -o $TRANSCODER_OUT $uri
                     */
 
                     transcoderArgs[0] = mencoder

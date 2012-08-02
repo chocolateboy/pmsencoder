@@ -2,12 +2,12 @@ script {
     profile ('file://') {
         pattern {
             protocol 'file'
-            match { $PROTOCOL == 'file' }
-            match { $PROTOCOL != 'http' }
+            match { protocol == 'file' }
+            match { protocol != 'http' }
         }
 
         action {
-            set '-protocol': $PROTOCOL
+            set '-protocol': protocol
 
         }
     }
@@ -15,24 +15,24 @@ script {
     profile ('http://') {
         pattern {
             protocol 'http'
-            match { $PROTOCOL == 'http' }
-            match { $PROTOCOL != 'file' }
+            match { protocol == 'http' }
+            match { protocol != 'file' }
         }
 
         action {
-            set '-protocol': $PROTOCOL
+            set '-protocol': protocol
         }
     }
 
     profile ('mms://') {
         pattern {
             protocol 'mms'
-            match { $PROTOCOL == 'mms' }
-            match { $PROTOCOL != 'file' }
+            match { protocol == 'mms' }
+            match { protocol != 'file' }
         }
 
         action {
-            $PROTOCOL = 'mmsh'
+            protocol = 'mmsh'
         }
     }
 }

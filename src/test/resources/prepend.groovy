@@ -18,10 +18,10 @@ script {
         }
 
         action {
-            $HOOK = [ 'one' ]
-            $DOWNLOADER = [ 'one' ]
-            $TRANSCODER = [ 'one' ]
-            $OUTPUT = [ 'one' ]
+            hook = [ 'one' ]
+            downloader = [ 'one' ]
+            transcoder = [ 'one' ]
+            output = [ 'one' ]
             hook { prepend('two') }
             downloader { prepend('two') }
             transcoder { prepend('two') }
@@ -35,10 +35,10 @@ script {
         }
 
         action {
-            $HOOK = [ 'one', 'two' ]
-            $DOWNLOADER = [ 'one', 'two' ]
-            $TRANSCODER = [ 'one', 'two' ]
-            $OUTPUT = [ 'one', 'two' ]
+            hook = [ 'one', 'two' ]
+            downloader = [ 'one', 'two' ]
+            transcoder = [ 'one', 'two' ]
+            output = [ 'one', 'two' ]
             hook { prepend('three') }
             downloader { prepend('three') }
             transcoder { prepend('three') }
@@ -51,10 +51,10 @@ script {
             domain 'prepend.list.zero'
         }
         action {
-            $HOOK = []
-            $DOWNLOADER = []
-            $TRANSCODER = []
-            $OUTPUT = []
+            hook = []
+            downloader = []
+            transcoder = []
+            output = []
             hook { prepend([ 'one', 'two' ]) }
             downloader { prepend([ 'one', 'two' ]) }
             transcoder { prepend([ 'one', 'two' ]) }
@@ -67,10 +67,10 @@ script {
             domain 'prepend.list.one'
         }
         action {
-            $HOOK = [ 'one' ]
-            $DOWNLOADER = [ 'one' ]
-            $TRANSCODER = [ 'one' ]
-            $OUTPUT = [ 'one' ]
+            hook = [ 'one' ]
+            downloader = [ 'one' ]
+            transcoder = [ 'one' ]
+            output = [ 'one' ]
             hook { prepend([ 'two', 'three' ]) }
             downloader { prepend([ 'two', 'three' ]) }
             transcoder { prepend([ 'two', 'three' ]) }
@@ -83,10 +83,10 @@ script {
             domain 'prepend.list.two'
         }
         action {
-            $HOOK = [ 'one', 'two' ]
-            $DOWNLOADER = [ 'one', 'two' ]
-            $TRANSCODER = [ 'one', 'two' ]
-            $OUTPUT = [ 'one', 'two' ]
+            hook = [ 'one', 'two' ]
+            downloader = [ 'one', 'two' ]
+            transcoder = [ 'one', 'two' ]
+            output = [ 'one', 'two' ]
             hook { prepend([ 'three', 'four' ]) }
             downloader { prepend([ 'three', 'four' ]) }
             transcoder { prepend([ 'three', 'four' ]) }

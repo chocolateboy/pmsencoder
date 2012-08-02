@@ -8,7 +8,7 @@
 script {
     profile('Bloomberg Live') {
         pattern {
-            match $URI: '\\blm\\.akamaistream\\.net/D/'
+            match uri: '\\blm\\.akamaistream\\.net/D/'
         }
 
         action {

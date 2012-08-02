@@ -3,14 +3,14 @@
 script {
     profile ('Gamestar') {
         pattern {
-            match $URI: '^http://www\\.gamestar\\.de/index\\.cfm\\?pid=\\d+&pk=\\d+'
+            match uri: '^http://www\\.gamestar\\.de/index\\.cfm\\?pid=\\d+&pk=\\d+'
         }
 
         action {
             // set the scrape URI to the URI of the XML file containing the video's metadata
-            scrape '/jw\\d+/player\\.swf\\?config=(?<URI>[^"]+)'
+            scrape '/jw\\d+/player\\.swf\\?config=(?<uri>[^"]+)'
             // now extract the video URI from the XML's <file>...</file> element
-            scrape '<file>(?<URI>[^<]+)</file>'
+            scrape '<file>(?<uri>[^<]+)</file>'
         }
     }
 }

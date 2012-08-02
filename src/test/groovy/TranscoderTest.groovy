@@ -7,7 +7,7 @@ class TranscoderTest extends PMSEncoderTestCase {
     void testTranscoderList() {
         def uri = 'http://www.transcoder-list.com'
         assertMatch([
-            script: '/transcoder.groovy',
+            script: '/transcoder_test.groovy',
             uri: uri,
             wantMatches: [ 'Transcoder List' ],
             transcoder: [ transcoder, 'list', uri ]
@@ -17,7 +17,7 @@ class TranscoderTest extends PMSEncoderTestCase {
     void testTranscoderString() {
         def uri = 'http://www.transcoder-string.com'
         assertMatch([
-            script: '/transcoder.groovy',
+            script: '/transcoder_test.groovy',
             uri: uri,
             wantMatches: [ 'Transcoder String' ],
             transcoder: [ transcoder, 'string', uri ]

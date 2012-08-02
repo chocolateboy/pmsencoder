@@ -11,10 +11,10 @@ script {
             def filename = scrape('/download/\\d+/(?<gametrailers_filename>t_[^.]+)\\.(mov|wmv|mp4)\\b')
 
             if (mov_game_id && filename) {
-                $URI = "http://download.gametrailers.com/gt_vault/${gametrailers_mov_game_id}/${gametrailers_filename}.flv"
+                uri = "http://download.gametrailers.com/gt_vault/${gametrailers_mov_game_id}/${gametrailers_filename}.flv"
             } else if (mov_id) {
                 def scrapeURI = "http://www.gametrailers.com/neo/?page=xml.mediaplayer.Mediagen&movieId=${gametrailers_mov_id}&hd=1"
-                scrape(uri: scrapeURI)('<src>\\s*(?<URI>\\S+)\\s*</src>')
+                scrape(uri: scrapeURI)('<src>\\s*(?<uri>\\S+)\\s*</src>')
             }
         }
     }

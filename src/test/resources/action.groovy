@@ -1,7 +1,7 @@
 script {
     profile('Scrape') {
         pattern {
-            match { $URI == 'http://action.com' }
+            match { uri == 'http://action.com' }
         }
 
         action {

@@ -8,8 +8,8 @@ class ActionTest extends PMSEncoderTestCase {
             script: '/action.groovy',
             uri:    uri,
             wantStash: [
-                $URI: uri,
-                $rfc: '2606'
+                uri: uri,
+                rfc: '2606'
             ],
             wantMatches: [ 'Scrape' ]
         ])

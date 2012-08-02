@@ -14,7 +14,7 @@ script {
             // and 1) unescape it 2) resolve redirects (to work around a bug in MEncoder/MPlayer's HTTP support):
             // XXX 2) may not be needed for ffmpeg
             // http://lists.mplayerhq.hu/pipermail/mplayer-dev-eng/2010-December/067084.html
-            $URI = $HTTP.target(URLDecoder.decode($escaped))
+            uri = http.target(URLDecoder.decode(escaped))
         }
     }
 }

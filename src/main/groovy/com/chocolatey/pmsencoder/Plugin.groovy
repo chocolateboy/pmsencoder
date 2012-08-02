@@ -260,21 +260,11 @@ public class Plugin implements ExternalListener, FinalizeTranscoderArgsListener,
         }
     }
 
-    private String normalizePath(String path) {
-        return pms.isWindows() ? path.replaceAll(~'/', '\\\\') : path
-    }
-
     public boolean match(Command command) {
         def stash = command.stash
-        def originalURI = command.getVar('$URI')
-        def ffmpeg = normalizePath(configuration.getFfmpegPath())
-        def mencoder = normalizePath(configuration.getMencoderPath())
-        def mplayer = normalizePath(configuration.getMplayerPath())
-        boolean matched // Groovy++ type inference fail
+        def originalURI = command.getVar('uri')
 
-        stash.put('$ffmpeg', ffmpeg);
-        stash.put('$mencoder', mencoder)
-        stash.put('$mplayer', mplayer)
+        boolean matched // Groovy++ type inference fail
 
         pmsencoderLogger.info('invoking matcher for: ' + originalURI)
 
@@ -309,7 +299,15 @@ public class Plugin implements ExternalListener, FinalizeTranscoderArgsListener,
         List<String> cmdList
     ) {
         def uri = new File(filename).toURI().toString() // file:// URI
-        def stash = new Stash([ $URI: uri, $FILENAME: filename, $ENGINE: player.id() ])
+        def stash = new Stash([
+            dlna: dlna,
+            engine: player.id(),
+            filename: filename,
+            media: media,
+            params: params,
+            player: player,
+            uri: uri
+        ])
         def command = new Command(stash, cmdList)
 
         command.params = params

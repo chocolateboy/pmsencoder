@@ -1,7 +1,7 @@
 script {
     profile ('Context Block') {
         action {
-            $HOOK = 'hook -foo -bar -baz'
+            hook = 'hook -foo -bar -baz'
         }
     }
 
@@ -27,7 +27,7 @@ script {
                 set '-bar'
             }
 
-            // default to $TRANSCODER
+            // default to transcoder
             set '-baz'
         }
     }
@@ -54,7 +54,7 @@ script {
                 remove '-bar'
             }
 
-            // default to $TRANSCODER
+            // default to transcoder
             remove '-baz'
         }
     }

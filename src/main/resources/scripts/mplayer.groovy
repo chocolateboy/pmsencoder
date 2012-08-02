@@ -1,13 +1,13 @@
 end {
     profile ('MPlayer') {
         pattern {
-            match { !$DOWNLOADER }
+            match { !downloader }
             // don't clobber MEncoder options if they've already been set
-            match { $TRANSCODER[0] != 'MENCODER' }
+            match { transcoder[0] != 'MENCODER' }
             match {
                 // MEncoder/MPlayer protocols that aren't supported by ffmpeg
                 // Also see: http://www.ffmpeg.org/ffmpeg-doc.html#SEC33
-                $PROTOCOL && ($PROTOCOL in [
+                protocol && (protocol in [
                     'br',
                     'cdda',
                     'cddb',
@@ -39,7 +39,7 @@ end {
         }
 
         action {
-            $TRANSCODER = $MENCODER
+            transcoder = MENCODER
         }
     }
 }

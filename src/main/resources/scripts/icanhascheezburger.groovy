@@ -16,7 +16,7 @@ script {
         }
 
         action {
-            $URI = "http://www.youtube.com/watch?v=${video_id}"
+            uri = "http://www.youtube.com/watch?v=${video_id}"
         }
     }
 
@@ -24,14 +24,14 @@ script {
         pattern {
             match ICHC
             match { IPAD_USER_AGENT }
-            scrape "\\bsrc='(?<URI>http://www\\.viddler\\.com/file/\\w+/html5mobile/)'"
+            scrape "\\bsrc='(?<uri>http://www\\.viddler\\.com/file/\\w+/html5mobile/)'"
         }
 
         action {
             if (FFMPEG_HTTP_HEADERS) {
                 set '-headers': 'User-Agent: ' + IPAD_USER_AGENT
             } else {
-                $TRANSCODER = $MENCODER
+                transcoder = MENCODER
                 set '-user-agent': IPAD_USER_AGENT
             }
         }

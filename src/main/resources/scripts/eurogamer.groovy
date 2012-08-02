@@ -15,9 +15,10 @@ script {
             def playlist_id = use (RegexHelper) {
                 $('div[id^=video-block-]').attr('id').match(/(\d+)$/)[0]
             }
-            def json = $HTTP.getJSON("http://www.eurogamer.net/tv/playlist/${playlist_id}")
 
-            $URI = json[0]['hd.file']
+            def json = http.getJSON("http://www.eurogamer.net/tv/playlist/${playlist_id}")
+
+            uri = json[0]['hd.file']
         }
     }
 }

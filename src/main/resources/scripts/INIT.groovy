@@ -11,30 +11,30 @@
 */
 
 init {
-    def nbcores = $PMS.getConfiguration().getNumberOfCpuCores()
+    def nbcores = pms.getConfiguration().getNumberOfCpuCores()
     // have to be completely silent on Windows as stdout is sent to the transcoder
-    def mplayerLogLevel = $PMS.isWindows() ? 'all=1' : 'all=2'
+    def mplayerLogLevel = pms.isWindows() ? 'all=1' : 'all=2'
 
     /*
         Matcher-level (global) lists of strings that provide useful default options
         for ffmpeg (downloader/transcoder), mplayer (downloader) and mencoder (downloader, transcoder)
 
-        $DOWNLOADER = $MPLAYER:
+        downloader = MPLAYER:
 
-            $DOWNLOADER = "mplayer -msglevel all=2 -prefer-ipv4 -quiet -dumpstream -dumpfile $DOWNLOADER_OUT ${$URI}"
+            downloader = "mplayer -msglevel all=2 -prefer-ipv4 -quiet -dumpstream -dumpfile $DOWNLOADER_OUT ${uri}"
 
-        $TRANSCODER = $FFMPEG:
+        transcoder = FFMPEG:
 
-            $TRANSCODER = "ffmpeg -loglevel warning -y -threads nbcores \
-                -i ${$URI} -threads nbcores -target ntsc-dvd $TRANSCODER_OUT"
+            transcoder = "ffmpeg -loglevel warning -y -threads nbcores \
+                -i ${uri} -threads nbcores -target ntsc-dvd $TRANSCODER_OUT"
 
-            $TRANSCODER = "ffmpeg -loglevel warning -y -threads nbcores \
+            transcoder = "ffmpeg -loglevel warning -y -threads nbcores \
                 -i $DOWNLOADER_OUT -threads nbcores -target ntsc-dvd $TRANSCODER_OUT"
 
-        $TRANSCODER = $MENCODER:
+        transcoder = MENCODER:
 
-            $TRANSCODER = "mencoder -mencoder -options -o $TRANSCODER_OUT ${$URI}"
-            $TRANSCODER = "mencoder -mencoder -options -o $TRANSCODER_OUT $DOWNLOADER_OUT"
+            transcoder = "mencoder -mencoder -options -o $TRANSCODER_OUT ${uri}"
+            transcoder = "mencoder -mencoder -options -o $TRANSCODER_OUT $DOWNLOADER_OUT"
 
         By default, ffmpeg is used without a separate downloader.
 
@@ -44,35 +44,35 @@ init {
         Note: the uppercase executable names (e.g. FFMPEG) are used to signal to PMSEncoder.groovy that the
         configured path should be substituted.
 
-        matcher-scoped (i.e. global): $FFMPEG, $FFMPEG_OUT, $MENCODER, and $MPLAYER are lists of strings,
+        matcher-scoped (i.e. global): FFMPEG, MENCODER, and MPLAYER are lists of strings,
         but, as seen below, can be assigned strings (which are split on whitespace).
 
-        profile-scoped: $DOWNLOADER, $TRANSCODER, $OUTPUT and $HOOK are similar, but are only defined in the context
+        profile-scoped: downloader, transcoder, output and hook are similar, but are only defined in the context
         of a profile block.
     */
 
     // default ffmpeg transcode command - all of these defaults can be (p)redefined in a userscript (e.g. BEGIN.groovy)
-    // XXX: Groovy quirk: !$FFMPEG means $FFMPEG is not a) null or b) empty
+    // XXX: Groovy quirk: !FFMPEG means FFMPEG is not a) null or b) empty
     // all four of these values are initialized to empty lists, so we're relying on the "is nonempty"
     // meaning for these checks
-    if (!$FFMPEG)
-        $FFMPEG = "FFMPEG -loglevel warning -y -threads ${nbcores}" // -threads 0 doesn't work for all codecs - better to specify
+    if (!FFMPEG)
+        FFMPEG = "FFMPEG -loglevel warning -y -threads ${nbcores}" // -threads 0 doesn't work for all codecs - better to specify
 
     // default ffmpeg output options
-    if (!$FFMPEG_OUT)
-        $FFMPEG_OUT = "-threads ${nbcores} -target ntsc-dvd"
+    if (!FFMPEG_OUT)
+        FFMPEG_OUT = "-threads ${nbcores} -target ntsc-dvd"
 
     // default mencoder transcode command
-    if (!$MENCODER) {
-        $MENCODER = [
+    if (!MENCODER) {
+        MENCODER = [
             'MENCODER',
             '-msglevel', 'all=2',
             '-quiet',
             '-prefer-ipv4',
             '-oac', 'lavc',
+            '-ovc', 'lavc',
             '-of', 'lavf',
             '-lavfopts', 'format=dvd',
-            '-ovc', 'lavc',
             '-lavcopts', "vcodec=mpeg2video:vbitrate=4096:threads=${nbcores}:acodec=ac3:abitrate=128",
             '-ofps', '25',
             '-cache', '16384', // default cache size; default minimum percentage is 20%
@@ -81,8 +81,8 @@ init {
     }
 
     // default mplayer download command
-    if (!$MPLAYER)
-        $MPLAYER = "MPLAYER -msglevel ${mplayerLogLevel} -quiet -prefer-ipv4 -dumpstream"
+    if (!MPLAYER)
+        MPLAYER = "MPLAYER -msglevel ${mplayerLogLevel} -quiet -prefer-ipv4 -dumpstream"
 
     /*
         this is the default list of YouTube format/resolution IDs we should accept/select - in descending
@@ -93,17 +93,17 @@ init {
 
         exclude '1080p':
 
-            youtube $YOUTUBE_ACCEPT - [ 37 ]
+            youtube YOUTUBE_ACCEPT - [ 37 ]
 
         add '3072p':
 
-            youtube([ 38 ] + $YOUTUBE_ACCEPT)
+            youtube([ 38 ] + YOUTUBE_ACCEPT)
 
         For the full list of formats, see: http://en.wikipedia.org/wiki/YouTube#Quality_and_codecs
     */
 
-    if (!$YOUTUBE_ACCEPT) {
-        $YOUTUBE_ACCEPT = [
+    if (!YOUTUBE_ACCEPT) {
+        YOUTUBE_ACCEPT = [
             37,  // 1080p
             22,  // 720p
             35,  // 480p

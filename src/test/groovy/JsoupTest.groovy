@@ -13,11 +13,11 @@ class JsoupTest extends PMSEncoderTestCase {
             uri: 'http://www.ps3mediaserver.org',
             wantMatches: [ 'jsoup' ],
             wantStash: [
-                $URI: 'http://www.ps3mediaserver.org',
-                $title1: 'PS3 Media Server',
-                $title2: 'PS3 Media Server',
-                $title3: 'PS3 Media Server',
-                $title4: 'PS3 Media Server'
+                uri: 'http://www.ps3mediaserver.org',
+                title1: 'PS3 Media Server',
+                title2: 'PS3 Media Server',
+                title3: 'PS3 Media Server',
+                title4: 'PS3 Media Server'
             ]
         ])
     }

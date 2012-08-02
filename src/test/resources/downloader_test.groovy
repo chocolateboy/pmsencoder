@@ -1,5 +1,5 @@
 script {
-    def downloader = '/usr/bin/downloader'
+    def downloaderPath = '/usr/bin/downloader'
 
     profile ('Downloader List') {
         pattern {
@@ -7,7 +7,7 @@ script {
         }
 
         action {
-            $DOWNLOADER = [ downloader, 'list', $URI ]
+            downloader = [ downloaderPath, 'list', uri ]
         }
     }
 
@@ -17,7 +17,7 @@ script {
         }
 
         action {
-            $DOWNLOADER = "$downloader string ${$URI}"
+            downloader = "$downloaderPath string ${uri}"
         }
     }
 }

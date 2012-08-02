@@ -5,7 +5,7 @@ script {
         }
 
         action {
-            $HOOK = "string ${$URI}"
+            hook = "string ${uri}"
         }
     }
 
@@ -15,7 +15,7 @@ script {
         }
 
         action {
-            $HOOK = [ 'list', $URI ]
+            hook = [ 'list', uri ]
         }
     }
 }

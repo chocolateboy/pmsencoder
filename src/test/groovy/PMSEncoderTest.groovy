@@ -13,7 +13,7 @@ class PMSEncoderTest extends PMSEncoderTestCase {
         assert !command.stash.is(newCommand.stash)
         assert !command.transcoder.is(newCommand.transcoder)
         assert !command.is(newCommand)
-        assert newCommand.stash == [ $foo: 'bar' ]
+        assert newCommand.stash == [ foo: 'bar' ]
         assert newCommand.transcoder == [ 'baz', 'quux' ]
     }
 
@@ -26,7 +26,7 @@ class PMSEncoderTest extends PMSEncoderTestCase {
         assert !command.stash.is(newCommand.stash)
         assert !command.transcoder.is(newCommand.transcoder)
         assert !command.is(newCommand)
-        assert newCommand.stash == [ $foo: 'bar' ]
+        assert newCommand.stash == [ foo: 'bar' ]
         assert newCommand.transcoder == [ 'baz', 'quux' ]
     }
 
@@ -36,7 +36,7 @@ class PMSEncoderTest extends PMSEncoderTestCase {
         def newStash = new Stash(stash)
         assert newStash != null
         assert !stash.is(newStash)
-        assert newStash == [ $foo: 'bar' ]
+        assert newStash == [ foo: 'bar' ]
     }
 
     void testProfileValidationDelegateInitalState() {

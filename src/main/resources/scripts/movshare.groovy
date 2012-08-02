@@ -8,10 +8,10 @@ script {
         // otherwise wait for the delay
         action {
             if (VLC) {
-                $URI = quoteURI($URI)
-                $DOWNLOADER = "$VLC -q -I dummy --demux dump --demuxdump-file $DOWNLOADER_OUT ${$URI}"
+                uri = quoteURI(uri)
+                downloader = "$VLC -q -I dummy --demux dump --demuxdump-file $DOWNLOADER_OUT ${uri}"
             } else {
-                $PARAMS.waitbeforestart = 20000L
+                params.waitbeforestart = 20000L
             }
         }
     }

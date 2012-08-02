@@ -10,7 +10,7 @@ class Action {
     Action(ProfileDelegate profileDelegate) {
         this.profileDelegate = profileDelegate
         this.matcher = profileDelegate.matcher
-        setContext({ get$TRANSCODER() })
+        setContext({ getTranscoder() })
     }
 
     boolean isOption(String arg) {
@@ -41,56 +41,56 @@ class Action {
     //     Duplicate method name&signature in class file com/chocolatey/pmsencoder/Action$hook$2
     @Typed(TypePolicy.DYNAMIC)
     void hook (Closure closure) {
-        if ($HOOK == null) {
+        if (getHook() == null) {
             log.error("can't modify null hook command list")
         } else {
-            setContext({ get$HOOK() })
+            setContext({ getHook() })
             try {
                 closure.call()
             } finally {
-                setContext({ get$TRANSCODER() })
+                setContext({ getTranscoder() })
             }
         }
     }
 
     @Typed(TypePolicy.DYNAMIC)
     void downloader (Closure closure) {
-        if ($DOWNLOADER == null) {
+        if (getDownloader() == null) {
             log.error("can't modify null downloader command list")
         } else {
-            setContext({ get$DOWNLOADER() })
+            setContext({ getDownloader() })
             try {
                 closure.call()
             } finally {
-                setContext({ get$TRANSCODER() })
+                setContext({ getTranscoder() })
             }
         }
     }
 
     @Typed(TypePolicy.DYNAMIC)
     void transcoder (Closure closure) {
-        if ($TRANSCODER == null) {
+        if (getTranscoder() == null) {
             log.error("can't modify null transcoder command list")
         } else {
-            assert getContext().is(get$TRANSCODER())
+            assert getContext().is(getTranscoder())
             try {
                 closure.call()
             } finally {
-                setContext({ get$TRANSCODER() }) // in case of nested blocks
+                setContext({ getTranscoder() }) // in case of nested blocks
             }
         }
     }
 
     @Typed(TypePolicy.DYNAMIC)
     void output (Closure closure) {
-        if ($OUTPUT == null) {
+        if (getOutput() == null) {
             log.error("can't modify null ffmpeg output arg list")
         } else {
-            setContext({ get$OUTPUT() })
+            setContext({ getOutput() })
             try {
                 closure.call()
             } finally {
-                setContext({ get$TRANSCODER() }) // in case of nested blocks
+                setContext({ getTranscoder() }) // in case of nested blocks
             }
         }
     }
@@ -172,7 +172,7 @@ class Action {
         if (contextSize == 0) {
             context << object.toString()
         } else {
-            if (context.is(get$OUTPUT())) { // no executable in the first element to protect
+            if (context.is(getOutput())) { // no executable in the first element to protect
                 context.add(0, object.toString())
             } else {
                 if (contextSize == 1) {
@@ -191,7 +191,7 @@ class Action {
 
         if (context.isEmpty()) {
             context.addAll(list*.toString())
-        } else if (context.is(get$OUTPUT())) { // no executable in the first element to protect
+        } else if (context.is(getOutput())) { // no executable in the first element to protect
             def temp = list*.toString()
             context.addAll(0, list*.toString())
         } else {
@@ -268,7 +268,7 @@ class Action {
             def uri = "http://www.youtube.com/get_video_info?video_id=${video_id}${param}&ps=default&eurl=&gl=US&hl=en"
             def regex = '\\burl_encoded_fmt_stream_map=(?<youtube_fmt_url_map>[^&]+)'
             def newStash = new Stash()
-            def document = $HTTP.get(uri)
+            def document = getHttp().get(uri)
 
             if ((document != null) && RegexHelper.match(document, regex, newStash)) {
                 /*
@@ -287,7 +287,7 @@ class Action {
                 */
 
                 // XXX numerous type-inference fails
-                def url_data_strs = URLDecoder.decode(newStash.get('$youtube_fmt_url_map')).tokenize(',')
+                def url_data_strs = URLDecoder.decode(newStash.get('youtube_fmt_url_map')?.toString()).tokenize(',')
                 url_data_strs.inject(fmt_url_map) { Map<String, String> _fmt_url_map, String url_data_str ->
                     // collectEntries (new in Groovy 1.7.9) makes a map out of a list of pairs
                     Map<String, String> url_data_map = url_data_str.tokenize('&').collectEntries { String pair ->
@@ -306,16 +306,16 @@ class Action {
     }
 
     // DSL method
-    void youtube(List<Integer> formats = $YOUTUBE_ACCEPT) {
-        def uri = command.getVar('$URI')
-        def video_id = command.getVar('$youtube_video_id')
-        def t = command.getVar('$youtube_t')
+    void youtube(List<Integer> formats = YOUTUBE_ACCEPT) {
+        def uri = command.getVar('uri')
+        def video_id = command.getVar('youtube_video_id')
+        def t = command.getVar('youtube_t')
         def found = false
 
         assert video_id != null
         assert t != null
 
-        command.let('$youtube_uri', uri)
+        command.let('youtube_uri', uri)
 
         if (formats.size() > 0) {
             def fmt_url_map = getFormatURLMap(video_id)
@@ -330,8 +330,8 @@ class Action {
                     if (stream_uri != null) {
                         // set the new URI
                         log.debug('success')
-                        command.let('$youtube_fmt', fmtString)
-                        command.let('$URI', stream_uri)
+                        command.let('youtube_fmt', fmtString)
+                        command.let('uri', stream_uri)
                         return true
                     } else {
                         log.debug('failure')

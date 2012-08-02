@@ -19,7 +19,7 @@ script {
             scrape """\\bflashvars=(["'])config=(?<playlistURI>[^'"]+)\\1"""
 
             // the playlist is invalid JSON (uses single quotes), so we need to scrape again
-            scrape uri: playlistURI, "url.+?'url':\\s*'(?<URI>[^']+)'"
+            scrape uri: playlistURI, "url.+?'url':\\s*'(?<uri>[^']+)'"
         }
     }
 }

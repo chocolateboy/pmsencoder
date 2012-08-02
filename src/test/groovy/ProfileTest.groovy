@@ -56,13 +56,13 @@ class ProfileTest extends PMSEncoderTestCase {
             script:    '/gstrings.groovy',
             uri:       'http://www.example.com',
             wantStash: [
-                $action:  'Hello, world!',
-                $domain:  'example',
-                $key:     'key',
-                $n:       '41',
-                $pattern: 'Hello, world!',
-                $URI:     'http://www.example.com/example/key/value/42',
-                $value:   'value'
+                action:  'Hello, world!',
+                domain:  'example',
+                key:     'key',
+                n:       '41',
+                pattern: 'Hello, world!',
+                uri:     'http://www.example.com/example/key/value/42',
+                value:   'value'
             ],
             wantTranscoder:  [ '-key', 'key', '-value', 'value' ],
             wantMatches :  [ 'GStrings' ]

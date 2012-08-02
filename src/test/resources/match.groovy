@@ -39,64 +39,64 @@ script {
 
     profile('Match Key Unquoted') {
         pattern {
-            match $URI: 'http://www.example.com'
+            match uri: 'http://www.example.com'
         }
     }
 
     profile("Don't Match Key Unquoted") {
         pattern {
-            match $URI: 'http://nosuchdomain'
+            match uri: 'http://nosuchdomain'
         }
     }
 
     profile('Match Key Quoted') {
         pattern {
-            match '$URI': 'http://www.example.com'
+            match 'uri': 'http://www.example.com'
         }
     }
 
     profile("Don't Match Key Quoted") {
         pattern {
-            match '$URI': 'http://nosuchdomain'
+            match 'uri': 'http://nosuchdomain'
         }
     }
 
     profile('Match Block') {
         pattern {
-            match { $URI == 'http://www.example.com' }
+            match { uri == 'http://www.example.com' }
         }
     }
 
     profile("Don't Match Block") {
         pattern {
-            match { $URI != 'http://www.example.com' }
+            match { uri != 'http://www.example.com' }
         }
     }
 
     profile ('Match (String, String)') {
         pattern {
-            def $uri = $URI
+            def $uri = uri
             match $uri, 'http://www.example.com'
         }
     }
 
     profile ("Don't Match (String, String)") {
         pattern {
-            def $uri = $URI
+            def $uri = uri
             match $uri, 'http://nosuchdomain'
         }
     }
 
     profile ('Match (String, List)') {
         pattern {
-            def $uri = $URI
+            def $uri = uri
             match $uri, [ 'http://www.example.com' ]
         }
     }
 
     profile ("Don't Match (String, List)") {
         pattern {
-            def $uri = $URI
+            def $uri = uri
             match $uri, [ 'http://nosuchdomain' ]
         }
     }

@@ -19,7 +19,7 @@ class UriMethodTest extends PMSEncoderTestCase {
     void testUri() {
         def uri1 = 'http://www.example.com:12/foo?bar=baz'
         def uri2 = 'https://www.example.org:34/foobar?baz=quux'
-        def command = new Command(new Stash([ $URI: uri1 ]))
+        def command = new Command(new Stash([ uri: uri1 ]))
         def profileDelegate = getProfileDelegate(command)
 
         assert profileDelegate.uri().getClass() == URI

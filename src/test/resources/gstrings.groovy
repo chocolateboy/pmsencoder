@@ -5,7 +5,7 @@ script {
         pattern {
             domain = 'example'
             pattern = closed_over
-            match $URI: "http://www.${domain}.com"
+            match uri: "http://www.${domain}.com"
         }
 
         action {
@@ -15,7 +15,7 @@ script {
             n = 41
             set "-$key": 'key'                                        // GString key
             set '-value': "$value"                                    // GString value
-            $URI = "${$URI}/$domain/$key/$value/${n.toInteger() + 1}" // set GString property value
+            uri = "${uri}/$domain/$key/$value/${n.toInteger() + 1}"   // set GString property value
         }
     }
 }

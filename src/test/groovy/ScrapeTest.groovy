@@ -9,13 +9,13 @@ class ScrapeTest extends PMSEncoderTestCase {
             uri: uri,
             wantMatches: [ 'Scrape String' ],
             wantStash:  [
-                $URI:    'http://scrape.string',
-                $first:  'scrape',
-                $second: 'string',
-                $third:  'scrape',
-                $fourth: 'string',
-                $fith:   'scrape',
-                $sixth:  'string'
+                uri:    'http://scrape.string',
+                first:  'scrape',
+                second: 'string',
+                third:  'scrape',
+                fourth: 'string',
+                fith:   'scrape',
+                sixth:  'string'
             ]
         ])
     }

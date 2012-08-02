@@ -3,13 +3,13 @@
 script {
     profile ('Bloomberg TV') {
         pattern {
-            match { $URI == 'http://www.bloomberg.com/streams/video/LiveBTV200.asx' }
+            match { uri == 'http://www.bloomberg.com/streams/video/LiveBTV200.asx' }
         }
 
         action {
-            $TRANSCODER = $MENCODER
-            // grab the .asx file and extract the first double-quoted MMS URI into $URI
-            scrape '"(?<URI>mms://[^"]+)"'
+            transcoder = MENCODER
+            // grab the .asx file and extract the first double-quoted MMS URI into uri
+            scrape '"(?<uri>mms://[^"]+)"'
             // preserve the low bitrate
             replace '-lavcopts': [ '4096': '238' ]
             // preserve the low framerate

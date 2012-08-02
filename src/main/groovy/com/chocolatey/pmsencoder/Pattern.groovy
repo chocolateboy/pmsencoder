@@ -25,7 +25,7 @@ class Pattern {
 
     // DSL method
     protected void domain(Object scalarOrList) {
-        def uri = command.getVar('$URI')
+        def uri = command.getVar('uri')
         def matched = Util.scalarList(scalarOrList).any({
             return matchString(uri, domainToRegex(it))
         })
@@ -43,7 +43,7 @@ class Pattern {
     // DSL method
     protected void protocol(Object scalarOrList) {
         def matched = Util.scalarList(scalarOrList).any({
-            return command.getVar('$URI').startsWith("${it}://".toString())
+            return command.getVar('uri').startsWith("${it}://".toString())
         })
 
         if (!matched) {
@@ -95,8 +95,8 @@ class Pattern {
     }
 
     // DSL method:
-    //    match $URI: 'http://www.example.com' // match the URI
-    //    match $URI: [ 'http://www.foo.com', 'http://www.bar.com' ] // match one of the URIs
+    //    match uri: 'http://www.example.com' // match the URI
+    //    match uri: [ 'http://www.foo.com', 'http://www.bar.com' ] // match one of the URIs
     // either (String, String) or (String, List)
     protected void match(Object key, Object value) {
         boolean matched // Groovy++ type inference fail (introduced in 0.4.170)

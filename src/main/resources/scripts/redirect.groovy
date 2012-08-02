@@ -1,4 +1,4 @@
-// work around incomplete HTTP support (for e.g. HTTP 301) in ffmpeg and older mplayer builds
+// work around incomplete HTTP support (for e.g. HTTP 301) in older ffmpeg and MPlayer builds
 init {
     profile ('Chase Redirects') { // if possible
         pattern {
@@ -6,7 +6,7 @@ init {
         }
 
         action {
-            $URI = $HTTP.target($URI) ?: $URI
+            uri = http.target(uri) ?: uri
         }
     }
 }

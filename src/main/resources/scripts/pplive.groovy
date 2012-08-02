@@ -6,11 +6,11 @@ script {
         }
 
         action {
-            def quotedURI = quoteURI($URI)
-            $HOOK = "$PPLIVE ${quotedURI}"
-            $URI = PPLIVE_URI ?: 'http://127.0.0.1:8888'
+            def quotedURI = quoteURI(uri)
+            hook = "$PPLIVE ${quotedURI}"
+            uri = PPLIVE_URI ?: 'http://127.0.0.1:8888'
             // see sopcast.groovy
-            $TRANSCODER = $MENCODER
+            transcoder = MENCODER
         }
     }
 }

@@ -49,7 +49,7 @@ class MatcherTest extends PMSEncoderTestCase {
         youTubeCommon('35')
     }
 
-    // verify that globally modifying $YOUTUBE_ACCEPT works
+    // verify that globally modifying YOUTUBE_ACCEPT works
     void testYOUTUBE_ACCEPT() {
         def script = this.getClass().getResource('/youtube_accept.groovy')
         youTubeCommon('34', script)
@@ -65,26 +65,26 @@ class MatcherTest extends PMSEncoderTestCase {
             wantMatches: ['YouTube Metadata', 'YouTube-DL Compatible', 'YouTube' ],
             wantStash: { Stash stash ->
                 assert stash.keySet().toList() == [
-                    '$URI',
-                    '$youtube_video_id',
-                    '$youtube_t',
-                    '$youtube_title',
-                    '$youtube_uploader',
-                    '$youtube_dl_compatible',
-                    '$youtube_uri',
-                    '$youtube_fmt'
+                    'uri',
+                    'youtube_video_id',
+                    'youtube_t',
+                    'youtube_title',
+                    'youtube_uploader',
+                    'youtube_dl_compatible',
+                    'youtube_uri',
+                    'youtube_fmt'
                 ]
 
-                def video_id = stash.get('$youtube_video_id')
+                def video_id = stash.get('youtube_video_id')
                 assert video_id == '_OBlgSz8sSM'
 
-                def t = stash.get('$youtube_t')
-                // the mysterious $t token changes frequently, but always seems to end in a URL-encoded "="
+                def t = stash.get('youtube_t')
+                // the mysterious t token changes frequently, but always seems to end in a URL-encoded "="
                 assert t =~ /.*%3D$/
-                assert stash.get('$youtube_uploader') == 'HDCYT'
-                assert stash.get('$youtube_fmt') == fmt
-                assert stash.get('$youtube_uri') == uri
-                assert stash.get('$URI') =~ '\\.youtube\\.com/videoplayback\\?'
+                assert stash.get('youtube_uploader') == 'HDCYT'
+                assert stash.get('youtube_fmt') == fmt
+                assert stash.get('youtube_uri') == uri
+                assert stash.get('uri') =~ '\\.youtube\\.com/videoplayback\\?'
                 return true
             },
             wantTranscoder: []
