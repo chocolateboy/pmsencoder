@@ -137,6 +137,13 @@ class Matcher implements LoggerMixin {
 
         def groovy = new GroovyShell(binding)
 
+        // the file (or URL) basename (e.g. foo for foo.groovy) determines the classname
+        // (e.g. foo.class). this can cause problems if a userscript has a name that conflicts
+        // with a DSL identifier e.g. hook.groovy ("you tried to assign a ... to a class").
+        // we can work around this by prefixing each class name with a poor-man's namespace
+        // i.e. an arbitrary string which distinguishes classes from identifiers e.g.:
+        // hook.groovy -> pmsencoder_script_hook.class
+        filename = filename.replaceAll('(\\w+\\.groovy)$', 'pmsencoder_script_$1')
         groovy.evaluate(reader, filename)
     }
 

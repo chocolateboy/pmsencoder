@@ -4,7 +4,7 @@ package com.chocolatey.pmsencoder
 class JsoupTest extends PMSEncoderTestCase {
     void setUp() {
         super.setUp()
-        def script = this.getClass().getResource('/jsoup_test.groovy')
+        def script = this.getClass().getResource('/jsoup.groovy')
         matcher.load(script)
     }
 
