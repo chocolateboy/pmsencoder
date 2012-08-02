@@ -100,7 +100,7 @@ public class Command implements LoggerMixin, Cloneable {
     public String let(Object name, Object value) {
         if ((stash.get(name) == null) || (stash.get(name) != value.toString())) {
             if (stashAssignmentLogLevel != null) {
-                log.log(stashAssignmentLogLevel, "setting $name to $value")
+                logger.log(stashAssignmentLogLevel, "setting $name to $value")
             }
             stash.put(name, value)
         }

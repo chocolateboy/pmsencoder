@@ -39,7 +39,7 @@ class Matcher implements LoggerMixin {
         }
 
         def uri = command.stash.get('uri')
-        log.debug("matching URI: $uri")
+        logger.debug("matching URI: $uri")
 
         // XXX this is horribly inefficient, but it's a) trivial to implement and b) has the right semantics
         // the small number of scripts make this a non-issue for now
@@ -57,7 +57,7 @@ class Matcher implements LoggerMixin {
         def matched = command.matches.size() > 0
 
         if (matched) {
-            log.trace("command: $command")
+            logger.trace("command: $command")
         }
 
         return matched
@@ -73,13 +73,13 @@ class Matcher implements LoggerMixin {
 
         if (replaces != null) {
             target = replaces
-            log.info("replacing profile $replaces with: $name")
+            logger.info("replacing profile $replaces with: $name")
         } else {
             target = name
             if (profiles[name] != null) {
-                log.info("replacing profile: $name")
+                logger.info("replacing profile: $name")
             } else {
-                log.info("registering ${stage.toString().toLowerCase()} profile: $name")
+                logger.info("registering ${stage.toString().toLowerCase()} profile: $name")
             }
         }
 
@@ -92,7 +92,7 @@ class Matcher implements LoggerMixin {
 
             if (extendz != null) {
                 if (profiles[extendz] == null) {
-                    log.error("attempt to extend a nonexistent profile: $extendz")
+                    logger.error("attempt to extend a nonexistent profile: $extendz")
                 } else {
                     def base = profiles[extendz]
                     profile.assignPatternBlockIfNull(base)
@@ -104,7 +104,7 @@ class Matcher implements LoggerMixin {
             // itself. the key allows replacement
             profiles[target] = profile
         } catch (Throwable e) {
-            log.error("invalid profile ($name): " + e.getMessage())
+            logger.error("invalid profile ($name): " + e.getMessage())
         }
     }
 
@@ -149,20 +149,20 @@ class Matcher implements LoggerMixin {
 
     void loadUserScripts(File scriptDirectory) {
         if (!scriptDirectory.isDirectory()) {
-            log.error("invalid user script directory ($scriptDirectory): not a directory")
+            logger.error("invalid user script directory ($scriptDirectory): not a directory")
         } else if (!scriptDirectory.exists()) {
-            log.error("invalid user script directory ($scriptDirectory): directory doesn't exist")
+            logger.error("invalid user script directory ($scriptDirectory): directory doesn't exist")
         } else {
-            log.info("loading user scripts from: $scriptDirectory")
+            logger.info("loading user scripts from: $scriptDirectory")
             scriptDirectory.eachFileRecurse(FILES) { File file ->
                 def filename = file.getName()
                 if (filename.endsWith('.groovy')) {
-                    log.info("loading user script: $filename")
+                    logger.info("loading user script: $filename")
                     try {
                         load(file)
                     } catch (Exception e) {
                         def path = file.getAbsolutePath()
-                        log.error("can't load user script: $path", e)
+                        logger.error("can't load user script: $path", e)
                     }
                 }
             }
@@ -174,13 +174,13 @@ class Matcher implements LoggerMixin {
     }
 
     void loadDefaultScripts() {
-        log.info('loading built-in scripts')
+        logger.info('loading built-in scripts')
 
         getResource('lib.txt').eachLine() { String scriptName ->
-            log.info("loading built-in script: $scriptName")
+            logger.info("loading built-in script: $scriptName")
             def scriptURL = getResource(scriptName)
             if (scriptURL == null) {
-                log.error("can't load $scriptURL")
+                logger.error("can't load $scriptURL")
             } else {
                 load(scriptURL)
             }
@@ -188,12 +188,12 @@ class Matcher implements LoggerMixin {
     }
 
     Object propertyMissing(String name) {
-        log.trace("retrieving global variable: $name")
+        logger.trace("retrieving global variable: $name")
         return stash[name]
     }
 
     Object propertyMissing(String name, Object value) {
-        log.info("setting global variable: $name = $value")
+        logger.info("setting global variable: $name = $value")
         return stash[name] = value
     }
 

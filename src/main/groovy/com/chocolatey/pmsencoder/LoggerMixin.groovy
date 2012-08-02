@@ -22,11 +22,11 @@ import org.apache.log4j.Logger
 
     private Logger __unused__ = Logger.getLogger(this.getClass().name)
 
-    // expose a "log" property - grr, too much magic
+    // expose a "logger" property - grr, too much magic
     // XXX initializing this as a field (e.g. unused, above)
     // and then returning it doesn't work:
     // it results in every category being java.lang.Class
-    public Logger getLog() {
+    public Logger getLogger() {
         return Logger.getLogger(this.getClass().name)
     }
 }

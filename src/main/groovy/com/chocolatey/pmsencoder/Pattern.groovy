@@ -114,30 +114,30 @@ class Pattern {
 
     // DSL method: match { foo > bar }
     private boolean matchClosure(Closure closure) {
-        log.debug('running match block')
+        logger.debug('running match block')
 
         if (closure()) {
-            log.debug('success')
+            logger.debug('success')
             return true
         } else {
-            log.debug('failure')
+            logger.debug('failure')
             return false
         }
     }
 
     private boolean matchString(Object name, Object value) {
         if (name == null) {
-            log.error('invalid match: name is not defined')
+            logger.error('invalid match: name is not defined')
         } else if (value == null) {
-            log.error('invalid match: value is not defined')
+            logger.error('invalid match: value is not defined')
         } else {
-            log.debug("matching $name against $value")
+            logger.debug("matching $name against $value")
 
             if (RegexHelper.match(name, value, command.stash)) {
-                log.debug('success')
+                logger.debug('success')
                 return true // abort default failure below
             } else {
-                log.debug("failure")
+                logger.debug("failure")
             }
         }
 

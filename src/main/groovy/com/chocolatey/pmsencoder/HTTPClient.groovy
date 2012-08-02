@@ -99,7 +99,7 @@ class HTTPClient implements LoggerMixin {
             def hostURL = new URI(hostURI).toURL()
             targetURI = new URL(hostURL, finalRequest.getURI().toString()).toExternalForm()
         } catch (Exception e) {
-            log.error("can't determine target URI: $e")
+            logger.error("can't determine target URI: $e")
         }
 
         return targetURI

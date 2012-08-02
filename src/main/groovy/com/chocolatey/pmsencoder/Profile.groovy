@@ -33,7 +33,7 @@ class Profile implements LoggerMixin {
     boolean runPatternBlock(Pattern pattern) {
         if (patternBlock == null) {
             // unconditionally match
-            log.trace('no pattern block supplied: matched OK')
+            logger.trace('no pattern block supplied: matched OK')
         } else {
             // pattern methods short-circuit matching on failure by throwing a MatchFailureException,
             // so we need to wrap this in a try/catch block
@@ -43,18 +43,18 @@ class Profile implements LoggerMixin {
                 patternBlock.resolveStrategy = Closure.DELEGATE_FIRST
                 patternBlock()
             } catch (MatchFailureException e) {
-                log.trace('pattern block: caught match exception')
+                logger.trace('pattern block: caught match exception')
                 // one of the match methods failed, so the whole block failed
-                log.debug("match $name: failure")
+                logger.debug("match $name: failure")
                 return false
             }
 
             // success simply means "no match failure exception was thrown" - this also handles cases where the
             // pattern block is empty
-            log.trace('pattern block: matched OK')
+            logger.trace('pattern block: matched OK')
         }
 
-        log.debug("match $name: success")
+        logger.debug("match $name: success")
         return true
     }
 
@@ -64,11 +64,11 @@ class Profile implements LoggerMixin {
     boolean runActionBlock(ProfileDelegate profileDelegate) {
         if (actionBlock != null) {
             def action = new Action(profileDelegate)
-            log.trace("running action block for: $name")
+            logger.trace("running action block for: $name")
             actionBlock.delegate = action
             actionBlock.resolveStrategy = Closure.DELEGATE_FIRST
             actionBlock()
-            log.trace("finished action block for: $name")
+            logger.trace("finished action block for: $name")
             return true
         } else {
             return false
@@ -83,7 +83,7 @@ class Profile implements LoggerMixin {
         def profileDelegate = new ProfileDelegate(matcher, command)
 
         if (patternBlock == null) { // unconditionally match
-            log.trace('no pattern block supplied: matched OK')
+            logger.trace('no pattern block supplied: matched OK')
             runActionBlock(profileDelegate)
             return true
         } else {
@@ -103,7 +103,7 @@ class Profile implements LoggerMixin {
             // completed successfully
             def pattern = new Pattern(patternProfileDelegate)
 
-            log.debug("matching profile: $name")
+            logger.debug("matching profile: $name")
 
             // returns true if all matches in the block succeed, false otherwise
             if (runPatternBlock(pattern)) {

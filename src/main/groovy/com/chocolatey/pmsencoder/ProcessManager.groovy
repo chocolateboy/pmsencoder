@@ -74,7 +74,7 @@ private class ProcessManager implements LoggerMixin {
 
         def hookProcess = new PMSEncoderProcessWrapper(cmdArray, params)
 
-        log.info('hook command: ' + Arrays.toString(cmdArray))
+        logger.info('hook command: ' + Arrays.toString(cmdArray))
         hookProcess.runInNewThread()
         attachedProcesses << hookProcess
     }
@@ -84,7 +84,7 @@ private class ProcessManager implements LoggerMixin {
         def cmdArray = listToArray(cmdList)
         def pw = new PMSEncoderProcessWrapper(cmdArray, outputParams) // may modify cmdArray[0]
 
-        log.info('command: ' + Arrays.toString(cmdArray))
+        logger.info('command: ' + Arrays.toString(cmdArray))
         return pw
     }
 
@@ -99,14 +99,14 @@ private class ProcessManager implements LoggerMixin {
 
         def downloaderProcess = new PMSEncoderProcessWrapper(cmdArray, params) // may modify cmdArray[0]
         attachedProcesses << downloaderProcess
-        log.info('downloader command: ' + Arrays.toString(cmdArray))
+        logger.info('downloader command: ' + Arrays.toString(cmdArray))
         downloaderProcess.runInNewThread()
     }
 
     public PMSEncoderProcessWrapper handleTranscode(List<String> transcoderArgs) {
         def cmdArray = listToArray(transcoderArgs)
         def transcoderProcess = new PMSEncoderProcessWrapper(cmdArray, outputParams) // may modify cmdArray[0]
-        log.info('transcoder command: ' + Arrays.toString(cmdArray))
+        logger.info('transcoder command: ' + Arrays.toString(cmdArray))
         return transcoderProcess
     }
 

@@ -48,7 +48,7 @@ init {
                 downloader = "$RTMPDUMP -o $DOWNLOADER_OUT -r ${uri}"
                 downloader += rtmpdumpArgs
             } else {
-                log.error("invalid rtmpdump:// URI: no -r or --rtmp parameter supplied: ${uri}")
+                logger.error("invalid rtmpdump:// URI: no -r or --rtmp parameter supplied: ${uri}")
             }
         }
     }

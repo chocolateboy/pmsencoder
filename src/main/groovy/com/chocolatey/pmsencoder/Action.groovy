@@ -42,7 +42,7 @@ class Action {
     @Typed(TypePolicy.DYNAMIC)
     void hook (Closure closure) {
         if (getHook() == null) {
-            log.error("can't modify null hook command list")
+            logger.error("can't modify null hook command list")
         } else {
             setContext({ getHook() })
             try {
@@ -56,7 +56,7 @@ class Action {
     @Typed(TypePolicy.DYNAMIC)
     void downloader (Closure closure) {
         if (getDownloader() == null) {
-            log.error("can't modify null downloader command list")
+            logger.error("can't modify null downloader command list")
         } else {
             setContext({ getDownloader() })
             try {
@@ -70,7 +70,7 @@ class Action {
     @Typed(TypePolicy.DYNAMIC)
     void transcoder (Closure closure) {
         if (getTranscoder() == null) {
-            log.error("can't modify null transcoder command list")
+            logger.error("can't modify null transcoder command list")
         } else {
             assert getContext().is(getTranscoder())
             try {
@@ -84,7 +84,7 @@ class Action {
     @Typed(TypePolicy.DYNAMIC)
     void output (Closure closure) {
         if (getOutput() == null) {
-            log.error("can't modify null ffmpeg output arg list")
+            logger.error("can't modify null ffmpeg output arg list")
         } else {
             setContext({ getOutput() })
             try {
@@ -128,7 +128,7 @@ class Action {
 
         if (index == -1) {
             if (value != null) {
-                log.debug("adding $name $value")
+                logger.debug("adding $name $value")
                 /*
                     XXX squashed bug: careful not to perform operations on copies of stash or transcoder
                     i.e. make sure they're modified in place:
@@ -138,11 +138,11 @@ class Action {
                 */
                 context << name.toString() << value.toString()
             } else {
-                log.debug("adding $name")
+                logger.debug("adding $name")
                 context << name.toString()
             }
         } else if (value != null) {
-            log.debug("setting $name to $value")
+            logger.debug("setting $name to $value")
             context[ index + 1 ] = value.toString()
         }
     }
@@ -222,9 +222,9 @@ class Action {
                 def nextArg = context[ nextIndex ]
 
                 if (isOption(nextArg)) {
-                    log.debug("removing: $optionName")
+                    logger.debug("removing: $optionName")
                 } else {
-                    log.debug("removing: $optionName $nextArg")
+                    logger.debug("removing: $optionName $nextArg")
                     context.remove(nextIndex) // remove this first so the index is preserved for the option name
                 }
             }
@@ -249,12 +249,12 @@ class Action {
                 map.each { search, replace ->
                     if ((index + 1) < context.size()) {
                         // TODO support named captures
-                        log.debug("replacing $search with $replace in $name")
+                        logger.debug("replacing $search with $replace in $name")
                         def value = context[ index + 1 ]
                         // XXX squashed bug: strings are immutable!
                         context[ index + 1 ] = value.replaceAll(search.toString(), replace.toString())
                     } else {
-                        log.warn("can't replace $search with $replace in $name: target out of bounds")
+                        logger.warn("can't replace $search with $replace in $name: target out of bounds")
                     }
                 }
             }
@@ -320,33 +320,33 @@ class Action {
         if (formats.size() > 0) {
             def fmt_url_map = getFormatURLMap(video_id)
             if (fmt_url_map != null) {
-                log.trace('fmt_url_map: ' + fmt_url_map)
+                logger.trace('fmt_url_map: ' + fmt_url_map)
 
                 found = formats.any { fmt ->
                     def fmtString = fmt.toString()
-                    log.debug("checking fmt_url_map for $fmtString")
+                    logger.debug("checking fmt_url_map for $fmtString")
                     def stream_uri = fmt_url_map[fmtString]
 
                     if (stream_uri != null) {
                         // set the new URI
-                        log.debug('success')
+                        logger.debug('success')
                         command.let('youtube_fmt', fmtString)
                         command.let('uri', stream_uri)
                         return true
                     } else {
-                        log.debug('failure')
+                        logger.debug('failure')
                         return false
                     }
                 }
             } else {
-                log.fatal("can't find fmt -> URI map in video metadata")
+                logger.fatal("can't find fmt -> URI map in video metadata")
             }
         }  else {
-            log.fatal("no formats defined for $uri")
+            logger.fatal("no formats defined for $uri")
         }
 
         if (!found) {
-            log.fatal("can't retrieve stream URI for $uri")
+            logger.fatal("can't retrieve stream URI for $uri")
         }
     }
 }

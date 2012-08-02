@@ -29,8 +29,8 @@ public class PMSEncoder extends MEncoderWebVideo implements LoggerMixin {
         def mimeType = threadLocal.get()
 
         if (mimeType != null) { // transcode thread
-            log.debug('thread id: ' + currentThreadId())
-            log.info("getting custom mime type: $mimeType")
+            logger.debug('thread id: ' + currentThreadId())
+            logger.info("getting custom mime type: $mimeType")
             threadLocal.remove() // remove it to prevent memory leaks
             return mimeType
         } else {
@@ -98,8 +98,8 @@ public class PMSEncoder extends MEncoderWebVideo implements LoggerMixin {
         def mimeType = newStash.get('MIME_TYPE')
 
         if (mimeType != null) {
-            log.debug('thread id: ' + threadId)
-            log.info("setting custom mime-type: $mimeType")
+            logger.debug('thread id: ' + threadId)
+            logger.info("setting custom mime-type: $mimeType")
             threadLocal.set(mimeType)
         } else {
             threadLocal.remove() // remove it to prevent memory leaks

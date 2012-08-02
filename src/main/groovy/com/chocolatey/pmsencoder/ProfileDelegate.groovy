@@ -9,7 +9,7 @@ import org.jsoup.nodes.Document
 import org.jsoup.select.Elements
 
 // XXX some (most? all?) of these DSL properties could just be exposed/documented as-is i.e.
-// log.info(..), http.get(...) &c.
+// logger.info(..), http.get(...) &c.
 
 /*
 
@@ -180,29 +180,29 @@ class ProfileDelegate {
         def scraped = false
 
         if (document == null) {
-            log.debug("getting $uri")
+            logger.debug("getting $uri")
             assert http != null
             document = httpCache[uri] = http.get(uri)
         }
 
         if (document == null) {
-            log.error('document not found')
+            logger.error('document not found')
             return scraped
         }
 
         if (decode) {
-            log.debug("URL-decoding content of $uri")
+            logger.debug("URL-decoding content of $uri")
             document = URLDecoder.decode(document)
         }
 
-        log.debug("matching content of $uri against $regex")
+        logger.debug("matching content of $uri against $regex")
 
         if (RegexHelper.match(document, regex, newStash)) {
-            log.debug('success')
+            logger.debug('success')
             newStash.each { name, value -> command.let(name, value) }
             scraped = true
         } else {
-            log.debug('failure')
+            logger.debug('failure')
         }
 
         return scraped
