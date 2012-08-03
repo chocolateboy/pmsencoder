@@ -1,10 +1,29 @@
-1.6.2 Fri Jul 20 23:07:01 2012
+2.0.0 Fri Aug 3 13:10:37 2012
 
+    prevent script names conflicting with DSL identifiers
+    PMSEncoder scripts can now implement finalizeTranscoderArgs hooks
+    fix rtmp2pms.pl and rtmp2pms.js to work with quoted parameter values and embedded commas
     use ffmpeg for more protocols
-    rm obsolete hls-player script (supported natively by ffmpeg)
+
+    scripts:
+        - add IMDb script
+        - rm obsolete hls-player script (supported natively by ffmpeg)
+        - rm navix.groovy
+
     DSL changes:
         - add new profile method: uri() - returns current or supplied URI string as a URI object
-        - $PROTOCOL can now be set
+        - protocol can now be set
+        - rename log -> logger
+        - add getJSON method to http
+        - replace browse with $(...) (via jSoup)
+        - unify scrape and jsoup syntax
+        - deprecated url option is no longer supported by rtmpdump.groovy
+        - remove sigils and only use uppercase for constants:
+            $URI        -> uri
+            $MENCODER   -> MENCODER
+            $TRANSCODER -> transcoder
+            $HTTP       -> http
+            &c.
 
 1.6.1 Tue Jul 17 13:38:01 2012
     - compatibility with PMS >= 1.60.0
