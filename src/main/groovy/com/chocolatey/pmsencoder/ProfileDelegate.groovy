@@ -1,7 +1,6 @@
 @Typed
 package com.chocolatey.pmsencoder
 
-import net.pms.io.OutputParams
 import org.apache.http.NameValuePair
 
 import org.jsoup.Jsoup
@@ -116,12 +115,6 @@ class ProfileDelegate {
             u = newProtocol.toString() + u.substring(oldProtocol.length())
             command.setVar('uri', u)
         }
-    }
-
-    // DSL accessor (params): getter
-    // params: getter
-    public OutputParams getParams() {
-        command.params
     }
 
     // DSL getter

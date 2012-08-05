@@ -308,10 +308,8 @@ public class Plugin implements ExternalListener, FinalizeTranscoderArgsListener,
             player: player,
             uri: uri
         ])
+
         def command = new Command(stash, cmdList)
-
-        command.params = params
-
         def matched = match(command)
 
         if (matched) {

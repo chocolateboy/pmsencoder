@@ -80,13 +80,12 @@ public class PMSEncoder extends MEncoderWebVideo implements LoggerMixin {
         def command = new Command()
         def oldStash = command.getStash()
 
-        command.setParams(params)
-
-        def ffmpeg = normalizePath(configuration.getFfmpegPath())
-        def mencoder = normalizePath(configuration.getMencoderPath())
-        def mplayer = normalizePath(configuration.getMplayerPath())
-
+        oldStash.put('dlna', dlna)
+        oldStash.put('media', media)
+        oldStash.put('params', params)
         oldStash.put('uri', oldURI)
+
+        // XXX not sure about these - they can be macros, like MENCODER &c.
         oldStash.put('DOWNLOADER_OUT', downloaderOutputPath)
         oldStash.put('TRANSCODER_OUT', transcoderOutputPath)
 
@@ -119,6 +118,11 @@ public class PMSEncoder extends MEncoderWebVideo implements LoggerMixin {
 
         // automagically add extra command-line options for the PMS-native downloaders/transcoders
         // and substitute the configured paths for 'MPLAYER', 'MENCODER', and 'FFMPEG'
+
+        def ffmpeg = normalizePath(configuration.getFfmpegPath())
+        def mencoder = normalizePath(configuration.getMencoderPath())
+        def mplayer = normalizePath(configuration.getMplayerPath())
+
         if (downloaderArgs && downloaderArgs[0] == 'MPLAYER') {
             /*
                 plug in the input/output e.g. before:

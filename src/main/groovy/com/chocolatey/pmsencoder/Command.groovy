@@ -1,8 +1,6 @@
 @Typed
 package com.chocolatey.pmsencoder
 
-import net.pms.io.OutputParams
-
 import org.apache.log4j.Level
 
 /*
@@ -10,7 +8,6 @@ import org.apache.log4j.Level
  */
 public class Command implements LoggerMixin, Cloneable {
     Stash stash
-    OutputParams params
     Level stashAssignmentLogLevel = Level.DEBUG
     List<String> matches = []
     List<String> hook = []
@@ -54,23 +51,16 @@ public class Command implements LoggerMixin, Cloneable {
         return new Command(this)
     }
 
-    public void setParams(OutputParams params) {
-        this.params = params
-    }
-
     public boolean equals(Command other) {
         this.matches == other.matches &&
         this.hook == other.hook &&
         this.downloader == other.downloader &&
         this.transcoder == other.transcoder &&
         this.output == other.output &&
-        this.stash == other.stash &&
-        this.params == other.params
+        this.stash == other.stash
     }
 
     public java.lang.String toString() {
-        // can't stringify params until this patch has been applied:
-        // https://code.google.com/p/ps3mediaserver/issues/detail?id=863
         def repr = """
         {
             matches:    $matches
@@ -78,7 +68,6 @@ public class Command implements LoggerMixin, Cloneable {
             downloader: $downloader
             transcoder: $transcoder
             output:     $output
-            params:     $params
             stash:      $stash
         }""".substring(1).stripIndent(8)
 
