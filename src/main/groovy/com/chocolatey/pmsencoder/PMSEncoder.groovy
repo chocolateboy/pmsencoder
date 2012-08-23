@@ -6,18 +6,19 @@ import static com.chocolatey.pmsencoder.Util.quoteURI
 import net.pms.configuration.PmsConfiguration
 import net.pms.dlna.DLNAMediaInfo
 import net.pms.dlna.DLNAResource
-import net.pms.encoders.MEncoderWebVideo
+import net.pms.encoders.FFmpegVideo
+import net.pms.encoders.Player
 import net.pms.io.OutputParams
 import net.pms.io.ProcessWrapper
+import net.pms.network.HTTPResource
 import net.pms.PMS
 
-public class PMSEncoder extends MEncoderWebVideo implements LoggerMixin {
+public class PMSEncoder extends FFMpegWebVideo implements LoggerMixin {
     public static final boolean isWindows = PMS.get().isWindows()
     private Plugin plugin
-    private final static ThreadLocal threadLocal = new ThreadLocal<String>()
-    private static final String DEFAULT_MIME_TYPE = 'video/mpeg'
+    final private PmsConfiguration configuration
 
-    final PmsConfiguration configuration
+    // FIXME make this private when PMS makes it private
     public static final String ID = 'pmsencoder'
 
     private long currentThreadId() {
@@ -26,16 +27,7 @@ public class PMSEncoder extends MEncoderWebVideo implements LoggerMixin {
 
     @Override
     public String mimeType() {
-        def mimeType = threadLocal.get()
-
-        if (mimeType != null) { // transcode thread
-            logger.debug('thread id: ' + currentThreadId())
-            logger.info("getting custom mime type: $mimeType")
-            threadLocal.remove() // remove it to prevent memory leaks
-            return mimeType
-        } else {
-            return DEFAULT_MIME_TYPE
-        }
+        return HTTPResource.VIDEO_TRANSCODE // i.e. the mime-type that matches the renderer's VideoTranscode profile
     }
 
     @Override
@@ -94,15 +86,6 @@ public class PMSEncoder extends MEncoderWebVideo implements LoggerMixin {
         // the whole point of the command abstraction is that the stash Map/transcoder command List
         // can be changed by the matcher, so make sure we refresh
         def newStash = command.getStash()
-        def mimeType = newStash.get('MIME_TYPE')
-
-        if (mimeType != null) {
-            logger.debug('thread id: ' + threadId)
-            logger.info("setting custom mime-type: $mimeType")
-            threadLocal.set(mimeType)
-        } else {
-            threadLocal.remove() // remove it to prevent memory leaks
-        }
 
         // FIXME: groovy++ type inference fail: the subscript and/or concatenation operations
         // on downloaderArgs and transcoderArgs are causing groovy++ to define them as

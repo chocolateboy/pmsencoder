@@ -149,8 +149,7 @@ public class Plugin implements ExternalListener, FinalizeTranscoderArgsListener,
         }
 
         // FIXME hack to shut httpclient the hell up
-        // Groovy++ type inference fail
-        ch.qos.logback.classic.Logger tempLogger = LoggerFactory.getLogger("org.apache.http");
+        ch.qos.logback.classic.Logger tempLogger = LoggerFactory.getLogger("org.apache.http"); // Groovy++ type inference fail
         tempLogger.setLevel(ch.qos.logback.classic.Level.WARN)
         tempLogger = LoggerFactory.getLogger("groovyx.net.http");
         tempLogger.setLevel(ch.qos.logback.classic.Level.WARN)

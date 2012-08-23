@@ -68,7 +68,7 @@ private class ProcessManager implements LoggerMixin {
     public void handleHook(List<String> hookArgs) {
         def cmdArray = listToArray(hookArgs)
         // PMS doesn't require input from this process - so use new OutputParams
-        def params = new OutputParams(pmsencoder.getConfiguration())
+        def params = new OutputParams(PMS.getConfiguration())
 
         params.log = true
 
@@ -94,7 +94,7 @@ private class ProcessManager implements LoggerMixin {
         def cmdArray = listToArray(downloaderArgs)
 
         // PMS doesn't require input from this process - so use new OutputParams
-        def params = new OutputParams(pmsencoder.getConfiguration())
+        def params = new OutputParams(PMS.getConfiguration())
         params.log = true
 
         def downloaderProcess = new PMSEncoderProcessWrapper(cmdArray, params) // may modify cmdArray[0]
