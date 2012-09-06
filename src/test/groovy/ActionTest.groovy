@@ -2,6 +2,55 @@
 package com.chocolatey.pmsencoder
 
 class ActionTest extends PMSEncoderTestCase {
+    void testIsOption() {
+        def action = getAction()
+
+        assert action.isOption('-foo')
+        assert action.isOption('-Foo')
+        assert action.isOption('-FOO')
+
+        assert action.isOption('-foo-bar')
+        assert action.isOption('-Foo-Bar')
+        assert action.isOption('-FOO-BAR')
+
+        assert action.isOption('--foo')
+        assert action.isOption('--Foo')
+        assert action.isOption('--FOO')
+
+        assert action.isOption('--foo-bar')
+        assert action.isOption('--Foo-Bar')
+        assert action.isOption('--FOO-BAR')
+    }
+
+    void testIsNotOption() {
+        def action = getAction()
+
+        assert !action.isOption(null)
+        assert !action.isOption('')
+        assert !action.isOption('-')
+        assert !action.isOption('--')
+        assert !action.isOption('---')
+        assert !action.isOption('---foo')
+        assert !action.isOption('---Foo')
+        assert !action.isOption('---FOO')
+        assert !action.isOption('foo')
+        assert !action.isOption('foo-bar')
+        assert !action.isOption('Foo')
+        assert !action.isOption('Foo-Bar')
+        assert !action.isOption('FOO')
+        assert !action.isOption('FOO-BAR')
+        assert !action.isOption('-42')
+        assert !action.isOption('-3.1415927')
+        assert !action.isOption('-foo:')
+        assert !action.isOption('--foo:')
+        assert !action.isOption('-f!o')
+        assert !action.isOption('--f!o')
+        assert !action.isOption('-~foo')
+        assert !action.isOption('--~foo')
+        assert !action.isOption('-=')
+        assert !action.isOption('--=')
+    }
+
     void testScrapeURI() {
         def uri = 'http://action.com'
         assertMatch([

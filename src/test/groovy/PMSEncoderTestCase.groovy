@@ -79,6 +79,11 @@ abstract class PMSEncoderTestCase extends GroovyTestCase {
         return new ProfileDelegate(matcher, command ?: new Command())
     }
 
+    // allow Action methods to be tested without having to do so indirectly through scripts
+    public Action getAction(Command command = null) {
+        return new Action(getProfileDelegate())
+    }
+
     protected void assertMatch(Map<String, Object> spec) {
         if (spec['loadDefaultScripts']) {
             matcher.loadDefaultScripts()

@@ -2,15 +2,15 @@
 package com.chocolatey.pmsencoder
 
 class Action {
-    private Closure _context
+    private Closure contextThunk
     @Delegate final ProfileDelegate profileDelegate
-    // FIXME: sigh: transitive delegation doesn't work (groovy bug)
+    // FIXME: sigh: transitive delegation doesn't work (Groovy bug)
     @Delegate private final Matcher matcher
 
     Action(ProfileDelegate profileDelegate) {
         this.profileDelegate = profileDelegate
         this.matcher = profileDelegate.matcher
-        setContext({ getTranscoder() })
+        setContextThunk({ getTranscoder() }) // default context
     }
 
     boolean isOption(String arg) {
@@ -19,20 +19,50 @@ class Action {
         // explanation: null and an empty string evaluate as false
 
         if (arg) {
-           return arg ==~ /^-[^0-9].*$/
+           return arg ==~ /^--?[a-zA-Z][a-zA-Z_-]*$/
         } else {
             return false
         }
     }
 
-    // FIXME Every other attempt to get this simple thunk to work
-    // fails (including the recommended Function0<List<String>>)
-    void setContext(Closure closure) {
-        _context = closure
+    /*
+     * PMSEncoder supports multiple command lists e.g. hook commands,
+     * downloader commands. These can all be manipulated by the methods
+     * in this class. The target command list, called the context, is
+     * set by using a context block. The default context is the transcoder.
+     *
+     *     set '-foo', 'bar' // (implicit) transcoder context
+     *
+     *     transcoder { // (explicit) transcoder context
+     *         set '-foobar'
+     *     }
+     *
+     *     hook {
+     *         append '-foo'
+     *         remove '-bar'
+     *     }
+     *
+     *     set '-baz', 'quux' // back to transcoder
+     *
+     * note: we use a thunk because the targeted list (transcoder, hook &c.)
+     * is mutable e.g. we need to modify self.transcoder, rather than a reference
+     * to transcoder, which may no longer be used
+     *
+     * FIXME Every other attempt to get this simple thunk to work
+     * fails (including the recommended Function0<Closure>>).
+     */
+    private void setContextThunk(Closure closure) {
+        contextThunk = closure
     }
 
-    List<String> getContext() {
-        _context.call()
+    private Closure getContextThunk() {
+        assert contextThunk
+        return contextThunk
+    }
+
+    private List<String> getContext() {
+        assert contextThunk
+        contextThunk.call()
     }
 
     // FIXME: weird compiler errors complaining about methods with the same name/signature
@@ -44,11 +74,13 @@ class Action {
         if (getHook() == null) {
             logger.error("can't modify null hook command list")
         } else {
-            setContext({ getHook() })
+            def oldContextThunk = getContextThunk() // support nested blocks
+            setContextThunk({ getHook() })
+
             try {
                 closure.call()
             } finally {
-                setContext({ getTranscoder() })
+                setContextThunk(oldContextThunk)
             }
         }
     }
@@ -58,11 +90,12 @@ class Action {
         if (getDownloader() == null) {
             logger.error("can't modify null downloader command list")
         } else {
-            setContext({ getDownloader() })
+            def oldContextThunk = getContextThunk() // support nested blocks
+            setContextThunk({ getDownloader() })
             try {
                 closure.call()
             } finally {
-                setContext({ getTranscoder() })
+                setContextThunk(oldContextThunk)
             }
         }
     }
@@ -72,25 +105,30 @@ class Action {
         if (getTranscoder() == null) {
             logger.error("can't modify null transcoder command list")
         } else {
-            assert getContext().is(getTranscoder())
+            def oldContextThunk = getContextThunk() // support nested blocks
+            setContextThunk({ getTranscoder() })
+
             try {
                 closure.call()
             } finally {
-                setContext({ getTranscoder() }) // in case of nested blocks
+                setContextThunk(oldContextThunk)
             }
         }
     }
 
+    // FIXME this is obsolete - ffmpeg output settings should be governed
+    // entirely by the capabilities of the renderer
     @Typed(TypePolicy.DYNAMIC)
     void output (Closure closure) {
         if (getOutput() == null) {
             logger.error("can't modify null ffmpeg output arg list")
         } else {
-            setContext({ getOutput() })
+            def oldContextThunk = getContextThunk() // support nested blocks
+            setContextThunk({ getOutput() })
             try {
                 closure.call()
             } finally {
-                setContext({ getTranscoder() }) // in case of nested blocks
+                setContextThunk(oldContextThunk)
             }
         }
     }
@@ -119,7 +157,7 @@ class Action {
         setArg(name.toString(), null)
     }
 
-    // set an option in the current argument list (context) - create the option if it doesn't exist
+    // set an option in the current command list (context) - create the option if it doesn't exist
     void setArg(Object name, Object value = null) {
         assert name != null
 
@@ -147,7 +185,7 @@ class Action {
         }
     }
 
-    // DSL method: append a single option to the current argument list
+    // DSL method: append a single option to the current command list
     List<String> append(Object object) {
         def context = getContext()
         context << object.toString()
@@ -160,12 +198,9 @@ class Action {
         return context
     }
 
-    // DSL method: prepend a single option to the current argument list
+    // DSL method: prepend a single option to the current command list
     List<String> prepend(Object object) {
-        // XXX we need to be careful to modify the list in place as context
-        // is just a reference to list rather than a field in its own
-        // right
-
+        // XXX we need to be careful to modify the list in place
         def context = getContext()
         def contextSize = context.size()
 
