@@ -10,7 +10,8 @@ class DomainTest extends PMSEncoderTestCase {
 
     void testDomainString() {
         assertMatch([
-            uri: 'http://www.domain-string.com',
+            // XXX squashed bug: previously only http(s) were matched by domain(...)
+            uri: 'mms://www.domain-string.com',
             wantMatches: [ 'Domain String' ]
         ])
     }

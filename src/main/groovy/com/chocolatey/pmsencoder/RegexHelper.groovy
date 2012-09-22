@@ -23,7 +23,7 @@ class MatchResult {
         named[string]
     }
 
-    public asBoolean() {
+    public boolean asBoolean() {
         matched
     }
 

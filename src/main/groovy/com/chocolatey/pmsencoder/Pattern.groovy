@@ -26,8 +26,10 @@ class Pattern {
     // DSL method
     protected void domain(Object scalarOrList) {
         def uri = command.getVar('uri')
+        def u = new URI(uri)
+        def domain = u.host
         def matched = Util.scalarList(scalarOrList).any({
-            return matchString(uri, domainToRegex(it))
+            return domain.endsWith(it.toString())
         })
 
         if (!matched) {
@@ -42,8 +44,11 @@ class Pattern {
 
     // DSL method
     protected void protocol(Object scalarOrList) {
+        def uri = command.getVar('uri')
+        def u = new URI(uri)
+        def scheme = u.scheme
         def matched = Util.scalarList(scalarOrList).any({
-            return command.getVar('uri').startsWith("${it}://".toString())
+            return scheme == it.toString()
         })
 
         if (!matched) {
@@ -142,11 +147,5 @@ class Pattern {
         }
 
         return false
-    }
-
-    // DSL method
-    protected String domainToRegex(Object domain) {
-        def escaped = domain.toString().replaceAll('\\.', '\\\\.')
-        return "^https?://(\\w+\\.)*${escaped}(/|\$)".toString()
     }
 }
