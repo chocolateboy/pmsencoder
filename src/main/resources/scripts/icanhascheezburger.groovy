@@ -28,12 +28,7 @@ script {
         }
 
         action {
-            if (FFMPEG_HTTP_HEADERS) {
-                set '-headers': 'User-Agent: ' + IPAD_USER_AGENT
-            } else {
-                transcoder = MENCODER
-                set '-user-agent': IPAD_USER_AGENT
-            }
+            set '-user-agent': IPAD_USER_AGENT
         }
     }
 }

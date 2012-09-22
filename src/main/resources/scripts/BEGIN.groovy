@@ -17,20 +17,4 @@ begin {
     YOUTUBE_DL = pmsConf['youtube-dl.path']
     // see https://secure.wikimedia.org/wikipedia/en/wiki/YouTube#Quality_and_codecs
     YOUTUBE_DL_MAX_QUALITY = pmsConf['youtube-dl.max-quality'] ?: 22
-
-    // determine if ffmpeg supports the -headers option
-    if (pmsConf['ffmpeg.http-headers'] != null) {
-        FFMPEG_HTTP_HEADERS = Boolean.parseBoolean(pmsConf['ffmpeg.http-headers'])
-    } else {
-        def ffmpegPath = pms.getConfiguration().getFfmpegPath()
-        def proc = [ ffmpegPath, '-headers', 'Foo' ].execute()
-
-        proc.waitFor()
-
-        if (proc.err.text =~ /Unrecognized\s+option\s+'headers'/) {
-            FFMPEG_HTTP_HEADERS = false
-        } else {
-            FFMPEG_HTTP_HEADERS = true
-        }
-    }
 }
