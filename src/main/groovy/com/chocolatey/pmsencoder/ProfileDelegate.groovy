@@ -1,6 +1,11 @@
 @Typed
 package com.chocolatey.pmsencoder
 
+import net.pms.dlna.DLNAMediaInfo
+import net.pms.dlna.DLNAResource
+import net.pms.encoders.Player
+import net.pms.io.OutputParams
+
 import org.apache.http.NameValuePair
 
 import org.jsoup.Jsoup
@@ -88,6 +93,26 @@ class ProfileDelegate {
     // DSL accessor (output): setter
     public List<String> setOutput(Object args) {
         command.output = Util.stringList(args)
+    }
+
+    // DSL accessor (dlna): getter
+    public DLNAResource getDlna() {
+        command.dlna
+    }
+
+    // DSL accessor (media): getter
+    public DLNAMediaInfo getMedia() {
+        command.media
+    }
+
+    // DSL accessor (params): getter
+    public OutputParams getParams() {
+        command.params
+    }
+
+    // DSL accessor (params): getter
+    public Player getPlayer() {
+        command.player
     }
 
     private String getProtocol(Object u) {

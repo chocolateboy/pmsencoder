@@ -1,32 +1,38 @@
 @Typed
 package com.chocolatey.pmsencoder
 
+import net.pms.dlna.DLNAMediaInfo
+import net.pms.dlna.DLNAResource
+import net.pms.encoders.Player
+import net.pms.io.OutputParams
+
 import org.apache.log4j.Level
 
 /*
  * this object encapsulates the per-request state passed from/to the PMS transcode launcher (PMSEncoder.java).
  */
-public class Command implements LoggerMixin, Cloneable {
-    Stash stash
-    Level stashAssignmentLogLevel = Level.DEBUG
-    List<String> matches = []
-    List<String> hook = []
-    List<String> downloader = []
-    List<String> transcoder = []
-    List<String> output = []
+public class Command implements LoggerMixin {
+    private Level defaultStashAssignmentLogLevel = Level.DEBUG
 
-    private Command(Stash stash, List<String> transcoder, List<String> matches) {
-        this.stash = stash
-        this.transcoder = transcoder
-        this.matches = matches
-    }
+    DLNAMediaInfo media
+    DLNAResource dlna
+    Level stashAssignmentLogLevel = Level.DEBUG
+    List<String> downloader = []
+    List<String> hook = []
+    List<String> matches = []
+    List<String> output = []
+    List<String> transcoder = []
+    OutputParams params
+    Player player
+    Stash oldStash
+    Stash stash
 
     public Command() {
-        this(new Stash(), [], [])
+        this(new Stash())
     }
 
     public Command(Stash stash) {
-        this(stash, [])
+        this.stash = stash
     }
 
     public Command(List<String> transcoder) {
@@ -34,30 +40,15 @@ public class Command implements LoggerMixin, Cloneable {
     }
 
     public Command(Stash stash, List<String> transcoder) {
-        this(stash, transcoder, [])
+        this.stash = stash
+        this.transcoder = transcoder
     }
 
     // convenience constructor: allow the stash to be supplied as a Map<String, String>
     // e.g. new Command([ uri: uri ])
     public Command(Map<String, String> map) {
-        this(new Stash(map), [], [])
-    }
-
-    public Command(Command other) {
-        this(new Stash(other.stash), new ArrayList<String>(other.transcoder), new ArrayList<String>(other.matches))
-    }
-
-    public Command clone() {
-        return new Command(this)
-    }
-
-    public boolean equals(Command other) {
-        this.matches == other.matches &&
-        this.hook == other.hook &&
-        this.downloader == other.downloader &&
-        this.transcoder == other.transcoder &&
-        this.output == other.output &&
-        this.stash == other.stash
+        // XXX squashed bug: Groovy goes into an infinite loop if this is constructed via: this(new Stash(map))
+        this.stash = new Stash(map)
     }
 
     public java.lang.String toString() {
@@ -73,16 +64,44 @@ public class Command implements LoggerMixin, Cloneable {
 
     }
 
+    public void deferStashChanges() {
+        assert oldStash == null
+        oldStash = stash
+        stash = new Stash(stash)
+        // avoid clogging up the logfile with pattern-block stash assignments. If the pattern doesn't match,
+        // the assigments are irrelevant; and if it does match, the assignments are logged later
+        // (when the pattern's temporary stash is merged into the command stash). Rather than suppressing these
+        // assignments completely, log them at the lowest (TRACE) level
+        stashAssignmentLogLevel = Level.TRACE
+    }
+
+    public void discardStashChanges() {
+        assert oldStash != null
+        stash = oldStash
+        oldStash = null
+        stashAssignmentLogLevel = defaultStashAssignmentLogLevel
+    }
+
+    public void commitStashChanges() {
+        assert oldStash != null
+        def newStash = stash
+        stash = oldStash
+        oldStash = null
+        // merge (with full logging)
+        stashAssignmentLogLevel = defaultStashAssignmentLogLevel
+        newStash.each { name, value -> let(name, value) }
+    }
+
     protected boolean hasVar(Object name) {
-        stash.containsKey(name)
+        stash.containsKey(name.toString())
     }
 
     protected String getVar(Object name) {
-        stash.get(name)
+        stash.get(name.toString())
     }
 
-    protected String setVar(Object name, Object value) {
-        let(name, value)
+    protected String setVar(String name, String value) {
+        let(name.toString(), value.toString())
     }
 
     // setter implementation with logged stash assignments
@@ -91,6 +110,7 @@ public class Command implements LoggerMixin, Cloneable {
             if (stashAssignmentLogLevel != null) {
                 logger.log(stashAssignmentLogLevel, "setting $name to $value")
             }
+
             stash.put(name, value)
         }
 

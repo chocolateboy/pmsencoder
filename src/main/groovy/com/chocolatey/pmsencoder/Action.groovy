@@ -134,22 +134,22 @@ class Action {
     }
 
     // DSL method
-    String quoteURI(String uri) {
-        Util.quoteURI(uri)
+    String quoteURI(Object uri) {
+        Util.quoteURI(uri?.toString())
     }
 
     // define a variable in the stash
     // DSL method
     void let(Map map) {
         map.each { key, value ->
-            command.let(key, ((value == null) ? null : value))
+            command.let(key.toString(), value?.toString())
         }
     }
 
     // DSL method
     void set(Map map) {
         // the sort order is predictable (for tests) as long as we (and Groovy) use LinkedHashMap
-        map.each { name, value -> setArg(name, (value == null ? null : value)) }
+        map.each { name, value -> setArg(name.toString(), value?.toString()) }
     }
 
     // DSL method
@@ -158,11 +158,11 @@ class Action {
     }
 
     // set an option in the current command list (context) - create the option if it doesn't exist
-    void setArg(Object name, Object value = null) {
+    private void setArg(String name, String value = null) {
         assert name != null
 
         def context = getContext()
-        def index = context.findIndexOf { it == name.toString() }
+        def index = context.findIndexOf { it == name }
 
         if (index == -1) {
             if (value != null) {

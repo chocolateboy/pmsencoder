@@ -25,7 +25,7 @@ class Matcher implements LoggerMixin {
     private List<String> ffmpeg = []
     private List<String> ffmpegOut = []
     private List<Integer> youtubeAccept = []
-    private Map<String, Object> stash = new HashMap<String, Object>()
+    private Map<String, Object> globals = new HashMap<String, Object>()
     PMSConf pmsConf = new PMSConf()
 
     Matcher(PMS pms) {
@@ -38,7 +38,7 @@ class Matcher implements LoggerMixin {
             command.output = ffmpegOut*.toString()
         }
 
-        def uri = command.stash.get('uri')
+        def uri = command.getVar('uri')
         logger.debug("matching URI: $uri")
 
         // XXX this is horribly inefficient, but it's a) trivial to implement and b) has the right semantics
@@ -189,24 +189,24 @@ class Matcher implements LoggerMixin {
 
     Object propertyMissing(String name) {
         logger.trace("retrieving global variable: $name")
-        return stash[name]
+        return globals.get(name)
     }
 
     Object propertyMissing(String name, Object value) {
         logger.info("setting global variable: $name = $value")
-        return stash[name] = value
+        return globals.put(name, value)
     }
 
-    protected Object getVar(String name) {
-        stash[name]
+    protected String getVar(String name) {
+        globals.get(name)
     }
 
     protected boolean hasVar(String name) {
-        stash.containsKey(name)
+        globals.containsKey(name)
     }
 
-    protected Object setVar(String name, Object value) {
-        stash[name] = value
+    protected String setVar(String name, String value) {
+        globals.put(name, value)
     }
 
     // DSL method

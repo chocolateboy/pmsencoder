@@ -15,7 +15,7 @@ class Pattern {
     // DSL setter - overrides the ProfileDelegate method to avoid logging,
     // which is handled later (if the match succeeds) by merging the pattern
     // block's temporary stash
-    protected String propertyMissing(String name, Object value) {
+    protected String propertyMissing(String name, String value) {
         command.setVar(name, value)
     }
 

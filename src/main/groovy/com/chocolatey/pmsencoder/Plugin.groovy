@@ -299,16 +299,18 @@ public class Plugin implements ExternalListener, FinalizeTranscoderArgsListener,
     ) {
         def uri = new File(filename).toURI().toString() // file:// URI
         def stash = new Stash([
-            dlna: dlna,
             engine: player.id(),
             filename: filename,
-            media: media,
-            params: params,
-            player: player,
             uri: uri
         ])
 
         def command = new Command(stash, cmdList)
+
+        command.setDlna(dlna)
+        command.setMedia(media)
+        command.setParams(params)
+        command.setPlayer(player)
+
         def matched = match(command)
 
         if (matched) {

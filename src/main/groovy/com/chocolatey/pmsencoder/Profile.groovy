@@ -1,8 +1,6 @@
 @Typed
 package com.chocolatey.pmsencoder
 
-import org.apache.log4j.Level
-
 // this holds a reference to the pattern and action blocks, and isn't delegated to
 class Profile implements LoggerMixin {
     private final Matcher matcher
@@ -87,33 +85,29 @@ class Profile implements LoggerMixin {
             runActionBlock(profileDelegate)
             return true
         } else {
-            def newCommand = command.clone()
-            def patternProfileDelegate = new ProfileDelegate(matcher, newCommand)
+            def patternProfileDelegate = new ProfileDelegate(matcher, command)
 
-            // avoid clogging up the logfile with pattern-block stash assignments. If the pattern doesn't match,
-            // the assigments are irrelevant; and if it does match, the assignments are logged (below)
-            // when the pattern's temporary stash is merged into the command stash. Rather than suppressing these
-            // assignments completely, log them at the lowest (TRACE) level
-            newCommand.setStashAssignmentLogLevel(Level.TRACE)
+            // notify the Command that we're processing the Pattern block. The Command uses a temporary
+            // stash, which a) logs assignments at the quietest level (TRACE) and b) can revert
+            // to the previous stash if the pattern match fails (discardStashChanges). If the pattern match
+            // succeeds, the changes are merged back into the original stash (with logging) via commitStashChanges()
+            //
+            // this allows us to discard or mute distracting stash assignment logspam if the match fails,
+            // while still allowing us to log the assignments fully if the match succeeds
+            // command.deferStashChanges()
 
-            // the pattern block has its own command object (which is initially the same as the action block's).
-            // if the match succeeds, then the pattern block's stash is merged into the action block's stash.
-            // this ensures that a partial match (i.e. a failed match) with side-effects/bindings doesn't contaminate
-            // the action, and, more importantly, it defers logging until the whole pattern block has
-            // completed successfully
             def pattern = new Pattern(patternProfileDelegate)
 
             logger.debug("matching profile: $name")
 
-            // returns true if all matches in the block succeed, false otherwise
-            if (runPatternBlock(pattern)) {
-                // we can now merge any side-effects (currently only modifications to the stash).
-                // first: merge (with logging)
-                newCommand.stash.each { name, value -> command.let(name, value) }
+            if (runPatternBlock(pattern)) { // returns true if all matches in the pattern block succeed, false otherwise
+                // first: log and merge any side-effects (i.e. modifications to the stash)
+                // command.commitStashChanges()
                 // now run the actions
                 runActionBlock(profileDelegate)
                 return true
             } else {
+                // command.discardStashChanges()
                 return false
             }
         }

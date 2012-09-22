@@ -4,32 +4,6 @@ package com.chocolatey.pmsencoder
 import net.pms.PMS
 
 class PMSEncoderTest extends PMSEncoderTestCase {
-    void testCommandClone() {
-        def command = new Command([ foo: 'bar' ], [ 'baz', 'quux' ])
-        assert command != null
-        def newCommand = command.clone()
-        assert newCommand != null
-
-        assert !command.stash.is(newCommand.stash)
-        assert !command.transcoder.is(newCommand.transcoder)
-        assert !command.is(newCommand)
-        assert newCommand.stash == [ foo: 'bar' ]
-        assert newCommand.transcoder == [ 'baz', 'quux' ]
-    }
-
-    void testCommandCopy() {
-        def command = new Command([ foo: 'bar' ], [ 'baz', 'quux' ])
-        assert command != null
-        def newCommand = new Command(command)
-        assert newCommand != null
-
-        assert !command.stash.is(newCommand.stash)
-        assert !command.transcoder.is(newCommand.transcoder)
-        assert !command.is(newCommand)
-        assert newCommand.stash == [ foo: 'bar' ]
-        assert newCommand.transcoder == [ 'baz', 'quux' ]
-    }
-
     void testStashClone() {
         def stash = new Stash([ foo: 'bar' ])
         assert stash != null

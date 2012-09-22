@@ -74,9 +74,10 @@ public class PMSEncoder extends FFMpegWebVideo implements LoggerMixin {
         def command = new Command()
         def oldStash = command.getStash()
 
-        oldStash.put('dlna', dlna)
-        oldStash.put('media', media)
-        oldStash.put('params', params)
+        command.setDlna(dlna)
+        command.setMedia(media)
+        command.setParams(params)
+
         oldStash.put('uri', oldURI)
 
         // XXX not sure about these - they can be macros, like MENCODER &c.
