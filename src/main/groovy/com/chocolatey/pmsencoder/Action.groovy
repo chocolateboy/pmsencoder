@@ -297,17 +297,18 @@ class Action {
     }
 
     private Map<String, String> getFormatURLMap(String video_id) {
-        def fmt_url_map = [:]
+        // XXX numerous type-inference fails
+        Map<String, String> fmt_url_map = [:]
 
-        def found = [ '&el=embedded', '&el=detailspage', '&el=vevo' , '' ].any { String param ->
+        def found = [ '&el=embedded', '&el=detailpage', '&el=vevo' , '' ].any { String param ->
             def uri = "http://www.youtube.com/get_video_info?video_id=${video_id}${param}&ps=default&eurl=&gl=US&hl=en"
-            def regex = '\\burl_encoded_fmt_stream_map=(?<youtube_fmt_url_map>[^&]+)'
-            def newStash = new Stash()
+            def regex = '\\burl_encoded_fmt_stream_map=([^&]+)'
             def document = getHttp().get(uri)
+            def match
 
-            if ((document != null) && RegexHelper.match(document, regex, newStash)) {
+            if (document && (match = RegexHelper.match(document, regex))) { // document != null && document != ""
                 /*
-                    each url_data_str in url_data_strs is a URL-encoded map containing the following keys:
+                    each fmt_url_map_string in fmt_url_map_strings is a URL-encoded map containing the following keys:
 
                         fallback_host
                         itag
@@ -321,19 +322,20 @@ class Action {
                         url: the stream URL
                 */
 
-                // XXX numerous type-inference fails
-                def url_data_strs = URLDecoder.decode(newStash.get('youtube_fmt_url_map')?.toString()).tokenize(',')
-                url_data_strs.inject(fmt_url_map) { Map<String, String> _fmt_url_map, String url_data_str ->
+                def fmt_url_map_strings = URLDecoder.decode(match[1]).tokenize(',')
+
+                fmt_url_map_strings.each { String fmt_url_map_string ->
                     // collectEntries (new in Groovy 1.7.9) makes a map out of a list of pairs
-                    Map<String, String> url_data_map = url_data_str.tokenize('&').collectEntries { String pair ->
-                        pair.tokenize('=')
+                    Map<String, String> temp_fmt_url_map = fmt_url_map_string.tokenize('&').collectEntries { String pair_string ->
+                        pair_string.tokenize('=')
                     }
-                    _fmt_url_map[URLDecoder.decode(url_data_map['itag'])] = URLDecoder.decode(url_data_map['url'])
-                    return _fmt_url_map
+
+                    fmt_url_map[URLDecoder.decode(temp_fmt_url_map['itag'])] = URLDecoder.decode(temp_fmt_url_map['url'])
                 }
-                return true
+
+                return true // i.e. found = true
             } else {
-                return false
+                return false // i.e. found = false
             }
         }
 
@@ -367,10 +369,10 @@ class Action {
                         logger.debug('success')
                         command.let('youtube_fmt', fmtString)
                         command.let('uri', stream_uri)
-                        return true
+                        return true // i.e. found = true
                     } else {
                         logger.debug('failure')
-                        return false
+                        return false // i.e. found = false
                     }
                 }
             } else {
