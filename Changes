@@ -1,4 +1,4 @@
-2.0.0 Fri Aug 3 13:10:37 2012
+2.0.0 TBC
 
     prevent script names conflicting with DSL identifiers
     PMSEncoder scripts can now implement finalizeTranscoderArgs hooks
