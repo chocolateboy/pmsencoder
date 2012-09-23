@@ -86,6 +86,9 @@ class Profile implements LoggerMixin {
             return true
         } else {
             def patternProfileDelegate = new ProfileDelegate(matcher, command)
+            def pattern = new Pattern(patternProfileDelegate)
+
+            logger.debug("matching profile: $name")
 
             // notify the Command that we're processing the Pattern block. The Command uses a temporary
             // stash, which a) logs assignments at the quietest level (TRACE) and b) can revert
@@ -94,20 +97,16 @@ class Profile implements LoggerMixin {
             //
             // this allows us to discard or mute distracting stash assignment logspam if the match fails,
             // while still allowing us to log the assignments fully if the match succeeds
-            // command.deferStashChanges()
-
-            def pattern = new Pattern(patternProfileDelegate)
-
-            logger.debug("matching profile: $name")
+            command.deferStashChanges()
 
             if (runPatternBlock(pattern)) { // returns true if all matches in the pattern block succeed, false otherwise
                 // first: log and merge any side-effects (i.e. modifications to the stash)
-                // command.commitStashChanges()
+                command.commitStashChanges()
                 // now run the actions
                 runActionBlock(profileDelegate)
                 return true
             } else {
-                // command.discardStashChanges()
+                command.discardStashChanges()
                 return false
             }
         }
