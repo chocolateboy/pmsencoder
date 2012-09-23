@@ -149,16 +149,16 @@ class Action {
     // DSL method
     void set(Map map) {
         // the sort order is predictable (for tests) as long as we (and Groovy) use LinkedHashMap
-        map.each { name, value -> setArg(name.toString(), value?.toString()) }
+        map.each { name, value -> setOption(name.toString(), value?.toString()) }
     }
 
     // DSL method
     void set(Object name) {
-        setArg(name.toString(), null)
+        setOption(name.toString(), null)
     }
 
     // set an option in the current command list (context) - create the option if it doesn't exist
-    private void setArg(String name, String value = null) {
+    private void setOption(String name, String value = null) {
         assert name != null
 
         def context = getContext()
