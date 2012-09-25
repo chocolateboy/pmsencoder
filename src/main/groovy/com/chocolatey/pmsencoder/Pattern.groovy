@@ -28,9 +28,13 @@ class Pattern {
         def uri = command.getVar('uri')
         def u = new URI(uri)
         def domain = u.host
-        def matched = Util.scalarList(scalarOrList).any({
-            return domain.endsWith(it.toString())
-        })
+        def matched = false
+
+        if (domain) {
+            matched = Util.scalarList(scalarOrList).any({
+                return domain.endsWith(it.toString())
+            })
+        }
 
         if (!matched) {
             throw STOP_MATCHING
@@ -46,10 +50,14 @@ class Pattern {
     protected void protocol(Object scalarOrList) {
         def uri = command.getVar('uri')
         def u = new URI(uri)
-        def scheme = u.scheme
-        def matched = Util.scalarList(scalarOrList).any({
-            return scheme == it.toString()
-        })
+        def protocol = u.scheme
+        def matched = false
+
+        if (protocol) {
+            matched = Util.scalarList(scalarOrList).any({
+                return protocol == it.toString()
+            })
+        }
 
         if (!matched) {
             throw STOP_MATCHING

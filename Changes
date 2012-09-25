@@ -3,7 +3,7 @@
     prevent script names conflicting with DSL identifiers
     PMSEncoder scripts can now implement finalizeTranscoderArgs hooks
     fix rtmp2pms.pl and rtmp2pms.js to work with quoted parameter values and embedded commas
-    use ffmpeg for more protocols
+    use ffmpeg for all protocols
 
     scripts:
         - add IMDb script
