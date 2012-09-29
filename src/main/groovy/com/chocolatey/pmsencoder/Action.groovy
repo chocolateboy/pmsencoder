@@ -292,7 +292,13 @@ class Action {
                     Map<String, String> url_data_map = url_data_str.tokenize('&').collectEntries { String pair ->
                         pair.tokenize('=')
                     }
-                    _fmt_url_map[URLDecoder.decode(url_data_map['itag'])] = URLDecoder.decode(url_data_map['url'])
+
+                    _fmt_url_map[ URLDecoder.decode(url_data_map['itag']) ] = String.format(
+                        '%s&signature=%s',
+                        URLDecoder.decode(url_data_map['url']),
+                        URLDecoder.decode(url_data_map['sig']) // https://github.com/rg3/youtube-dl/issues/427
+                    )
+
                     return _fmt_url_map
                 }
                 return true
