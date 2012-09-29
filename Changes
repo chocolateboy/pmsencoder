@@ -24,6 +24,8 @@
             $TRANSCODER -> transcoder
             $HTTP       -> http
             &c.
+1.6.2 Sat Sep 29 14:01:03 2012
+    - fix latest YouTube breakage
 
 1.6.1 Tue Jul 17 13:38:01 2012
     - compatibility with PMS >= 1.60.0
