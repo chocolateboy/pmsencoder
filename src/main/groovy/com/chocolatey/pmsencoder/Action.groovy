@@ -330,7 +330,11 @@ class Action {
                         pair_string.tokenize('=')
                     }
 
-                    fmt_url_map[URLDecoder.decode(temp_fmt_url_map['itag'])] = URLDecoder.decode(temp_fmt_url_map['url'])
+                    fmt_url_map[ URLDecoder.decode(temp_fmt_url_map['itag']) ] = String.format(
+                        '%s&signature=%s',
+                        URLDecoder.decode(temp_fmt_url_map['url']),
+                        URLDecoder.decode(temp_fmt_url_map['sig']) // https://github.com/rg3/youtube-dl/issues/427
+                    )
                 }
 
                 return true // i.e. found = true
