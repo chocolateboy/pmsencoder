@@ -30,6 +30,7 @@ check {
                 '^(?:http://)?(?:[a-z]+\\.)?video\\.yahoo\\.com/(?:watch|network)/([0-9]+)(?:/|\\?v=)([0-9]+)(?:[#\\?].*)?',
                 '^(?:https?://)?openclassroom.stanford.edu(/?|(/MainFolder/(?:HomePage|CoursePage|VideoPage)\\.php([?]course=([^&]+)(&video=([^&]+))?(&.*)?)?))$',
                 '^(?:https?://)?(?:\\w+\\.)?blip\\.tv(/.+)$',
+                '^(?:(?:(?:https?://)?(?:\\w+\\.)?blip\\.tv/)|bliptvuser:)([^/]+)/*$',
                 '^(?:https?://)?(?:\\w+\\.)?facebook\\.com/(?:video/video|photo)\\.php\\?(?:.*?)v=(\\d+)(?:.*)',
                 '^(?:https?://)?(?:www\\.)?collegehumor\\.com/video/([0-9]+)/(.*)$',
                 '^(https?://)?(www\\.)?escapistmagazine\\.com/videos/view/([^/]+)/([^/?]+)[/?]?.*$',
@@ -41,8 +42,10 @@ check {
                 '^(?:https?://)?(?:www\\.)?xvideos\\.com/video([0-9]+)(?:.*)',
                 '^(?:https?://)?(?:\\w+\\.)?youtube\\.com/(?:(?:course|view_play_list|my_playlists|artist|playlist)\\?.*?(p|a|list)=|user/.*?/user/|p/|user/.*?#[pg]/c/)(?:PL)?([0-9A-Za-z-_]+)(?:/.*?/([0-9A-Za-z_-]+))?.*',
                 '^(?:(?:(?:https?://)?(?:\\w+\\.)?youtube\\.com/user/)|ytuser:)([A-Za-z0-9_-]+)',
-                '^((?:https?://)?(?:youtu\\.be/|(?:\\w+\\.)?youtube(?:-nocookie)?\\.com/)(?!view_play_list|my_playlists|artist|playlist)(?:(?:(?:v|embed|e)/)|(?:(?:watch(?:_popup)?(?:\\.php)?)?(?:\\?|#!?)(?:.+&)?v=))?)?([0-9A-Za-z_-]+)(?(1).+)?$',
+                '^((?:https?://)?(?:youtu\\.be/|(?:\\w+\\.)?youtube(?:-nocookie)?\\.com/|tube\\.majestyc\\.net/)(?!view_play_list|my_playlists|artist|playlist)(?:(?:(?:v|embed|e)/)|(?:(?:watch(?:_popup)?(?:\\.php)?)?(?:\\?|#!?)(?:.+&)?v=))?)?([0-9A-Za-z_-]+)(?(1).+)?$',
                 '^(?:http://)?video\\.google\\.(?:com(?:\\.au)?|co\\.(?:uk|jp|kr|cr)|ca|de|es|fr|it|nl|pl)/videoplay\\?docid=([^\\&]+).*',
+                '^http://video\\.xnxx\\.com/video([0-9]+)/(.*)',
+                '^(?:http://)?v\\.youku\\.com/v_show/id_([A-Za-z0-9]+)\\.html',
                 '^(?:http://)?(?:\\w+\\.)?depositfiles\\.com/(?:../(?#locale))?files/(.+)',
                 '^(?:http://)?(?:www\\.)?metacafe\\.com/watch/([^/]+)/([^/]+)/.*',
                 '^(?:http://)?(?:www\\.)?myvideo\\.de/watch/([0-9]+)/([^?/]+).*',
@@ -55,7 +58,7 @@ check {
 
         action {
             // XXX: keep this up-to-date
-            youtube_dl_compatible = '2012.02.27' // version the regexes were copied from
+            youtube_dl_compatible = '2012.09.27' // version the regexes were copied from
         }
     }
 
