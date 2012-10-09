@@ -14,7 +14,6 @@ class PrependTest extends PMSEncoderTestCase {
             wantHook: [ 'one' ],
             wantDownloader: [ 'one' ],
             wantTranscoder: [ 'one' ],
-            wantOutput: [ 'one' ],
             wantMatches: [ 'Prepend Object Zero' ]
         ])
     }
@@ -25,7 +24,6 @@ class PrependTest extends PMSEncoderTestCase {
             wantHook: [ 'one', 'two' ],
             wantDownloader: [ 'one', 'two' ],
             wantTranscoder: [ 'one', 'two' ],
-            wantOutput: [ 'two', 'one' ],
             wantMatches: [ 'Prepend Object One' ]
         ])
     }
@@ -36,7 +34,6 @@ class PrependTest extends PMSEncoderTestCase {
             wantHook: [ 'one', 'three', 'two' ],
             wantDownloader: [ 'one', 'three', 'two' ],
             wantTranscoder: [ 'one', 'three', 'two' ],
-            wantOutput: [ 'three', 'one', 'two' ],
             wantMatches: [ 'Prepend Object Two' ]
         ])
     }
@@ -47,7 +44,6 @@ class PrependTest extends PMSEncoderTestCase {
             wantHook: [ 'one', 'two' ],
             wantDownloader: [ 'one', 'two' ],
             wantTranscoder: [ 'one', 'two' ],
-            wantOutput: [ 'one', 'two' ],
             wantMatches: [ 'Prepend List Zero' ]
         ])
     }
@@ -58,7 +54,6 @@ class PrependTest extends PMSEncoderTestCase {
             wantHook: [ 'one', 'two', 'three' ],
             wantDownloader: [ 'one', 'two', 'three' ],
             wantTranscoder: [ 'one', 'two', 'three' ],
-            wantOutput: [ 'two', 'three', 'one' ],
             wantMatches: [ 'Prepend List One' ]
         ])
     }
@@ -69,7 +64,6 @@ class PrependTest extends PMSEncoderTestCase {
             wantHook: [ 'one', 'three', 'four', 'two' ],
             wantDownloader: [ 'one', 'three', 'four', 'two' ],
             wantTranscoder: [ 'one', 'three', 'four', 'two' ],
-            wantOutput: [ 'three', 'four', 'one', 'two' ],
             wantMatches: [ 'Prepend List Two' ]
         ])
     }

@@ -12,9 +12,7 @@ class ContextBlockTest extends PMSEncoderTestCase {
             downloader: [ 'downloader', '-foo' ],
             wantDownloader: [ 'downloader', '-foo', '-bar' ],
             transcoder: [ 'transcoder', '-foo' ],
-            wantTranscoder: [ 'transcoder', '-foo', '-bar', '-baz' ],
-            output: [ '-output', '-foo' ],
-            wantOutput: [ '-output', '-foo', '-bar' ]
+            wantTranscoder: [ 'transcoder', '-foo', '-bar', '-baz' ]
         ])
     }
 
@@ -28,9 +26,7 @@ class ContextBlockTest extends PMSEncoderTestCase {
             downloader: [ 'downloader', '-foo', '-bar', '-baz' ],
             wantDownloader: [ 'downloader', '-foo', '-baz' ],
             transcoder: [ 'transcoder', '-foo', '-bar', '-baz' ],
-            wantTranscoder: [ 'transcoder', '-foo' ],
-            output: [ '-output', '-foo', '-bar', '-baz' ],
-            wantOutput: [ '-output', '-foo', '-baz' ]
+            wantTranscoder: [ 'transcoder', '-foo' ]
         ])
     }
 }

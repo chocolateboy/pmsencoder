@@ -5,59 +5,37 @@ import net.pms.encoders.Player
 import net.pms.PMS
 
 public class WEB extends net.pms.formats.WEB {
-    // unless otherwise indicated, these protocols are only supported by MEncoder
+    // unless otherwise indicated, these protocols are only supported by ffmpeg
     // see here for supported ffmpeg protocols: http://ffmpeg.org/pipermail/ffmpeg-cvslog/2011-November/043067.html
     private static final String[] PROTOCOLS = [
-        "bluray", // ffmpeg
-        "br",
-        "cdda",
-        "cddb",
-        "concat", // ffmpeg
-        "cue",
-        "dvb",
-        "dvd",
-        "dvdnav",
+        "bluray",
+        "concat",
         "ffmpeg",
-        "file", // ffmpeg and mencoder
-        "ftp",
-        "gopher", // ffmpeg (for some reason)
-        "hls", // ffmpeg
-        "http", // ffmpeg and mencoder
-        "http_proxy",
-        "https", // ffmpeg (undocumented: http://ffmpeg.org/pipermail/ffmpeg-cvslog/2011-November/043067.html) and mencoder
-        "icyx",
-        "mf",
+        "file",
+        "gopher",
+        "hls",
+        "http",
+        "https", // undocumented: http://ffmpeg.org/pipermail/ffmpeg-cvslog/2011-November/043067.html
         "mms",
-        "mmsh", // ffmpeg and mencoder (broken)
-        "mmshttp", // probably ffmpeg if changed to mmsh; probably broken in mencoder
-        "mmst", // ffmpeg and mencoder (probably broken)
-        "mmsu",
-        "mpst",
-        "navix", // PMSEncoder pseudo-protocol
-        "noicyx",
+        "mmsh",
+        "mmshttp", // probably supported if changed to mmsh
+        "mmst",
         "pipe", // ffmpeg - not sure how to use this with PMSEncoder
-        "pvr",
-        "radio",
+        "rtmp",
         "rtmpdump", // PMSEncoder pseudo-protocol
-        "rtmpe", // ffmpeg and mencoder
-        "rtmp", // ffmpeg and mencoder
-        "rtmps", // ffmpeg
-        "rtmpte", // ffmpeg
-        "rtmpt", // ffmpeg
-        "rtp", // ffmpeg and mencoder
+        "rtmpe",
+        "rtmps",
+        "rtmpt",
+        "rtmpte",
+        "rtp",
         "rtsp",
-        "sap", // ffmpeg
-        "screen",
-        "sdp",
-        "smb",
-        "sop",
-        "synacast",
-        "tcp", // ffmpeg
-        "tivo",
-        "tv",
-        "udp", // ffmpeg and mencoder
-        "unsv",
-        "vcd",
+        "rtsph", // -rtsp_transport http
+        "rtspm", // -rtsp_transport udp_multicast
+        "rtspt", // -rtsp_transport tcp
+        "rtspu", // -rtsp_transport udp
+        "sap",
+        "tcp",
+        "udp",
         "x11grab" // pseudo-protocol for X11 screen capture via ffmpeg
     ]
 

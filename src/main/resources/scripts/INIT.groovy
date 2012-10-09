@@ -12,77 +12,33 @@
 
 init {
     def nbcores = pms.getConfiguration().getNumberOfCpuCores()
-    // have to be completely silent on Windows as stdout is sent to the transcoder
-    def mplayerLogLevel = pms.isWindows() ? 'all=1' : 'all=2'
 
     /*
-        Matcher-level (global) lists of strings that provide useful default options
-        for ffmpeg (downloader/transcoder), mplayer (downloader) and mencoder (downloader, transcoder)
+        Matcher-level (global) list of strings that define the ffmpeg command:
 
-        downloader = MPLAYER:
+            transcoder = "FFMPEG -loglevel warning -y -threads nbcores \
+                -i ${uri} -output -args $TRANSCODER_OUT"
 
-            downloader = "mplayer -msglevel all=2 -prefer-ipv4 -quiet -dumpstream -dumpfile $DOWNLOADER_OUT ${uri}"
-
-        transcoder = FFMPEG:
-
-            transcoder = "ffmpeg -loglevel warning -y -threads nbcores \
-                -i ${uri} -threads nbcores -target ntsc-dvd $TRANSCODER_OUT"
-
-            transcoder = "ffmpeg -loglevel warning -y -threads nbcores \
-                -i $DOWNLOADER_OUT -threads nbcores -target ntsc-dvd $TRANSCODER_OUT"
-
-        transcoder = MENCODER:
-
-            transcoder = "mencoder -mencoder -options -o $TRANSCODER_OUT ${uri}"
-            transcoder = "mencoder -mencoder -options -o $TRANSCODER_OUT $DOWNLOADER_OUT"
+            transcoder = "FFMPEG -loglevel warning -y -threads nbcores \
+                -i $DOWNLOADER_OUT -output -args $TRANSCODER_OUT"
 
         By default, ffmpeg is used without a separate downloader.
 
-        If one of these built-in downloaders/transcoders is used, then PMSEncoder adds the appropriate
-        input/output options as shown above. Otherwise they must be set manually.
+        If ffmpeg is used, PMSEncoder adds the appropriate output options as shown above. Otherwise they must be set manually.
 
-        Note: the uppercase executable names (e.g. FFMPEG) are used to signal to PMSEncoder.groovy that the
+        Note: the uppercase executable name (e.g. FFMPEG) is used to signal to PMSEncoder.groovy that the
         configured path should be substituted.
 
-        matcher-scoped (i.e. global): FFMPEG, MENCODER, and MPLAYER are lists of strings,
-        but, as seen below, can be assigned strings (which are split on whitespace).
+        matcher-scoped (i.e. global): FFMPEG is a list of strings, but, as seen below, can be assigned a string,
+        which is split on whitespace.
 
-        profile-scoped: downloader, transcoder, output and hook are similar, but are only defined in the context
+        profile-scoped: downloader, transcoder and hook are similar, but are only defined in the context
         of a profile block.
     */
 
     // default ffmpeg transcode command - all of these defaults can be (p)redefined in a userscript (e.g. BEGIN.groovy)
-    // XXX: Groovy quirk: !FFMPEG means FFMPEG is not a) null or b) empty
-    // all four of these values are initialized to empty lists, so we're relying on the "is nonempty"
-    // meaning for these checks
-    if (!FFMPEG)
+    if (!FFMPEG) // not null and not empty
         FFMPEG = "FFMPEG -loglevel warning -y -threads ${nbcores}" // -threads 0 doesn't work for all codecs - better to specify
-
-    // default ffmpeg output options
-    if (!FFMPEG_OUT)
-        FFMPEG_OUT = "-threads ${nbcores} -target ntsc-dvd"
-
-    // default mencoder transcode command
-    if (!MENCODER) {
-        MENCODER = [
-            'MENCODER',
-            '-msglevel', 'all=2',
-            '-quiet',
-            '-prefer-ipv4',
-            '-oac', 'lavc',
-            '-ovc', 'lavc',
-            '-of', 'lavf',
-            '-lavfopts', 'format=dvd',
-            '-lavcopts', "vcodec=mpeg2video:vbitrate=4096:threads=${nbcores}:acodec=ac3:abitrate=128",
-            '-ofps', '25',
-            '-cache', '16384', // default cache size; default minimum percentage is 20%
-            '-vf', 'harddup'
-        ]
-    }
-
-    // default mplayer download command
-    if (!MPLAYER)
-        MPLAYER = "MPLAYER -msglevel ${mplayerLogLevel} -quiet -prefer-ipv4 -dumpstream"
 
     /*
         this is the default list of YouTube format/resolution IDs we should accept/select - in descending

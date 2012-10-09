@@ -23,10 +23,6 @@ script {
                 set '-bar'
             }
 
-            output {
-                set '-bar'
-            }
-
             // default to transcoder
             set '-baz'
         }
@@ -47,10 +43,6 @@ script {
             }
 
             transcoder {
-                remove '-bar'
-            }
-
-            output {
                 remove '-bar'
             }
 

@@ -6,7 +6,7 @@ class FormatTest extends PMSEncoderTestCase {
         def web = new WEB()
         assert web.match('http://example.com')
         assert web.match('mms://example.com')
-        assert web.match('tv://example.com')
+        assert !web.match('tv://example.com')
         assert !web.match('about://example.com')
         assert !web.match('about://example.com/example.http')
         assert !web.match('about://example.com/example.mms')

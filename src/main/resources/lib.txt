@@ -1,7 +1,6 @@
 scripts/BEGIN.groovy
 scripts/INIT.groovy
 scripts/apple_trailers.groovy
-scripts/bloomberg.groovy
 scripts/bloomberg_live.groovy
 scripts/eurogamer.groovy
 scripts/gamestar.groovy
@@ -14,13 +13,11 @@ scripts/icanhascheezburger.groovy
 scripts/imdb.groovy
 scripts/mms_to_mmsh.groovy
 scripts/movshare.groovy
-scripts/mplayer.groovy
 scripts/notify_send.groovy
 scripts/politiek24.groovy
-scripts/pplive.groovy
 scripts/redirect.groovy
 scripts/rtmpdump.groovy
-scripts/sopcast.groovy
+scripts/rtsp.groovy
 scripts/winfuture.groovy
 scripts/x11grab.groovy
 scripts/youtube.groovy

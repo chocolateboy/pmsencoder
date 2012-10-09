@@ -20,7 +20,6 @@ public class Command implements LoggerMixin {
     List<String> downloader = []
     List<String> hook = []
     List<String> matches = []
-    List<String> output = []
     List<String> transcoder = []
     OutputParams params
     Player player
@@ -58,7 +57,6 @@ public class Command implements LoggerMixin {
             hook:       $hook
             downloader: $downloader
             transcoder: $transcoder
-            output:     $output
             stash:      $stash
         }""".substring(1).stripIndent(8)
 

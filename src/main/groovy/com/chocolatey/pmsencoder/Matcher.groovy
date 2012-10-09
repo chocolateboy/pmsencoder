@@ -20,10 +20,7 @@ class Matcher implements LoggerMixin {
     // this is the default Map type, but let's be explicit as we strictly need this type
     private Map<String, Profile> profiles = new LinkedHashMap<String, Profile>()
     private PMS pms
-    private List<String> mencoder = []
-    private List<String> mplayer = []
     private List<String> ffmpeg = []
-    private List<String> ffmpegOut = []
     private List<Integer> youtubeAccept = []
     private Map<String, Object> globals = new HashMap<String, Object>()
     PMSConf pmsConf = new PMSConf()
@@ -35,7 +32,6 @@ class Matcher implements LoggerMixin {
     boolean match(Command command, boolean useDefault = true) {
         if (useDefault) {
             command.transcoder = ffmpeg*.toString()
-            command.output = ffmpegOut*.toString()
         }
 
         def uri = command.getVar('uri')
@@ -256,26 +252,6 @@ class Matcher implements LoggerMixin {
         this.pms
     }
 
-    // DSL getter: MENCODER
-    public List<String> getMENCODER() {
-        this.mencoder
-    }
-
-    // DSL setter: MENCODER
-    public List<String> setMENCODER(Object stringOrList) {
-        this.mencoder = Util.stringList(stringOrList)
-    }
-
-    // DSL getter: MPLAYER
-    public List<String> getMPLAYER() {
-        this.mplayer
-    }
-
-    // DSL setter: MPLAYER
-    public List<String> setMPLAYER(Object stringOrList) {
-        this.mplayer = Util.stringList(stringOrList)
-    }
-
     // DSL getter: FFMPEG
     public List<String> getFFMPEG() {
         this.ffmpeg
@@ -284,16 +260,6 @@ class Matcher implements LoggerMixin {
     // DSL setter: FFMPEG
     public List<String> setFFMPEG(Object stringOrList) {
         this.ffmpeg = Util.stringList(stringOrList)
-    }
-
-    // DSL getter: FFMPEG_OUT
-    public List<String> getFFMPEG_OUT() {
-        this.ffmpegOut
-    }
-
-    // DSL setter: FFMPEG_OUT
-    public List<String> setFFMPEG_OUT(Object stringOrList) {
-        this.ffmpegOut = Util.stringList(stringOrList)
     }
 
     // DSL getter: YOUTUBE_ACCEPT

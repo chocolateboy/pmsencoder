@@ -3,6 +3,8 @@ package com.chocolatey.pmsencoder
 
 import static com.chocolatey.pmsencoder.Util.quoteURI
 
+import java.util.Collections
+
 import net.pms.configuration.PmsConfiguration
 import net.pms.dlna.DLNAMediaInfo
 import net.pms.dlna.DLNAResource
@@ -18,7 +20,8 @@ import net.pms.PMS
 public class PMSEncoder extends FFMpegWebVideo implements LoggerMixin {
     public static final boolean isWindows = PMS.get().isWindows()
     private Plugin plugin
-    final private PmsConfiguration configuration
+    private final PmsConfiguration configuration
+    private final int nbCores
 
     // FIXME make this private when PMS makes it private
     public static final String ID = 'pmsencoder'
@@ -50,6 +53,7 @@ public class PMSEncoder extends FFMpegWebVideo implements LoggerMixin {
         super(configuration)
         this.configuration = configuration
         this.plugin = plugin
+        this.nbCores = configuration.getNumberOfCpuCores()
     }
 
     @Override
@@ -80,10 +84,6 @@ public class PMSEncoder extends FFMpegWebVideo implements LoggerMixin {
 
         oldStash.put('uri', oldURI)
 
-        // XXX not sure about these - they can be macros, like MENCODER &c.
-        oldStash.put('DOWNLOADER_OUT', downloaderOutputPath)
-        oldStash.put('TRANSCODER_OUT', transcoderOutputPath)
-
         plugin.match(command)
 
         // the whole point of the command abstraction is that the stash Map/transcoder command List
@@ -103,76 +103,45 @@ public class PMSEncoder extends FFMpegWebVideo implements LoggerMixin {
         }
 
         // automagically add extra command-line options for the PMS-native downloaders/transcoders
-        // and substitute the configured paths for 'MPLAYER', 'MENCODER', and 'FFMPEG'
+        // and substitute the configured path for 'FFMPEG'
 
         def ffmpeg = normalizePath(configuration.getFfmpegPath())
-        def mencoder = normalizePath(configuration.getMencoderPath())
-        def mplayer = normalizePath(configuration.getMplayerPath())
-
-        if (downloaderArgs && downloaderArgs[0] == 'MPLAYER') {
-            /*
-                plug in the input/output e.g. before:
-
-                    mplayer -prefer-ipv4 -quiet -dumpstream
-
-                after:
-
-                    /path/to/mplayer -prefer-ipv4 -quiet -dumpstream -dumpfile $DOWNLOADER_OUT $uri
-            */
-
-            downloaderArgs[0] = mplayer
-            downloaderArgs += [ '-dumpfile', downloaderOutputPath, newURI ]
-        }
 
         if (transcoderArgs) {
+            Collections.replaceAll(transcoderArgs, 'DOWNLOADER_OUT', downloaderOutputPath)
+            Collections.replaceAll(transcoderArgs, 'TRANSCODER_OUT', transcoderOutputPath)
+
             def transcoder = transcoderArgs[0]
 
-            if (transcoder != null && transcoder in [ 'FFMPEG', 'MENCODER' ]) {
+            if (transcoder == 'FFMPEG') {
                 def transcoderInput = downloaderArgs ? downloaderOutputPath : newURI
 
-                if (transcoder == 'FFMPEG') {
-                    /*
-                        before:
+                /*
+                    before:
 
-                             ffmpeg -loglevel warning -y -threads nbcores
+                         ffmpeg -loglevel warning -y -threads nbcores
 
-                        after (with downloader):
+                    after (with downloader):
 
-                             /path/to/ffmpeg -loglevel warning -y -threads nbcores -i $DOWNLOADER_OUT \
-                                -threads nbcores -target ntsc-dvd $TRANSCODER_OUT
+                         /path/to/ffmpeg -loglevel warning -y -threads nbcores -i $DOWNLOADER_OUT \
+                            -threads nbcores -target ntsc-dvd $TRANSCODER_OUT
 
-                        after (without downloader):
+                    after (without downloader):
 
-                             /path/to/ffmpeg -loglevel warning -y -threads nbcores -i $uri -threads nbcores \
-                                 -target ntsc-dvd TRANSCODER_OUT
-                    */
+                         /path/to/ffmpeg -loglevel warning -y -threads nbcores -i $uri -threads nbcores \
+                             -target ntsc-dvd TRANSCODER_OUT
+                */
 
-                    // TODO handle TranscodeVideo=WMV|MPEGTSAC3|MPEGPSAC3
-                    // XXX don't use output - handle output formating here (and below for MEncoder)
-                    transcoderArgs[0] = ffmpeg
-                    transcoderArgs += [ '-i', transcoderInput ]
-                    if (command.output) {
-                        transcoderArgs += command.output // defaults to: -target ntsc-dvd
-                    }
-                    transcoderArgs += [ transcoderOutputPath ]
-                } else { // MEncoder
-                    /*
-                        before:
-
-                             mencoder -mencoder -options
-
-                        after (with downloader):
-
-                             /path/to/mencoder -mencoder -options -o $TRANSCODER_OUT $DOWNLOADER_OUT
-
-                        after (without downloader):
-
-                             /path/to/mencoder -mencoder -options -o $TRANSCODER_OUT $uri
-                    */
-
-                    transcoderArgs[0] = mencoder
-                    transcoderArgs += [ '-o', transcoderOutputPath, transcoderInput ]
-                }
+                // TODO handle TranscodeVideo=WMV|MPEGTSAC3|MPEGPSAC3
+                transcoderArgs[0] = ffmpeg
+                transcoderArgs += [
+                    // end input args
+                    '-i', transcoderInput,
+                    // output args
+                    '-threads', nbCores,
+                    '-target', 'ntsc-dvd',
+                    transcoderOutputPath
+                ]
             }
         }
 
@@ -181,6 +150,8 @@ public class PMSEncoder extends FFMpegWebVideo implements LoggerMixin {
         def transcoderProcess = null
 
         if (downloaderArgs) {
+            Collections.replaceAll(downloaderArgs, 'DOWNLOADER_OUT', downloaderOutputPath)
+
             if (isWindows) {
                 transcoderProcess = processManager.handleDownloadWindows(downloaderArgs, transcoderArgs)
             } else {

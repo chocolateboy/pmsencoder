@@ -124,13 +124,11 @@ abstract class PMSEncoderTestCase extends GroovyTestCase {
         List<String> hook = getValue(spec, 'hook')
         List<String> downloader = getValue(spec, 'downloader')
         List<String> transcoder = getValue(spec, 'transcoder')
-        List<String> output = getValue(spec, 'output')
 
         def wantStash = getValue(spec, 'wantStash')
         def wantHook = getValue(spec, 'wantHook')
         def wantDownloader = getValue(spec, 'wantDownloader')
         def wantTranscoder = getValue(spec, 'wantTranscoder')
-        def wantOutput = getValue(spec, 'wantOutput')
 
         boolean useDefaultTranscoder = getValue(spec, 'useDefaultTranscoder', false)
 
@@ -165,10 +163,6 @@ abstract class PMSEncoderTestCase extends GroovyTestCase {
 
         if (transcoder != null) {
             command.transcoder = transcoder
-        }
-
-        if (output != null) {
-            command.output = output
         }
 
         matcher.match(command, useDefaultTranscoder)
@@ -220,14 +214,6 @@ abstract class PMSEncoderTestCase extends GroovyTestCase {
                 assert (wantTranscoder as Closure).call(command.transcoder)
             } else {
                 assert command.transcoder == wantTranscoder
-            }
-        }
-
-        if (wantOutput != null) {
-            if (wantOutput instanceof Closure) {
-                assert (wantOutput as Closure).call(command.output)
-            } else {
-                assert command.output == wantOutput
             }
         }
     }

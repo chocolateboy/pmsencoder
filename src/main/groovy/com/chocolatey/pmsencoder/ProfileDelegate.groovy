@@ -85,16 +85,6 @@ class ProfileDelegate {
         command.hook = Util.stringList(hook)
     }
 
-    // DSL accessor (output): getter
-    public List<String> getOutput() {
-        command.output
-    }
-
-    // DSL accessor (output): setter
-    public List<String> setOutput(Object args) {
-        command.output = Util.stringList(args)
-    }
-
     // DSL accessor (dlna): getter
     public DLNAResource getDlna() {
         command.dlna

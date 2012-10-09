@@ -116,23 +116,6 @@ class Action {
         }
     }
 
-    // FIXME this is obsolete - ffmpeg output settings should be governed
-    // entirely by the capabilities of the renderer
-    @Typed(TypePolicy.DYNAMIC)
-    void output (Closure closure) {
-        if (getOutput() == null) {
-            logger.error("can't modify null ffmpeg output arg list")
-        } else {
-            def oldContextThunk = getContextThunk() // support nested blocks
-            setContextThunk({ getOutput() })
-            try {
-                closure.call()
-            } finally {
-                setContextThunk(oldContextThunk)
-            }
-        }
-    }
-
     // DSL method
     String quoteURI(Object uri) {
         Util.quoteURI(uri?.toString())
@@ -202,35 +185,23 @@ class Action {
     List<String> prepend(Object object) {
         // XXX we need to be careful to modify the list in place
         def context = getContext()
-        def contextSize = context.size()
 
-        if (contextSize == 0) {
+        if (context.size() <= 1) {
             context << object.toString()
         } else {
-            if (context.is(getOutput())) { // no executable in the first element to protect
-                context.add(0, object.toString())
-            } else {
-                if (contextSize == 1) {
-                    context << object.toString()
-                } else {
-                    context.add(1, object.toString())
-                }
-            }
+            context.add(1, object.toString())
         }
 
         return context
     }
 
     List<String> prepend(List list) {
+        // XXX we need to be careful to modify the list in place
         def context = getContext()
 
-        if (context.isEmpty()) {
+        if (context.size() <= 1) {
             context.addAll(list*.toString())
-        } else if (context.is(getOutput())) { // no executable in the first element to protect
-            def temp = list*.toString()
-            context.addAll(0, list*.toString())
         } else {
-            def temp = list*.toString()
             context.addAll(1, list*.toString())
         }
 

@@ -8,7 +8,6 @@ script {
             hook { prepend('one') }
             downloader { prepend('one') }
             transcoder { prepend('one') }
-            output { prepend('one') }
         }
     }
 
@@ -21,11 +20,9 @@ script {
             hook = [ 'one' ]
             downloader = [ 'one' ]
             transcoder = [ 'one' ]
-            output = [ 'one' ]
             hook { prepend('two') }
             downloader { prepend('two') }
             transcoder { prepend('two') }
-            output { prepend('two') }
         }
     }
 
@@ -38,11 +35,9 @@ script {
             hook = [ 'one', 'two' ]
             downloader = [ 'one', 'two' ]
             transcoder = [ 'one', 'two' ]
-            output = [ 'one', 'two' ]
             hook { prepend('three') }
             downloader { prepend('three') }
             transcoder { prepend('three') }
-            output { prepend('three') }
         }
     }
 
@@ -54,11 +49,9 @@ script {
             hook = []
             downloader = []
             transcoder = []
-            output = []
             hook { prepend([ 'one', 'two' ]) }
             downloader { prepend([ 'one', 'two' ]) }
             transcoder { prepend([ 'one', 'two' ]) }
-            output { prepend([ 'one', 'two' ]) }
         }
     }
 
@@ -70,11 +63,9 @@ script {
             hook = [ 'one' ]
             downloader = [ 'one' ]
             transcoder = [ 'one' ]
-            output = [ 'one' ]
             hook { prepend([ 'two', 'three' ]) }
             downloader { prepend([ 'two', 'three' ]) }
             transcoder { prepend([ 'two', 'three' ]) }
-            output { prepend([ 'two', 'three' ]) }
         }
     }
 
@@ -86,11 +77,9 @@ script {
             hook = [ 'one', 'two' ]
             downloader = [ 'one', 'two' ]
             transcoder = [ 'one', 'two' ]
-            output = [ 'one', 'two' ]
             hook { prepend([ 'three', 'four' ]) }
             downloader { prepend([ 'three', 'four' ]) }
             transcoder { prepend([ 'three', 'four' ]) }
-            output { prepend([ 'three', 'four' ]) }
         }
     }
 }
