@@ -67,7 +67,7 @@ public class Command implements LoggerMixin {
         oldStash = stash
         stash = new Stash(stash)
         // avoid clogging up the logfile with pattern-block stash assignments. If the pattern doesn't match,
-        // the assigments are irrelevant; and if it does match, the assignments are logged later
+        // the assignments are irrelevant; and if it does match, the assignments are logged later
         // (when the pattern's temporary stash is merged into the command stash). Rather than suppressing these
         // assignments completely, log them at the lowest (TRACE) level
         stashAssignmentLogLevel = Level.TRACE
