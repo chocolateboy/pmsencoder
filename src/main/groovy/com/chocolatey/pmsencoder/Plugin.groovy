@@ -16,7 +16,6 @@ import net.pms.encoders.Player
 import net.pms.encoders.PlayerFactory
 import net.pms.external.ExternalListener
 import net.pms.external.FinalizeTranscoderArgsListener
-import net.pms.formats.Format
 import net.pms.io.OutputParams
 import net.pms.logging.DebugLogPathDefiner
 import net.pms.PMS

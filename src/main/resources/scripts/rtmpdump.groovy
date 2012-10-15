@@ -25,6 +25,11 @@ init {
                 def value = pair.value
 
                 switch (name) {
+                    // Special case: don't quote this (JSON) value on Windows
+                    case '-j'
+                    case '--jtv'
+                        rtmpdumpArgs << name << value
+                        break
                     case '-r':
                     case '--rtmp':
                         if (value) {
@@ -37,7 +42,7 @@ init {
                         break // ignore
                     default:
                         rtmpdumpArgs << name
-                        // not all values are URIs, but quoteURI() is harmless on Windows and a no-op on other platforms
+                        // not all values are URIs, but quoteURI() is harmless (except for -j) on Windows and a no-op on other platforms
                         if (value)
                             rtmpdumpArgs << quoteURI(value)
                 }
