@@ -1,4 +1,5 @@
 // videofeed.Web,Gameswelt=http://www.gameswelt.de/feeds/videos/rss.xml
+
 script {
    profile ('Gameswelt') {
         pattern {

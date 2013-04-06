@@ -1,7 +1,7 @@
 // videofeed.Web,YouTube=http://gdata.youtube.com/feeds/base/users/freddiew/uploads?alt=rss&v=2&orderby=published
 check {
-    // extract metadata about the video for other profiles
-    profile ('YouTube Metadata') {
+    // extract the YouTube ID from the URL and make it available to other profiles
+    profile ('YouTube ID') {
         // extract the resource's video_id from the URI of the standard YouTube page
         pattern {
             match uri: '^https?://(?:\\w+\\.)?youtube\\.com/watch\\?v=(?<youtube_video_id>[^&]+)'

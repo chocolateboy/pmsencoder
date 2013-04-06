@@ -4,9 +4,7 @@ import com.chocolatey.pmsencoder.RegexHelper // for string.match()
 
 script {
     profile ('Eurogamer') {
-        pattern {
-            domain 'eurogamer.net'
-        }
+        pattern { domain 'eurogamer.net' }
 
         // http://www.eurogamer.net/videos/sc2-heart-of-the-swarm-blizzcon-trailer
         // http://www.eurogamer.net/tv/playlist/110585
@@ -15,9 +13,7 @@ script {
             def playlist_id = use (RegexHelper) {
                 $('div[id^=video-block-]').attr('id').match(/(\d+)$/)[0]
             }
-
             def json = http.getJSON("http://www.eurogamer.net/tv/playlist/${playlist_id}")
-
             uri = json[0]['hd.file']
         }
     }

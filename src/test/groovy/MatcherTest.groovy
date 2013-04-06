@@ -41,10 +41,6 @@ class MatcherTest extends PMSEncoderTestCase {
         ])
     }
 
-    /*
-        we can't use assertMatch here due to the volatility of the token and (possibly)
-        the highest available resolution.
-    */
     void testYouTube() {
         youTubeCommon('35')
     }
@@ -62,7 +58,7 @@ class MatcherTest extends PMSEncoderTestCase {
             loadDefaultScripts: true,
             uri: uri,
             script: script,
-            wantMatches: ['YouTube Metadata', 'YouTube-DL Compatible', 'YouTube' ],
+            wantMatches: ['YouTube ID', 'YouTube-DL Compatible', 'YouTube' ],
             wantStash: { Stash stash ->
                 assert stash.keySet().toList() == [
                     'uri',

@@ -370,3 +370,11 @@ transcoder = new NullTranscoder()
             transcoder = jsAction(uri)
         }
     }
+
+// allow it to be demoted: only place it first if it's not already in the engine list
+
+// get-flash-videos and youtube-dl: query them to see if they support the URI
+// if they do and the resolved domain matches the source domain, cache the domain and match on that
+
+// builtins shouldn't work if a downloader matches
+// soluton: commit method to abort further matches? (but what about the mms correction?)

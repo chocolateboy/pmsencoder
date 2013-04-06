@@ -18,6 +18,8 @@ import groovyx.net.http.ContentType
 import static groovyx.net.http.Method.GET
 import static groovyx.net.http.Method.HEAD
 
+import java.nio.charset.Charset
+
 // return types taken from:
 // ParserRegistry: http://tinyurl.com/395cjkb
 
@@ -47,7 +49,8 @@ class HTTPClient implements LoggerMixin {
     }
 
     public List<NameValuePair> getNameValuePairs(String str) {
-        return getNameValuePairs(new URI(str))
+        // introduced in HttpClient 4.2
+        return URLEncodedUtils.parse(str, Charset.forName('UTF-8'))
     }
 
     public List<NameValuePair> getNameValuePairs(URI uri) {
