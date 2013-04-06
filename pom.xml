@@ -70,6 +70,20 @@
             <artifactId>regexplus</artifactId>
             <version>${regexplus-version}</version>
         </dependency>
+        <dependency>
+            <groupId>org.apache.httpcomponents</groupId>
+            <artifactId>httpclient</artifactId>
+            <version>4.2.3</version>
+            <scope>compile</scope>
+            <!--  XXX cargo-culted from the PMS POM, not sure if it's needed here -->
+            <exclusions>
+                <!--  no need for commons-logging, as jcl-over-slf4j provides the impl -->
+                <exclusion>
+                    <artifactId>commons-logging</artifactId>
+                    <groupId>commons-logging</groupId>
+                </exclusion>
+            </exclusions>
+        </dependency>
     </dependencies>
 
     <repositories>

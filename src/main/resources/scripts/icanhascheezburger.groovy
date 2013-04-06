@@ -1,4 +1,4 @@
-// this needs to precede 'YouTube Metadata' i.e. it needs to be in a BEGIN script
+// this needs to precede 'YouTube ID' i.e. it needs to be in a BEGIN script
 
 script {
     def ICHC = 'I Can Has Cheezburger'

@@ -10,11 +10,11 @@ class BrowseTest extends PMSEncoderTestCase {
 
     void testBrowseReturn() {
         assertMatch([
-            uri: 'http://www.example.org',
+            uri: 'http://www.ps3mediaserver.org',
             wantMatches: [ 'Browse' ],
             wantStash: [
-                '$title': 'IANA — Example domains',
-                '$URI':   'http://www.example.org'
+                '$title': 'PS3 Media Server',
+                '$URI':   'http://www.ps3mediaserver.org'
             ]
         ])
     }

@@ -1,26 +1,13 @@
 // videofeed.Web,YouTube=http://gdata.youtube.com/feeds/base/users/freddiew/uploads?alt=rss&v=2&orderby=published
 check {
-    // extract metadata about the video for other profiles
-    profile ('YouTube Metadata') {
+    // extract the YouTube ID from the URL and make it available to other profiles
+    profile ('YouTube ID') {
         // extract the resource's video_id from the URI of the standard YouTube page
         pattern {
             match $URI: '^https?://(?:\\w+\\.)?youtube\\.com/watch\\?v=(?<youtube_video_id>[^&]+)'
         }
 
-        action {
-            // fix the URI to bypass age verification
-            // make sure URI is sigilized to prevent clashes with the class
-            def youtube_scrape_uri = "${$URI}&has_verified=1"
-
-            // extract the resource's sekrit identifier ($t) from the HTML
-            scrape '\\bflashvars\\s*=\\s*.+?amp;t=(?<youtube_t>.+?%3D)', [ uri: youtube_scrape_uri ]
-
-            // extract the title and uploader ("creator") so that scripts can use them
-            youtube_title = browse (uri: youtube_scrape_uri) { $('meta', name: 'title').@content }
-            youtube_uploader = browse (uri: youtube_scrape_uri) {
-                $('a', 'id': 'watch-userbanner').@title
-            }
-        }
+        // no action: all done in the pattern
     }
 
     profile ('YouTube-DL Compatible') {
@@ -106,7 +93,7 @@ check {
             match { $youtube_video_id && !$youtube_dl_enabled }
         }
 
-        // Now, with $video_id and $t defined, call the builtin YouTube handler.
+        // Now, with $video_id defined, call the builtin YouTube handler.
         // Note: the parentheses are required for a no-arg method call
         action {
             youtube()

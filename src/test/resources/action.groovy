@@ -5,7 +5,7 @@ script {
         }
 
         action {
-            scrape 'RFC\\s+(?<rfc>\\d+)', [ uri: 'http://example.com' ]
+            scrape '<title>(?<title>.+?)</title>', [ uri: 'http://www.ps3mediaserver.org' ]
         }
     }
 

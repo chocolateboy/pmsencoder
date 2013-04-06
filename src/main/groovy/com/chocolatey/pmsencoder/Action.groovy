@@ -1,6 +1,8 @@
 @Typed
 package com.chocolatey.pmsencoder
 
+import org.apache.http.NameValuePair
+
 class Action {
     private Closure _context
     @Delegate final ProfileDelegate profileDelegate
@@ -260,83 +262,134 @@ class Action {
         }
     }
 
-    private Map<String, String> getFormatURLMap(String video_id) {
-        def fmt_url_map = [:]
+    // take a query string (a list of key=value pairs joined by '&') and
+    // return them as a map. if a key is seen more than once, overwrite the value.
+    // XXX note: URLEncodedUtils.parse (which getNameValuePairs calls) unescapes the key and value
+    // XXX numerous type-inference fails, hence the explicit types
+    private Map<String, String> queryStringToMap(String qs) {
+        /*
+            collectEntries (new in Groovy 1.7.9) transforms (via the supplied closure)
+            a list of elements into a list of pairs and then
+            assembles a map from those pairs. mapBy or toMapBy might have been a clearer name...
+            XXX squashed bug: don't try to implement this by hand (with tokenize()) - there
+            are too many gotchas e.g. "pairs" (split on '=') with 1 or 3 elements as well
+            as the expected 2...
+        */
+        return $HTTP.getNameValuePairs(qs).collectEntries { NameValuePair pair -> [ pair.name, pair.value ] }
+    }
 
-        def found = [ '&el=embedded', '&el=detailspage', '&el=vevo' , '' ].any { String param ->
-            def uri = "http://www.youtube.com/get_video_info?video_id=${video_id}${param}&ps=default&eurl=&gl=US&hl=en"
-            def regex = '\\burl_encoded_fmt_stream_map=(?<youtube_fmt_url_map>[^&]+)'
-            def newStash = new Stash()
+    // XXX numerous type-inference fails, hence the explicit types
+    private Map<String, String> getFmtURLMap(String video_id) {
+        // the initial values of variables don't appear to be documented for Groovy, so assume the same as Java
+        // i.e. explicitly initialize
+        String token = null
+        Map<String, String> videoInfoMap
+        Map<String, String> fmtURLMap = null
+        List<String> elements = [ '&el=embedded', '&el=detailpage', '&el=vevo' , '' ]
+
+        for (String el : elements) {
+            def uri = "http://www.youtube.com/get_video_info?video_id=${video_id}${el}&ps=default&eurl=&gl=US&hl=en"
             def document = $HTTP.get(uri)
 
-            if ((document != null) && RegexHelper.match(document, regex, newStash)) {
+            if (document == null) {
+                log.warn("Can't download metadata for $video_id from $uri")
+            } else {
                 /*
-                    each url_data_str in url_data_strs is a URL-encoded map containing the following keys:
+                    the get_video_info file consists of key/value pairs in query-string format e.g.: key1=value1&key2=value2 &c.
+                    we want the token and url_encoded_fmt_stream_map values, so first we need to convert the file into a map:
 
-                        fallback_host
-                        itag
-                        quality
-                        type
-                        url
-
-                    we only care about:
-
-                        itag: the YouTube fmt number
-                        url: the stream URL
+                    [
+                        token: '...',
+                        url_encoded_fmt_stream_map: '...',
+                        video_id: _OBlgSz8sSM,
+                        author: HDCYT,
+                        ...
+                    ]
                 */
 
-                // XXX numerous type-inference fails
-                def url_data_strs = URLDecoder.decode(newStash.get('$youtube_fmt_url_map')).tokenize(',')
-                url_data_strs.inject(fmt_url_map) { Map<String, String> _fmt_url_map, String url_data_str ->
-                    // collectEntries (new in Groovy 1.7.9) makes a map out of a list of pairs
-                    Map<String, String> url_data_map = url_data_str.tokenize('&').collectEntries { String pair ->
-                        pair.tokenize('=')
-                    }
+                // queryStringToMap decodes the values (and keys) for us, so no need to unescape
+                videoInfoMap = queryStringToMap(document)
 
-                    _fmt_url_map[ URLDecoder.decode(url_data_map['itag']) ] = String.format(
-                        '%s&signature=%s',
-                        URLDecoder.decode(url_data_map['url']),
-                        URLDecoder.decode(url_data_map['sig']) // https://github.com/rg3/youtube-dl/issues/427
-                    )
+                // the token is no longer used, but youtube-dl uses it to sanity check the metadata,
+                // so we do the same here
+                token = videoInfoMap['token'] // extract the token
 
-                    return _fmt_url_map
+                if (token) {
+                    break
+                } else {
+                    String reason = videoInfoMap['reason'] ?: 'unknown error'
+                    log.error("Can't find authentication token for $video_id in $uri: $reason")
                 }
-                return true
-            } else {
-                return false
             }
         }
 
-        return found ? fmt_url_map : null
+        if (token) {
+            /*
+                next we need to extract the url_encoded_fmt_stream_map value.
+                it represents a list of maps, separated by commas:
+
+                    url_encoded_fmt_stream_map=map1,map2,map3
+
+                each map is a URL-encoded string that uses the same query-string format
+                as before e.g. key1=value1&key2=value2 &c. each map contains the
+                following keys:
+
+                    fallback_host
+                    itag
+                    url
+                    quality
+                    sig
+                    type
+
+                we only care about:
+
+                    itag: the YouTube fmt number
+                    url: the stream URL
+                    sig: appended to the stream URL
+            */
+
+            // assemble [ fmt, url ] pairs into a map
+            fmtURLMap = videoInfoMap['url_encoded_fmt_stream_map'].
+                tokenize(',').
+                collectEntries { String encodedMap ->
+                    // queryStringToMap decodes the values (and keys) for us, so no need to unescape
+                    Map<String, String> map = queryStringToMap(encodedMap)
+                    String fmt = map['itag']
+                    // https://github.com/rg3/youtube-dl/issues/427
+                    String url = String.format('%s&signature=%s', map['url'], map['sig'])
+                    return [ fmt, url ]
+                }
+        }
+
+        return fmtURLMap
     }
 
     // DSL method
     void youtube(List<Integer> formats = $YOUTUBE_ACCEPT) {
         def uri = command.getVar('$URI')
         def video_id = command.getVar('$youtube_video_id')
-        def t = command.getVar('$youtube_t')
         def found = false
 
         assert video_id != null
-        assert t != null
 
         command.let('$youtube_uri', uri)
 
         if (formats.size() > 0) {
-            def fmt_url_map = getFormatURLMap(video_id)
-            if (fmt_url_map != null) {
-                log.trace('fmt_url_map: ' + fmt_url_map)
+            def fmtURLMap = getFmtURLMap(video_id)
+
+            if (fmtURLMap) {
+                log.trace('fmtURLMap: ' + fmtURLMap)
 
                 found = formats.any { fmt ->
                     def fmtString = fmt.toString()
-                    log.debug("checking fmt_url_map for $fmtString")
-                    def stream_uri = fmt_url_map[fmtString]
+                    log.debug("checking fmt -> URL map for $fmtString")
+                    def streamURI = fmtURLMap[fmtString]
 
-                    if (stream_uri != null) {
+                    if (streamURI != null) {
                         // set the new URI
                         log.debug('success')
                         command.let('$youtube_fmt', fmtString)
-                        command.let('$URI', stream_uri)
+                        command.let('$URI', streamURI)
                         return true
                     } else {
                         log.debug('failure')
@@ -344,7 +397,7 @@ class Action {
                     }
                 }
             } else {
-                log.fatal("can't find fmt -> URI map in video metadata")
+                log.fatal("can't find fmt -> URL map for $uri")
             }
         }  else {
             log.fatal("no formats defined for $uri")

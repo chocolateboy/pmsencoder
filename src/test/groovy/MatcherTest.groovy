@@ -41,10 +41,6 @@ class MatcherTest extends PMSEncoderTestCase {
         ])
     }
 
-    /*
-        we can't use assertMatch here due to the volatility of the token and (possibly)
-        the highest available resolution.
-    */
     void testYouTube() {
         youTubeCommon('35')
     }
@@ -62,14 +58,11 @@ class MatcherTest extends PMSEncoderTestCase {
             loadDefaultScripts: true,
             uri: uri,
             script: script,
-            wantMatches: ['YouTube Metadata', 'YouTube-DL Compatible', 'YouTube' ],
+            wantMatches: ['YouTube ID', 'YouTube-DL Compatible', 'YouTube' ],
             wantStash: { Stash stash ->
                 assert stash.keySet().toList() == [
                     '$URI',
                     '$youtube_video_id',
-                    '$youtube_t',
-                    '$youtube_title',
-                    '$youtube_uploader',
                     '$youtube_dl_compatible',
                     '$youtube_uri',
                     '$youtube_fmt'
@@ -77,11 +70,6 @@ class MatcherTest extends PMSEncoderTestCase {
 
                 def video_id = stash.get('$youtube_video_id')
                 assert video_id == '_OBlgSz8sSM'
-
-                def t = stash.get('$youtube_t')
-                // the mysterious $t token changes frequently, but always seems to end in a URL-encoded "="
-                assert t =~ /.*%3D$/
-                assert stash.get('$youtube_uploader') == 'HDCYT'
                 assert stash.get('$youtube_fmt') == fmt
                 assert stash.get('$youtube_uri') == uri
                 assert stash.get('$URI') =~ '\\.youtube\\.com/videoplayback\\?'

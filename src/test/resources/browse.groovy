@@ -1,12 +1,12 @@
 script {
     profile ('Browse') {
         pattern {
-            domain 'example.org'
+            domain 'ps3mediaserver.org'
 
             // confirm that it works in the pattern block
             match {
-                // XXX: why are these entities - this is &mdash; - being translated?
-                browse { $('title').text() } == 'IANA — Example domains'
+                // XXX: previously the title contained an &mdash; that was being translated: why?
+                browse { $('title').text() } == 'PS3 Media Server'
             }
         }
 

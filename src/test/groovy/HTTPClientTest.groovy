@@ -21,7 +21,7 @@ class HTTPClientTest extends PMSEncoderTestCase {
 
         assert example != null
         assert example instanceof String
-        assert example =~ /RFC\s+2606/
+        assert example =~ /\biana\b/
         assert http.get('http://ps3mediaserver.googlecode.com/nosuchfile.txt') == null
     }
 
