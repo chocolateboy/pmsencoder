@@ -1,9 +1,10 @@
 2.0.0 TBC
 
-    prevent script names conflicting with DSL identifiers
+    output video in the renderer's preferred format (i.e. don't downscale HD video if the renderer supports it)
     PMSEncoder scripts can now implement finalizeTranscoderArgs hooks
-    fix rtmp2pms.pl and rtmp2pms.js to work with quoted parameter values and embedded commas
     use ffmpeg for all protocols
+    prevent script names conflicting with DSL identifiers
+    fix rtmp2pms.pl and rtmp2pms.js to work with quoted parameter values and embedded commas
 
     scripts:
         - add IMDb script
@@ -20,7 +21,6 @@
         - deprecated url option is no longer supported by rtmpdump.groovy
         - remove sigils and only use uppercase for constants:
             $URI        -> uri
-            $MENCODER   -> MENCODER
             $TRANSCODER -> transcoder
             $HTTP       -> http
             &c.

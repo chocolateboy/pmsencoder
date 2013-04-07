@@ -12,7 +12,7 @@
         <groovypp-version>0.9.0_1.8.2</groovypp-version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <junit-version>4.10</junit-version>
-        <pms-version>1.70.0</pms-version>
+        <pms-version>1.80.0</pms-version>
         <regexplus-version>2010-04-16</regexplus-version>
     </properties>
 
@@ -277,9 +277,9 @@
                             <downloadUrl>https://ps3mediaserver.googlecode.com/files/pms-generic-linux-unix-${pms-version}.tgz</downloadUrl>
                             <install>true</install>
                             <force>false</force>
-                            <checksum>0c6902e7b1f89a177b434f43a258b51cd9cd4e65</checksum>
+                            <checksum>423610a0c3bd17f2c0f7d4c8f58ee2651423bf26</checksum>
                             <extractFile>pms-${pms-version}/pms.jar</extractFile>
-                            <extractFileChecksum>9b79e2e51426721bb90a743191305ae53c56085b</extractFileChecksum>
+                            <extractFileChecksum>cce62d06131e403b152f950a3c924ab66a30804f</extractFileChecksum>
                         </artifactItem>
                     </artifactItems>
                 </configuration>

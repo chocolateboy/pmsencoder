@@ -105,15 +105,15 @@ public class PMSEncoder extends FFMpegWebVideo implements LoggerMixin {
         // automagically add extra command-line options for the PMS-native downloaders/transcoders
         // and substitute the configured path for 'FFMPEG'
 
-        def ffmpeg = normalizePath(configuration.getFfmpegPath())
+        def ffmpegPath = normalizePath(configuration.getFfmpegPath())
 
         if (transcoderArgs) {
             Collections.replaceAll(transcoderArgs, 'DOWNLOADER_OUT', downloaderOutputPath)
             Collections.replaceAll(transcoderArgs, 'TRANSCODER_OUT', transcoderOutputPath)
 
-            def transcoder = transcoderArgs[0]
+            def transcoderName = transcoderArgs[0]
 
-            if (transcoder == 'FFMPEG') {
+            if (transcoderName == 'FFMPEG') {
                 def transcoderInput = downloaderArgs ? downloaderOutputPath : newURI
 
                 /*
@@ -123,25 +123,34 @@ public class PMSEncoder extends FFMpegWebVideo implements LoggerMixin {
 
                     after (with downloader):
 
-                         /path/to/ffmpeg -loglevel warning -y -threads nbcores -i $DOWNLOADER_OUT \
-                            -threads nbcores -target ntsc-dvd $TRANSCODER_OUT
+                         /path/to/ffmpeg -loglevel warning -y -threads nbcores -i DOWNLOADER_OUT \
+                            -threads nbcores -output -args TRANSCODER_OUT
 
                     after (without downloader):
 
-                         /path/to/ffmpeg -loglevel warning -y -threads nbcores -i $uri -threads nbcores \
-                             -target ntsc-dvd TRANSCODER_OUT
+                         /path/to/ffmpeg -loglevel warning -y -threads nbcores -i URI -threads nbcores \
+                             -output -args TRANSCODER_OUT
                 */
 
-                // TODO handle TranscodeVideo=WMV|MPEGTSAC3|MPEGPSAC3
-                transcoderArgs[0] = ffmpeg
-                transcoderArgs += [
+                // handle TranscodeVideo=WMV|MPEGTSAC3|MPEGPSAC3
+                // and audio/video bitrates
+                def renderer = params.mediaRenderer
+
+                transcoderArgs[0] = ffmpegPath
+
+                // List<String>: more Groovy++ type-inference lamery
+                List<String> args = [
                     // end input args
                     '-i', transcoderInput,
                     // output args
-                    '-threads', nbCores,
-                    '-target', 'ntsc-dvd',
-                    transcoderOutputPath
+                    '-threads', nbCores
                 ]
+
+                transcoderArgs.addAll(args)
+                transcoderArgs.addAll(getVideoBitrateOptions(renderer, media))
+                transcoderArgs.addAll(getAudioBitrateOptions(renderer, media))
+                transcoderArgs.addAll(getTranscodeVideoOptions(renderer, media))
+                transcoderArgs.add(transcoderOutputPath)
             }
         }
 
