@@ -371,12 +371,10 @@ class Action {
         return fmtURLMap
     }
 
-
     // DSL method
     void youtube(List<Integer> formats = YOUTUBE_ACCEPT) {
         def uri = command.getVar('uri')
         def video_id = command.getVar('youtube_video_id')
-        def t = command.getVar('youtube_t')
         def found = false
 
         assert video_id != null
@@ -384,20 +382,20 @@ class Action {
         command.let('youtube_uri', uri)
 
         if (formats.size() > 0) {
-            def fmt_url_map = getFormatURLMap(video_id)
-            if (fmt_url_map != null) {
-                logger.trace('fmt_url_map: ' + fmt_url_map)
+            def fmtURLMap = getFmtURLMap(video_id)
+            if (fmtURLMap != null) {
+                logger.trace('fmt -> URL map: ' + fmtURLMap)
 
                 found = formats.any { fmt ->
                     def fmtString = fmt.toString()
-                    logger.debug("checking fmt_url_map for $fmtString")
-                    def stream_uri = fmt_url_map[fmtString]
+                    logger.debug("checking fmt -> URL map for $fmtString")
+                    def streamURI = fmtURLMap[fmtString]
 
                     if (streamURI != null) {
                         // set the new URI
                         logger.debug('success')
                         command.let('youtube_fmt', fmtString)
-                        command.let('uri', stream_uri)
+                        command.let('uri', streamURI)
                         return true // i.e. found = true
                     } else {
                         logger.debug('failure')
@@ -405,14 +403,14 @@ class Action {
                     }
                 }
             } else {
-                logger.fatal("can't find fmt -> URI map in video metadata")
+                logger.fatal("can't find fmt -> URL map in video metadata")
             }
         }  else {
             logger.fatal("no formats defined for $uri")
         }
 
         if (!found) {
-            logger.fatal("can't retrieve stream URI for $uri")
+            logger.fatal("can't retrieve stream URL for $uri")
         }
     }
 }

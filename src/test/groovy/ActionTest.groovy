@@ -58,7 +58,7 @@ class ActionTest extends PMSEncoderTestCase {
             uri:    uri,
             wantStash: [
                 uri: uri,
-                rfc: '2606'
+                title: 'PS3 Media Server'
             ],
             wantMatches: [ 'Scrape' ]
         ])

@@ -26,6 +26,7 @@ import java.nio.charset.Charset
 // XXX the URLENC type can probably be used to simplify YouTube fmt_url_map handling
 
 class HTTPClient implements LoggerMixin {
+    final static private DEFAULT_CHARSET = 'UTF-8'
     private JsonSlurper jsonSlurper = new JsonSlurper()
 
     public String get(String uri) {
@@ -48,13 +49,13 @@ class HTTPClient implements LoggerMixin {
         return jsonSlurper.parseText(get(uri))
     }
 
-    public List<NameValuePair> getNameValuePairs(String str) {
+    public List<NameValuePair> getNameValuePairs(String str, String charset = DEFAULT_CHARSET) {
         // introduced in HttpClient 4.2
-        return URLEncodedUtils.parse(str, Charset.forName('UTF-8'))
+        return URLEncodedUtils.parse(str, Charset.forName(charset))
     }
 
-    public List<NameValuePair> getNameValuePairs(URI uri) {
-        return URLEncodedUtils.parse(uri, 'UTF-8')
+    public List<NameValuePair> getNameValuePairs(URI uri, String charset = DEFAULT_CHARSET) {
+        return URLEncodedUtils.parse(uri, charset)
     }
 
     @Typed(TypePolicy.MIXED)

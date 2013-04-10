@@ -124,12 +124,12 @@ public class PMSEncoder extends FFMpegWebVideo implements LoggerMixin {
                     after (with downloader):
 
                          /path/to/ffmpeg -loglevel warning -y -threads nbcores -i DOWNLOADER_OUT \
-                            -threads nbcores -output -args TRANSCODER_OUT
+                            -threads nbcores -output-args TRANSCODER_OUT
 
                     after (without downloader):
 
                          /path/to/ffmpeg -loglevel warning -y -threads nbcores -i URI -threads nbcores \
-                             -output -args TRANSCODER_OUT
+                             -output-args TRANSCODER_OUT
                 */
 
                 // handle TranscodeVideo=WMV|MPEGTSAC3|MPEGPSAC3

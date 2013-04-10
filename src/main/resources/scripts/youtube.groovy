@@ -7,18 +7,7 @@ check {
             match uri: '^https?://(?:\\w+\\.)?youtube\\.com/watch\\?v=(?<youtube_video_id>[^&]+)'
         }
 
-        action {
-            // fix the URI to bypass age verification
-            def youtube_scrape_uri = "${uri}&has_verified=1"
-
-            // extract the resource's sekrit identifier (t) from the HTML
-            scrape(uri: youtube_scrape_uri)('\\bflashvars\\s*=\\s*.+?amp;t=(?<youtube_t>.+?%3D)')
-
-            // extract the title and uploader ("creator") so that scripts can use them
-            def $j = $(uri: youtube_scrape_uri) // curry
-            youtube_title = $j('meta[name=title]').attr('content')
-            youtube_uploader = $j('a[id=watch-userbanner]').attr('title')
-        }
+        // no action: all done in the pattern
     }
 
     profile ('YouTube-DL Compatible') {
@@ -104,7 +93,7 @@ check {
             match { youtube_video_id && !youtube_dl_enabled }
         }
 
-        // Now, with video_id and t defined, call the builtin YouTube handler.
+        // Now, with $video_id defined, call the builtin YouTube handler.
         // Note: the parentheses are required for a no-arg method call
         action {
             youtube()

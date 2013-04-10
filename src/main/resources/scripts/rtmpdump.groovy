@@ -26,8 +26,8 @@ init {
 
                 switch (name) {
                     // Special case: don't quote this (JSON) value on Windows
-                    case '-j'
-                    case '--jtv'
+                    case '-j':
+                    case '--jtv':
                         rtmpdumpArgs << name << value
                         break
                     case '-r':
