@@ -242,7 +242,7 @@ class Action {
     }
 
     /*
-        perform a string search-and-replace in the value of a transcoder option.
+        perform a string search-and-replace in the value of an option.
     */
 
     // DSL method
@@ -250,7 +250,7 @@ class Action {
         def context = getContext()
         // the sort order is predictable (for tests) as long as we (and Groovy) use LinkedHashMap
         replaceMap.each { name, map ->
-            // squashed bug (see  above): take care to modify context in-place
+            // squashed bug (see above): take care to modify context in-place
             def index = context.findIndexOf { it == name.toString() }
 
             if (index != -1) {

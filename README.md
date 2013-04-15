@@ -34,7 +34,6 @@ To build PMSEncoder from source, see the [Wiki](https://github.com/chocolateboy/
 * To take PMSEncoder for a spin, try [this WEB.conf](https://raw.github.com/chocolateboy/pmsencoder/release/misc/conf/WEB.conf), which contains a list of feeds that are regularly tested.
 * For help with particular feeds/streams/sites, see [here](http://www.ps3mediaserver.org/forum/viewtopic.php?f=6&t=8776&p=46696#p46696).
 
-
 # Troubleshooting <a name="Troubleshooting"></a>
 
 * Make sure you're using the [latest version of PMS](http://www.ps3mediaserver.org/forum/viewtopic.php?f=6&t=3507&p=38376#p38376) and the latest version of PMSEncoder.
