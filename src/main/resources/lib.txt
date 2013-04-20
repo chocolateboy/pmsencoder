@@ -15,6 +15,7 @@ scripts/icanhascheezburger.groovy
 scripts/movshare.groovy
 scripts/mplayer.groovy
 scripts/navix.groovy
+scripts/onion_news_network.groovy
 scripts/pc_games.groovy
 scripts/politiek24.groovy
 scripts/pplive.groovy
