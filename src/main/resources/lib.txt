@@ -14,6 +14,7 @@ scripts/imdb.groovy
 scripts/mms_to_mmsh.groovy
 scripts/movshare.groovy
 scripts/notify_send.groovy
+scripts/onion_news_network.groovy
 scripts/politiek24.groovy
 scripts/redirect.groovy
 scripts/rtmpdump.groovy

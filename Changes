@@ -16,6 +16,7 @@
         - protocol can now be set
         - rename log -> logger
         - add getJSON method to http
+        - add getNameValuePairs(String) method to http
         - replace browse with $(...) (via jSoup)
         - unify scrape and jsoup syntax
         - deprecated url option is no longer supported by rtmpdump.groovy
@@ -25,8 +26,9 @@
             $HTTP       -> http
             &c.
 
-1.6.3 Sat Apr 6 19:13:36 2013
+1.6.3 Sat Apr 20 17:43:00 2013
     - fix latest YouTube breakage
+    - fix Onion News Network breakage
 
 1.6.2 Sat Sep 29 14:01:03 2012
     - fix latest YouTube breakage
