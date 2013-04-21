@@ -5,6 +5,7 @@
     use ffmpeg for all protocols
     prevent script names conflicting with DSL identifiers
     fix rtmp2pms.pl and rtmp2pms.js to work with quoted parameter values and embedded commas
+    allow the engine to be demoted
 
     scripts:
         - add IMDb script

@@ -22,7 +22,7 @@ To upgrade to a new version of the plugin:
 
 ## Uninstalling <a name="Uninstall"></a>
 
-To uninstall PMSEncoder, remove the jar file from the `plugins` directory.
+To uninstall/disable PMSEncoder, remove the jar file from the `plugins` directory.
 
 ## Building <a name="Build"></a>
 
@@ -39,6 +39,7 @@ To build PMSEncoder from source, see the [Wiki](https://github.com/chocolateboy/
 * Make sure you're using the [latest version of PMS](http://www.ps3mediaserver.org/forum/viewtopic.php?f=6&t=3507&p=38376#p38376) and the latest version of PMSEncoder.
 * Make sure the [WEB.conf](http://www.ps3mediaserver.org/forum/viewtopic.php?f=6&t=3507&p=64418#p64418) is in the profile directory (see [here](http://www.ps3mediaserver.org/forum/viewtopic.php?f=6&t=3507&p=32731#p32731) for the default locations).
 * Make sure there's only one version of the plugin in the `plugins` directory.
+* Make sure PMSEncoder is first in the list of web video engines.
 * Make sure the error is reproducible after a PMS restart. Caching in PMS and/or the PS3 often produces one-off errors.
 * <a name="HTTPEngine"></a>If you [disabled "HTTP Engine V2"](#Tips), try re-enabling it as some renderers, such as the Sony Bravia KDL-37V5500, require it.
 * Make sure `mencoder_path` is not set (or is not pointing to the old, standalone version of PMSEncoder).

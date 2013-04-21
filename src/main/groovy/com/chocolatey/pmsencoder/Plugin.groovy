@@ -175,7 +175,7 @@ public class Plugin implements ExternalListener, FinalizeTranscoderArgsListener,
         enable()
     }
 
-    // make sure "pmsencoder" is first in the list of engines
+    // make sure "pmsencoder" is in the list of engines
     private void enable() {
         def engines = configuration.getEnginesAsList(pms.getRegistry())
         def id = pmsencoder.id()
@@ -183,22 +183,13 @@ public class Plugin implements ExternalListener, FinalizeTranscoderArgsListener,
 
         info("checking engine list: $engines")
 
-        if (index == 0) {
+        if (index != -1) {
             info('already enabled')
         } else {
             def newEngines = new ArrayList<String>(engines)
-            def msg
-
-            if (index == -1) {
-                msg = 'added engine'
-            } else {
-                newEngines.removeAll([ id ])
-                msg = 'prioritised engine'
-            }
-
             newEngines.add(0, id)
             configuration.setEnginesAsList(newEngines)
-            info("$msg: $newEngines")
+            info("added engine: $newEngines")
         }
     }
 
