@@ -32,18 +32,23 @@ abstract class PMSEncoderTestCase extends GroovyTestCase {
         defaultScript = this.getClass().getResource('/DEFAULT.groovy')
 
         new MockUp<PmsConfiguration>() {
+            private static final Map<String, Object> PMS_CONFIGURATION = new HashMap<String, Object>()
+
+            static {
+                PMS_CONFIGURATION.put('rtmpdump.path', '/usr/bin/rtmpdump')
+            }
+
             @Mock
             public int getNumberOfCpuCores() { 3 }
 
             @Mock
             public Object getCustomProperty(String key) {
-                if (key == 'rtmpdump.path') {
-                    return '/usr/bin/rtmpdump'
-                } else if (key == 'ffmpeg.http-headers') {
-                    return "false"
-                } else {
-                    return null
-                }
+                return PMS_CONFIGURATION.get(key)
+            }
+
+            @Mock
+            public void setCustomProperty(String key, Object value) {
+                PMS_CONFIGURATION.put(key, value)
             }
         }
 

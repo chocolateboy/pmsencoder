@@ -4,12 +4,22 @@ package com.chocolatey.pmsencoder
 import static groovy.io.FileType.FILES
 
 import net.pms.PMS
+import net.pms.configuration.PmsConfiguration
 
 enum Stage { BEGIN, INIT, SCRIPT, CHECK, END }
 
-class PMSConf { // no need to extend HashMap<...>: we only need the subscript - i.e. getAt() - syntax
+// no need to extend HashMap<...>: we only need the subscript - i.e. getAt() and putAt() - syntax
+@Singleton
+class PMSConf {
+    @Lazy private PmsConfiguration configuration = PMS.getConfiguration()
+
     public Object getAt(String key) {
-        return PMS.getConfiguration().getCustomProperty(key?.toString())
+        return configuration.getCustomProperty(key?.toString())
+    }
+
+    // XXX squashed bug: putAt, *not* setAt -- only recently fixed in the Groovy documentation...
+    public void putAt(String key, Object value) {
+        configuration.setCustomProperty(key?.toString(), value)
     }
 }
 
@@ -23,7 +33,7 @@ class Matcher implements LoggerMixin {
     private List<String> ffmpeg = []
     private List<Integer> youtubeAccept = []
     private Map<String, Object> globals = new HashMap<String, Object>()
-    PMSConf pmsConf = new PMSConf()
+    private PMSConf pmsConf = PMSConf.getInstance()
 
     Matcher(PMS pms) {
         this.pms = pms
@@ -144,10 +154,10 @@ class Matcher implements LoggerMixin {
     }
 
     void loadUserScripts(File scriptDirectory) {
-        if (!scriptDirectory.isDirectory()) {
-            logger.error("invalid user script directory ($scriptDirectory): not a directory")
-        } else if (!scriptDirectory.exists()) {
+        if (!scriptDirectory.exists()) {
             logger.error("invalid user script directory ($scriptDirectory): directory doesn't exist")
+        } else if (!scriptDirectory.isDirectory()) {
+            logger.error("invalid user script directory ($scriptDirectory): not a directory")
         } else {
             logger.info("loading user scripts from: $scriptDirectory")
             scriptDirectory.eachFileRecurse(FILES) { File file ->
@@ -275,5 +285,10 @@ class Matcher implements LoggerMixin {
     // os: getter
     public final String getOs() {
         System.getProperty('os.name')
+    }
+
+    // pmsConf: getter
+    public final PMSConf getPmsConf() {
+        this.pmsConf
     }
 }
