@@ -1,8 +1,6 @@
 // videofeed.Web,PCGames=http://www.pcgames.de/feed.cfm?menu_alias=Videos/
 // videofeed.Web,Hardware Clips=http://www.hardwareclips.com/rss/new/
 
-import com.chocolatey.pmsencoder.RegexHelper
-
 script {
     profile ('HardwareClips Whitelabels') {
         pattern {
