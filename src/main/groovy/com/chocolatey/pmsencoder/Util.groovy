@@ -4,23 +4,21 @@ package com.chocolatey.pmsencoder
 import net.pms.PMS
 
 class Util {
-    public static List<String> scalarList(Object scalarOrList) {
-        if (scalarOrList == null) {
+    public static List<String> toStringList(Object maybeList, boolean split = false) {
+        if (maybeList == null) {
+            // empty list
             return []
         } else {
-            return (scalarOrList instanceof List) ? scalarOrList.collect { it.toString() } : [ scalarOrList.toString() ]
-        }
-    }
-
-    // handle values that can be a String or a List.
-    // split the former along whitespace and return the latter as-is
-    public static List<String> stringList(Object stringOrList) {
-        if (stringOrList == null) {
-            return []
-        } else {
-            return (stringOrList instanceof List) ?
-                stringOrList.collect { it.toString() } :
-                stringOrList.toString().tokenize()
+            if (maybeList instanceof List) {
+                // stringify each element
+                return maybeList.collect { it.toString() }
+            } else if (split) {
+                // split along whitespace
+                return maybeList.toString().tokenize()
+            } else {
+                // 1-element list
+                return [ maybeList.toString() ]
+            }
         }
     }
 

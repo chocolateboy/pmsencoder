@@ -25,15 +25,15 @@ class Pattern {
     }
 
     // DSL method
-    protected void domain(Object scalarOrList) {
+    protected void domain(Object maybeList) {
         def uri = command.getVarAsString('uri')
         def u = new URI(uri)
         def domain = u.host
         def matched = false
 
         if (domain) {
-            matched = Util.scalarList(scalarOrList).any({
-                return domain.endsWith(it.toString())
+            matched = Util.toStringList(maybeList).any({
+                return domain.endsWith(it)
             })
         }
 
@@ -43,20 +43,20 @@ class Pattern {
     }
 
     // DLS method (alias for domain)
-    protected void domains(Object scalarOrList) {
-        domain(scalarOrList)
+    protected void domains(Object maybeList) {
+        domain(maybeList)
     }
 
     // DSL method
-    protected void protocol(Object scalarOrList) {
+    protected void protocol(Object maybeList) {
         def uri = command.getVarAsString('uri')
         def u = new URI(uri)
         def protocol = u.scheme
         def matched = false
 
         if (protocol) {
-            matched = Util.scalarList(scalarOrList).any({
-                return protocol == it.toString()
+            matched = Util.toStringList(maybeList).any({
+                return protocol == it
             })
         }
 

@@ -52,7 +52,7 @@ class ProfileDelegate {
             Cannot cast object '/usr/bin/downloader string http://downloader.string'
             with class 'java.lang.String' to class 'java.util.List'
 
-        workaround: define just one setter and determine the type with instanceof (via stringList)
+        workaround: define just one setter and determine the type with instanceof (via toStringList)
     */
 
     // DSL accessor (downloader): getter
@@ -62,7 +62,7 @@ class ProfileDelegate {
 
     // DSL accessor (downloader): setter
     public List<String> setDownloader(Object downloader) {
-        command.downloader = Util.stringList(downloader)
+        command.downloader = Util.toStringList(downloader, true) // true: split on whitespace if it's a String
     }
 
     // DSL accessor (transcoder): getter
@@ -72,7 +72,7 @@ class ProfileDelegate {
 
     // DSL accessor (transcoder): setter
     public List<String> setTranscoder(Object transcoder) {
-        command.transcoder = Util.stringList(transcoder)
+        command.transcoder = Util.toStringList(transcoder, true) // true: split on whitespace if it's a String
     }
 
     // DSL accessor (hook): getter
@@ -82,7 +82,7 @@ class ProfileDelegate {
 
     // DSL accessor (hook): setter
     public List<String> setHook(Object hook) {
-        command.hook = Util.stringList(hook)
+        command.hook = Util.toStringList(hook, true) // true: split on whitespace if it's a String
     }
 
     // DSL accessor (dlna): getter

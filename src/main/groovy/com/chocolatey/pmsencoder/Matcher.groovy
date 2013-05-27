@@ -268,8 +268,8 @@ class Matcher implements LoggerMixin {
     }
 
     // DSL setter: FFMPEG
-    public List<String> setFFMPEG(Object stringOrList) {
-        this.ffmpeg = Util.stringList(stringOrList)
+    public List<String> setFFMPEG(Object maybeList) {
+        this.ffmpeg = Util.toStringList(maybeList, true) // true: split on whitespace if it's a String
     }
 
     // DSL getter: YOUTUBE_ACCEPT
