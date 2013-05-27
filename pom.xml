@@ -4,14 +4,14 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.chocolatey</groupId>
     <artifactId>pmsencoder</artifactId>
-    <version>2.0.0</version>
+    <version>2.0.0-SNAPSHOT</version>
     <name>PMSEncoder</name>
     <description>A plugin for PS3 Media Server that adds support for scriptable web video streaming.</description>
     <properties>
         <groovypp-repo>http://groovypp.artifactoryonline.com/groovypp</groovypp-repo>
         <groovypp-version>0.9.0_1.8.2</groovypp-version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <junit-version>4.10</junit-version>
+        <junit-version>4.11</junit-version>
         <pms-version>1.80.0</pms-version>
         <regexplus-version>2010-04-16</regexplus-version>
     </properties>
@@ -26,7 +26,7 @@
         <dependency>
             <groupId>org.codehaus.groovy.modules.http-builder</groupId>
             <artifactId>http-builder</artifactId>
-            <version>0.5.2</version>
+            <version>0.6</version>
             <scope>compile</scope>
             <!-- we're using groovy 1.8. prevent http-builder dragging in groovy-1.7.11 (which breaks closures) -->
             <exclusions>
@@ -67,7 +67,7 @@
         <dependency>
             <groupId>org.jsoup</groupId>
             <artifactId>jsoup</artifactId>
-            <version>1.6.3</version>
+            <version>1.7.2</version>
         </dependency>
         <dependency>
             <groupId>org.apache.httpcomponents</groupId>
