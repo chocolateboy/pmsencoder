@@ -1,23 +1,41 @@
 @Typed
 package com.chocolatey.pmsencoder
 
-// a long-winded way of getting Java Strings and Groovy GStrings to play nice
-public class Stash extends LinkedHashMap<java.lang.String, java.lang.String> {
+/*
+    a Map<String, Object> that works around GString annoyances:
+    http://www.nearinfinity.com/blogs/scott_leberknight/wackiness_with_string_gstring_and.html
+
+    keys and values can be any type, but keys are
+    converted to String before being set and GString values are converted to String.
+    note: the Java String type is spelled out to avoid GString surprises
+
+    LinkedHashMap rather than HashMap to preserve insertion order.
+*/
+public class Stash extends LinkedHashMap<String, Object> {
     public Stash() {
         super()
     }
 
-    public Stash(Stash old) {
-        super()
-        old.each { key, value -> this.put(key, value) }
-    }
-
-    public Stash(Map map) {
-        map.each { key, value -> this.put(key.toString(), value?.toString()) }
+    public Stash(Map<Object, Object> map) {
+        putAll(map)
     }
 
     public Object put(Object key, Object value) {
-        super.put(key.toString(), value?.toString())
+        /*
+            more Groovy fail: string != gstring
+            ... which breaks the stash == wantStash equality test
+            in PMSEncoderTestCase for the gstrings.groovy test in
+            ProfileTest.groovy.
+
+            it's either this or implement an equals and hashCode that
+            treat values as equal if gstring.toString() == string.
+            this is easier
+        */
+        if (value instanceof GString) {
+            super.put(key.toString(), value.toString())
+        } else {
+            super.put(key.toString(), value)
+        }
     }
 
     public Object get(Object key) {

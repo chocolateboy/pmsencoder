@@ -251,7 +251,7 @@ public class Plugin implements ExternalListener, FinalizeTranscoderArgsListener,
 
     public boolean match(Command command) {
         def stash = command.stash
-        def originalURI = command.getVar('uri')
+        def originalURI = command.getVarAsString('uri')
 
         boolean matched // Groovy++ type inference fail
 

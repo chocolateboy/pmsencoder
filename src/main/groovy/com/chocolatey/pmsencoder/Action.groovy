@@ -123,14 +123,6 @@ class Action {
         Util.quoteURI(uri?.toString())
     }
 
-    // define a variable in the stash
-    // DSL method
-    void let(Map map) {
-        map.each { key, value ->
-            command.let(key.toString(), value?.toString())
-        }
-    }
-
     // DSL method
     void set(Map map) {
         // the sort order is predictable (for tests) as long as we (and Groovy) use LinkedHashMap
@@ -373,13 +365,13 @@ class Action {
 
     // DSL method
     void youtube(List<Integer> formats = YOUTUBE_ACCEPT) {
-        def uri = command.getVar('uri')
-        def video_id = command.getVar('youtube_video_id')
+        def uri = command.getVarAsString('uri')
+        def video_id = command.getVarAsString('youtube_video_id')
         def found = false
 
         assert video_id != null
 
-        command.let('youtube_uri', uri)
+        command.setVar('youtube_uri', uri)
 
         if (formats.size() > 0) {
             def fmtURLMap = getFmtURLMap(video_id)
@@ -394,8 +386,8 @@ class Action {
                     if (streamURI != null) {
                         // set the new URI
                         logger.debug('success')
-                        command.let('youtube_fmt', fmtString)
-                        command.let('uri', streamURI)
+                        command.setVar('youtube_fmt', fmtString)
+                        command.setVar('uri', streamURI)
                         return true // i.e. found = true
                     } else {
                         logger.debug('failure')

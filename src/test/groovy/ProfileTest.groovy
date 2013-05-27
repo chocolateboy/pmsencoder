@@ -59,7 +59,7 @@ class ProfileTest extends PMSEncoderTestCase {
                 action:  'Hello, world!',
                 domain:  'example',
                 key:     'key',
-                n:       '41',
+                n:       41,
                 pattern: 'Hello, world!',
                 uri:     'http://www.example.com/example/key/value/42',
                 value:   'value'

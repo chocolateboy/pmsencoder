@@ -32,7 +32,7 @@ class Matcher implements LoggerMixin {
     private PMS pms
     private List<String> ffmpeg = []
     private List<Integer> youtubeAccept = []
-    private Map<String, Object> globals = new HashMap<String, Object>()
+    private Map<String, Object> globals = new Stash()
     private PMSConf pmsConf = PMSConf.getInstance()
 
     Matcher(PMS pms) {
@@ -44,7 +44,7 @@ class Matcher implements LoggerMixin {
             command.transcoder = ffmpeg*.toString()
         }
 
-        def uri = command.getVar('uri')
+        def uri = command.getVarAsString('uri')
         logger.debug("matching URI: $uri")
 
         // XXX this is horribly inefficient, but it's a) trivial to implement and b) has the right semantics
@@ -203,7 +203,7 @@ class Matcher implements LoggerMixin {
         return globals.put(name, value)
     }
 
-    protected String getVar(String name) {
+    protected Object getVar(String name) {
         globals.get(name)
     }
 

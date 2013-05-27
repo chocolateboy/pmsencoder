@@ -15,17 +15,18 @@ class Pattern {
     // DSL setter - overrides the ProfileDelegate method to avoid logging,
     // which is handled later (if the match succeeds) by merging the pattern
     // block's temporary stash
-    protected String propertyMissing(String name, String value) {
+    protected Object propertyMissing(String name, Object value) {
         command.setVar(name, value)
     }
 
-    protected String propertyMissing(String name) {
+    // FIXME shouldn't need this; should be provided by the ProfileDelegate @Delegate
+    protected Object propertyMissing(String name) {
         profileDelegate.propertyMissing(name)
     }
 
     // DSL method
     protected void domain(Object scalarOrList) {
-        def uri = command.getVar('uri')
+        def uri = command.getVarAsString('uri')
         def u = new URI(uri)
         def domain = u.host
         def matched = false
@@ -48,7 +49,7 @@ class Pattern {
 
     // DSL method
     protected void protocol(Object scalarOrList) {
-        def uri = command.getVar('uri')
+        def uri = command.getVarAsString('uri')
         def u = new URI(uri)
         def protocol = u.scheme
         def matched = false
@@ -75,7 +76,7 @@ class Pattern {
     // XXX: we need to declare these signatures separately to work around issues
     // with @Delegate and default parameters
     // note: we don't need to override scrape(Map options) or scrape(Object regex) as they both (via ProfileDelegate)
-    // polymorphically call this scrape(Map options, Object regex)
+    // polymorphically call this
     protected boolean scrape(Map options, Object regex) {
         if (profileDelegate.scrape(options, regex)) {
             return true
@@ -84,13 +85,13 @@ class Pattern {
         }
     }
 
-    // DSL method: match 'Apple Trailers'
+    // DSL method: match
     protected void match(Object object) {
         def matched = true
 
         // XXX so much for static typing...
         if (object instanceof Closure) {
-            matched = matchClosure(object as Closure)
+            matched = !!matchClosure(object as Closure)
         } else if (object instanceof Map) {
             (object as Map).each { name, value ->
                 match(command.getVar(name), value)

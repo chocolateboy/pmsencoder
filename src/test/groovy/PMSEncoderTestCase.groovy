@@ -102,10 +102,10 @@ abstract class PMSEncoderTestCase extends GroovyTestCase {
             }
 
             scripts = spec['script'].collect {
-                def url
+                URL url
 
                 if (it instanceof URL) {
-                    url = it
+                    url = it as URL
                 } else {
                     url = this.getClass().getResource(it as String)
                 }
@@ -118,11 +118,16 @@ abstract class PMSEncoderTestCase extends GroovyTestCase {
         Stash stash
 
         if (spec.containsKey('stash')) {
-            Map<String, String> map = spec['stash']
+            Map<String, Object> map = spec['stash']
             stash = new Stash(map)
         } else { // uri can be null (not all tests need it)
             String uri = spec['uri']
-            stash = new Stash([ uri: uri ])
+
+            if (uri == null) {
+                stash = new Stash()
+            } else {
+                stash = new Stash([ uri: uri ])
+            }
         }
 
         List<String> wantMatches = getValue(spec, 'wantMatches')
@@ -189,7 +194,6 @@ abstract class PMSEncoderTestCase extends GroovyTestCase {
 
             Loosely-typing them as mere Closures works around this.
         */
-
         if (wantStash != null) {
             if (wantStash instanceof Closure) {
                 assert (wantStash as Closure).call(command.stash)

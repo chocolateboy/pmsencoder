@@ -38,16 +38,15 @@ public class Command implements LoggerMixin {
         this(new Stash(), transcoder)
     }
 
-    public Command(Stash stash, List<String> transcoder) {
-        this.stash = stash
-        this.transcoder = transcoder
+    // convenience constructor: allows the stash to be supplied as a Map
+    // e.g. new Command([ uri: uri ])
+    public Command(Map<Object, Object> map) {
+        this.stash = new Stash(map)
     }
 
-    // convenience constructor: allow the stash to be supplied as a Map<String, String>
-    // e.g. new Command([ uri: uri ])
-    public Command(Map<String, String> map) {
-        // XXX squashed bug: Groovy goes into an infinite loop if this is constructed via: this(new Stash(map))
+    public Command(Map<Object, Object> map, List<String> transcoder) {
         this.stash = new Stash(map)
+        this.transcoder = transcoder
     }
 
     public java.lang.String toString() {
@@ -59,7 +58,6 @@ public class Command implements LoggerMixin {
             transcoder: $transcoder
             stash:      $stash
         }""".substring(1).stripIndent(8)
-
     }
 
     public void deferStashChanges() {
@@ -87,31 +85,29 @@ public class Command implements LoggerMixin {
         oldStash = null
         // merge (with full logging)
         stashAssignmentLogLevel = defaultStashAssignmentLogLevel
-        newStash.each { name, value -> let(name, value) }
+        newStash.each { name, value -> setVar(name, value) }
     }
 
     protected boolean hasVar(Object name) {
-        stash.containsKey(name.toString())
+        stash.containsKey(name)
     }
 
-    protected String getVar(Object name) {
-        stash.get(name.toString())
+    protected Object getVar(Object name) {
+        stash.get(name)
     }
 
-    protected String setVar(String name, String value) {
-        let(name.toString(), value.toString())
+    protected String getVarAsString(Object name) {
+        def value = stash.get(name)
+        return value?.toString()
     }
 
     // setter implementation with logged stash assignments
-    public String let(Object name, Object value) {
-        if ((stash.get(name) == null) || (stash.get(name) != value.toString())) {
-            if (stashAssignmentLogLevel != null) {
-                logger.log(stashAssignmentLogLevel, "setting $name to $value")
-            }
-
-            stash.put(name, value)
+    protected Object setVar(Object name, Object value) {
+        if (stashAssignmentLogLevel != null) {
+            logger.log(stashAssignmentLogLevel, "setting $name to $value")
         }
 
+        stash.put(name, value)
         return value // for chaining: foo = bar = baz i.e. foo = (bar = baz)
     }
 }

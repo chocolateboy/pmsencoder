@@ -115,12 +115,12 @@ class ProfileDelegate {
 
     // protocol: getter
     public String getProtocol() {
-        return getProtocol(command.getVar('uri'))
+        return getProtocol(command.getVarAsString('uri'))
     }
 
     // protocol: setter
     public String setProtocol(Object newProtocol) {
-        def u = command.getVar('uri')
+        def u = command.getVarAsString('uri')
         def oldProtocol = getProtocol(u)
 
         if (oldProtocol) { // not null and not empty
@@ -134,22 +134,24 @@ class ProfileDelegate {
 
     // DSL getter
     public Object propertyMissing(String name) {
-        if (matcher.hasVar(name)) {
-            return matcher.getVar(name)
-        } else {
+        if (command.hasVar(name)) {
+            // inside a pattern or action block
             return command.getVar(name)
+        } else {
+            // global
+            return matcher.getVar(name)
         }
     }
 
     // DSL setter
-    public String propertyMissing(String name, Object value) {
-        command.let(name, value?.toString())
+    public Object propertyMissing(String name, Object value) {
+        command.setVar(name, value)
     }
 
     // DSL method
     // delegated to so must be public
     public URI uri() {
-        uri(command.getVar('uri'))
+        uri(command.getVarAsString('uri'))
     }
 
     // DSL method
@@ -173,14 +175,14 @@ class ProfileDelegate {
     }
 
     /*
-        1) get the URI pointed to by options['uri'] or command.getVar('uri') (if it hasn't already been retrieved)
+        1) get the URI pointed to by options['uri'] or command.getVarAsString('uri') (if it hasn't already been retrieved)
         2) perform a regex match against the document
         3) update the stash with any named captures
     */
 
     // DSL method
     public boolean scrape(Map options, Object regex) {
-        String uri = (options['uri'] == null) ? command.getVar('uri') : options['uri']
+        String uri = (options['uri'] == null) ? command.getVarAsString('uri') : options['uri']
         String document = (options['source'] == null) ? httpCache[uri] : options['source']
         boolean decode = options['decode'] == null ? false : options['decode']
 
@@ -207,7 +209,7 @@ class ProfileDelegate {
 
         if (RegexHelper.match(document, regex, newStash)) {
             logger.debug('success')
-            newStash.each { name, value -> command.let(name, value) }
+            newStash.each { name, value -> command.setVar(name, value) }
             scraped = true
         } else {
             logger.debug('failure')
@@ -235,14 +237,14 @@ class ProfileDelegate {
         } else if (options['uri']) {
             jsoup = getJsoupForUri(options['uri'].toString())
         } else {
-            jsoup = getJsoupForUri(command.getVar('uri'))
+            jsoup = getJsoupForUri(command.getVarAsString('uri'))
         }
 
         return jsoup.select(query.toString())
     }
 
     // DSL method
-    // spell these out (no default parameters) to work arounbd Groovy bugs
+    // spell these out (no default parameters) to work around Groovy bugs
     public Document jsoup() {
         jsoup([:])
     }
@@ -256,7 +258,7 @@ class ProfileDelegate {
         } else if (options['uri']) {
             jsoup = getJsoupForUri(options['uri'].toString())
         } else {
-            jsoup = getJsoupForUri(command.getVar('uri'))
+            jsoup = getJsoupForUri(command.getVarAsString('uri'))
         }
 
         return jsoup

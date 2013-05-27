@@ -60,12 +60,12 @@ class MatcherTest extends PMSEncoderTestCase {
             script: script,
             wantMatches: [ 'YouTube ID', 'YouTube-DL Compatible', 'YouTube' ],
             wantStash: { Stash stash ->
-                assert stash.keySet().toList() == [
+                assert stash.keySet().toList().sort() == [
                     'uri',
-                    'youtube_video_id',
                     'youtube_dl_compatible',
+                    'youtube_fmt',
                     'youtube_uri',
-                    'youtube_fmt'
+                    'youtube_video_id',
                 ]
 
                 def video_id = stash.get('youtube_video_id')

@@ -1,6 +1,6 @@
 2.0.0 TBC
 
-    output video in the renderer's preferred format (i.e. don't downscale HD video if the renderer supports it)
+    output video in the renderer's preferred format (i.e. don't downscale HD video if the renderer supports HD)
     PMSEncoder scripts can now implement finalizeTranscoderArgs hooks
     use ffmpeg for all protocols
     prevent script names conflicting with DSL identifiers
@@ -28,6 +28,7 @@
             $TRANSCODER -> transcoder
             $HTTP       -> http
             &c.
+        - shared pattern/action block values are no longer limited to strings e.g.: match { json = getJson(uri) }
 
 1.6.3 Sat Apr 20 17:43:00 2013
     - fix latest YouTube breakage
