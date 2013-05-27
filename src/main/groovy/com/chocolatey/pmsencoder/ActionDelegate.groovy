@@ -3,13 +3,13 @@ package com.chocolatey.pmsencoder
 
 import org.apache.http.NameValuePair
 
-class Action {
+class ActionDelegate {
     private Closure contextThunk
     @Delegate final ProfileDelegate profileDelegate
     // FIXME: sigh: transitive delegation doesn't work (Groovy bug)
     @Delegate private final Matcher matcher
 
-    Action(ProfileDelegate profileDelegate) {
+    ActionDelegate(ProfileDelegate profileDelegate) {
         this.profileDelegate = profileDelegate
         this.matcher = profileDelegate.matcher
         setContextThunk({ getTranscoder() }) // default context
@@ -70,7 +70,7 @@ class Action {
     // FIXME: weird compiler errors complaining about methods with the same name/signature
     // in Groovy++ without this:
     //
-    //     Duplicate method name&signature in class file com/chocolatey/pmsencoder/Action$hook$2
+    //     Duplicate method name&signature in class file com/chocolatey/pmsencoder/ActionDelegate$hook$2
     @Typed(TypePolicy.DYNAMIC)
     void hook (Closure closure) {
         if (getHook() == null) {

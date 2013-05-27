@@ -4,7 +4,7 @@ package com.chocolatey.pmsencoder
 import net.pms.PMS
 
 class PMSEncoderTest extends PMSEncoderTestCase {
-    void testStashClone() {
+    void testStashCopy() {
         def stash = new Stash([ foo: 'bar' ])
         assert stash != null
         def newStash = new Stash(stash)
@@ -14,10 +14,10 @@ class PMSEncoderTest extends PMSEncoderTestCase {
     }
 
     void testProfileValidationDelegateInitalState() {
-        def delegate = new ProfileValidationDelegate('Test Profile')
-        assert delegate != null
-        assert delegate.name == 'Test Profile'
-        assert delegate.patternBlock == null
-        assert delegate.actionBlock == null
+        def profileValidationDelegate = new ProfileValidationDelegate('Test Profile')
+        assert profileValidationDelegate != null
+        assert profileValidationDelegate.name == 'Test Profile'
+        assert profileValidationDelegate.patternBlock == null
+        assert profileValidationDelegate.actionBlock == null
     }
 }

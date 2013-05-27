@@ -1,13 +1,13 @@
 @Typed
 package com.chocolatey.pmsencoder
 
-class Pattern {
+class PatternDelegate {
     @Delegate private ProfileDelegate profileDelegate
     protected static final MatchFailureException STOP_MATCHING = new MatchFailureException()
     // FIXME: sigh: transitive delegation doesn't work (groovy bug)
     @Delegate private final Matcher matcher
 
-    Pattern(ProfileDelegate profileDelegate) {
+    PatternDelegate(ProfileDelegate profileDelegate) {
         this.profileDelegate = profileDelegate
         this.matcher = profileDelegate.matcher
     }
