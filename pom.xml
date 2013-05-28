@@ -22,7 +22,22 @@
     <dependencies>
         <dependency>
             <groupId>org.codehaus.groovy</groupId>
-            <artifactId>groovy-all</artifactId>
+            <artifactId>groovy</artifactId>
+            <version>${groovy-version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.codehaus.groovy</groupId>
+            <artifactId>groovy-json</artifactId>
+            <version>${groovy-version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.codehaus.groovy</groupId>
+            <artifactId>groovy-xml</artifactId>
+            <version>${groovy-version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.codehaus.groovy</groupId>
+            <artifactId>groovy-test</artifactId>
             <version>${groovy-version}</version>
         </dependency>
 
@@ -205,16 +220,6 @@
                         <groupId>org.codehaus.gmaven.runtime</groupId>
                         <artifactId>gmaven-runtime-2.0</artifactId>
                         <version>1.5</version>
-                        <exclusions>
-                            <exclusion>
-                                <artifactId>groovy-all</artifactId>
-                                <groupId>org.codehaus.groovy</groupId>
-                            </exclusion>
-                            <exclusion>
-                                <artifactId>junit</artifactId>
-                                <groupId>junit</groupId>
-                            </exclusion>
-                        </exclusions>
                     </dependency>
                 </dependencies>
 

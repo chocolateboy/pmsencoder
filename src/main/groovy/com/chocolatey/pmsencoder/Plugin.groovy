@@ -3,7 +3,6 @@ package com.chocolatey.pmsencoder
 import static com.chocolatey.pmsencoder.Util.guard
 
 import static groovy.io.FileType.FILES
-import groovy.swing.SwingBuilder // TODO
 
 import javax.swing.JComponent
 import javax.swing.JFrame

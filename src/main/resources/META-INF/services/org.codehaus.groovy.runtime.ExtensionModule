@@ -1,0 +1,3 @@
+moduleName = pmsencoder-extensions
+moduleVersion = 1.0
+extensionClasses = com.chocolatey.pmsencoder.StringExtension

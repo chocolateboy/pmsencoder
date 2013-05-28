@@ -284,3 +284,17 @@ Downloaders:
 // TODO: add RegexHelper.match to String
 
 // test nested context blocks
+
+// add XML support to the jSoup methods:
+
+    $(xml: true)('test')
+
+// http.head(): implement a HeaderMap that implements String getValue() and List<String> getValues()
+
+    def headers = http.head()
+    headers.getValue('Content-type') // getValues('Content-type').empty() ? null : getValues('Content-type').get(0)
+    headers.getValues('Warning')
+
+// Alternatively, make them all (comma-joined) strings: http://greenbytes.de/tech/webdav/rfc2616.html#message.headers
+
+    headers.get('Warnings')

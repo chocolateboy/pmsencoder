@@ -43,7 +43,6 @@ To build PMSEncoder from source, see the [Wiki](https://github.com/chocolateboy/
 * Make sure PMSEncoder is first in the list of web video engines.
 * Make sure the error is reproducible after a PMS restart. Caching in PMS and/or the PS3 often produces one-off errors.
 * <a name="HTTPEngine"></a>If you [disabled "HTTP Engine V2"](#Tips), try re-enabling it as some renderers, such as the Sony Bravia KDL-37V5500, require it.
-* Make sure `mencoder_path` is not set (or is not pointing to the old, standalone version of PMSEncoder).
 * Internet Explorer saves .jar files as .zip files. Either save the file with a [different](http://www.mozilla.com/firefox/) [browser](http://www.google.com/chrome), or rename it, replacing the .zip extension with .jar.
 * Check the PMS trace, PMS debug.log, and pmsencoder.log (which should be in the same directory as the debug.log) for
   errors.
