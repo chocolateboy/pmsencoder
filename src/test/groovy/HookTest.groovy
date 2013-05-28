@@ -1,6 +1,6 @@
-@Typed
 package com.chocolatey.pmsencoder
 
+@groovy.transform.CompileStatic
 class HookTest extends PMSEncoderTestCase {
     void testHookString() {
         def uri = 'http://hook.string'

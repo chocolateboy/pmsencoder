@@ -1,4 +1,3 @@
-@Typed
 package com.chocolatey.pmsencoder
 
 import static com.chocolatey.pmsencoder.Util.guard
@@ -23,12 +22,14 @@ import net.pms.PMS
 import no.geosoft.cc.io.FileListener
 import no.geosoft.cc.io.FileMonitor
 
-import org.apache.log4j.Logger
+import org.apache.log4j.Logger as Log4jLogger
 import org.apache.log4j.xml.DOMConfigurator
 
-import ch.qos.logback.classic.Logger
+import ch.qos.logback.classic.Logger as LogbackLogger
+import ch.qos.logback.classic.Level as LogbackLevel
 import org.slf4j.LoggerFactory
 
+@groovy.transform.CompileStatic
 public class Plugin implements ExternalListener, FinalizeTranscoderArgsListener, FileListener {
     private static final String VERSION = '2.0.0-SNAPSHOT'
     private static final String DEFAULT_SCRIPT_DIRECTORY = 'pmsencoder'
@@ -38,8 +39,8 @@ public class Plugin implements ExternalListener, FinalizeTranscoderArgsListener,
     private static final String SCRIPT_POLL = 'pmsencoder.script.poll'
     // 1 second is flaky - it results in overlapping file change events
     private static final int MIN_SCRIPT_POLL_INTERVAL = 2
-    private static org.apache.log4j.Logger pmsencoderLogger
-    private static final ch.qos.logback.classic.Logger PMS_LOGGER = LoggerFactory.getLogger(this.getClass())
+    private static Log4jLogger pmsencoderLogger
+    private static final LogbackLogger PMS_LOGGER = LoggerFactory.getLogger(this.class) as LogbackLogger
 
     private PMSEncoder pmsencoder
     private FileMonitor fileMonitor
@@ -148,13 +149,13 @@ public class Plugin implements ExternalListener, FinalizeTranscoderArgsListener,
         }
 
         // FIXME hack to shut httpclient the hell up
-        ch.qos.logback.classic.Logger tempLogger = LoggerFactory.getLogger("org.apache.http"); // Groovy++ type inference fail
-        tempLogger.setLevel(ch.qos.logback.classic.Level.WARN)
-        tempLogger = LoggerFactory.getLogger("groovyx.net.http");
-        tempLogger.setLevel(ch.qos.logback.classic.Level.WARN)
+        LogbackLogger tempLogger = LoggerFactory.getLogger('org.apache.http') as LogbackLogger
+        tempLogger.setLevel(LogbackLevel.WARN)
+        tempLogger = LoggerFactory.getLogger('groovyx.net.http') as LogbackLogger
+        tempLogger.setLevel(LogbackLevel.WARN)
 
         // now we've loaded the logger config file we can initialise the pmsencoder.log logger for this class
-        pmsencoderLogger = org.apache.log4j.Logger.getLogger(this.getClass().name)
+        pmsencoderLogger = Log4jLogger.getLogger(this.getClass().getName())
 
         // make sure we have a matcher before we create the transcoding engine
         createMatcher()

@@ -1,6 +1,6 @@
-@Typed
 package com.chocolatey.pmsencoder
 
+@groovy.transform.CompileStatic
 class FormatTest extends PMSEncoderTestCase {
     void testMatch() {
         def web = new WEB()

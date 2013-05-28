@@ -1,8 +1,8 @@
-@Typed
 package com.chocolatey.pmsencoder
 
 import net.pms.PMS
 
+@groovy.transform.CompileStatic
 class Util {
     public static List<String> toStringList(Object maybeList, boolean split = false) {
         if (maybeList == null) {
@@ -22,7 +22,7 @@ class Util {
         }
     }
 
-    public static <T> T guard(T defaultValue, Function0<T> closure) {
+    public static <T> T guard(T defaultValue, Closure<T> closure) {
         T result
         try {
             result = closure()

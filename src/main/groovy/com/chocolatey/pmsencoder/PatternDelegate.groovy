@@ -1,6 +1,7 @@
-@Typed
 package com.chocolatey.pmsencoder
 
+@groovy.transform.CompileStatic
+@groovy.util.logging.Log4j(value="logger")
 class PatternDelegate {
     @Delegate private ProfileDelegate profileDelegate
     protected static final MatchFailureException STOP_MATCHING = new MatchFailureException()
@@ -16,7 +17,7 @@ class PatternDelegate {
     // which is handled later (if the match succeeds) by merging the pattern
     // block's temporary stash
     protected Object propertyMissing(String name, Object value) {
-        command.setVar(name, value)
+        getCommand().setVar(name, value)
     }
 
     // FIXME shouldn't need this; should be provided by the ProfileDelegate @Delegate
@@ -26,13 +27,13 @@ class PatternDelegate {
 
     // DSL method
     protected void domain(Object maybeList) {
-        def uri = command.getVarAsString('uri')
+        def uri = getCommand().getVarAsString('uri')
         def u = new URI(uri)
         def domain = u.host
         def matched = false
 
         if (domain) {
-            matched = Util.toStringList(maybeList).any({
+            matched = Util.toStringList(maybeList).any({ String it ->
                 return domain.endsWith(it)
             })
         }
@@ -49,13 +50,13 @@ class PatternDelegate {
 
     // DSL method
     protected void protocol(Object maybeList) {
-        def uri = command.getVarAsString('uri')
+        def uri = getCommand().getVarAsString('uri')
         def u = new URI(uri)
         def protocol = u.scheme
         def matched = false
 
         if (protocol) {
-            matched = Util.toStringList(maybeList).any({
+            matched = Util.toStringList(maybeList).any({ String it ->
                 return protocol == it
             })
         }
@@ -88,6 +89,7 @@ class PatternDelegate {
     // DSL method: match
     protected void match(Object object) {
         def matched = true
+        def command = getCommand()
 
         // XXX so much for static typing...
         if (object instanceof Closure) {
@@ -147,7 +149,9 @@ class PatternDelegate {
         } else {
             logger.debug("matching $name against $value")
 
-            if (RegexHelper.match(name, value, command.stash)) {
+            def matchResult = RegexHelper.match(name, value)
+            if (matchResult) {
+                getCommand().stash.putAll(matchResult.named)
                 logger.debug('success')
                 return true // abort default failure below
             } else {

@@ -1,4 +1,3 @@
-@Typed
 package com.chocolatey.pmsencoder
 
 import net.pms.dlna.DLNAMediaInfo
@@ -27,6 +26,8 @@ import org.jsoup.select.Elements
     http://groovy.codehaus.org/api/groovy/lang/Delegate.html
 */
 
+@groovy.transform.CompileStatic
+@groovy.util.logging.Log4j(value="logger")
 class ProfileDelegate {
     private final Map<String, String> httpCache = [:] // only needed/used by this.scrape()
     private final Map<String, Document> jsoupCache = [:]
@@ -105,11 +106,11 @@ class ProfileDelegate {
         command.player
     }
 
-    private String getProtocol(Object u) {
-        if (u != null) {
-            return uri(u.toString()).scheme
-        } else {
+    public String getProtocol(Object obj) {
+        if (obj == null) {
             return null
+        } else {
+            return uri(obj.toString()).scheme
         }
     }
 
@@ -121,7 +122,7 @@ class ProfileDelegate {
     // protocol: setter
     public String setProtocol(Object newProtocol) {
         def u = command.getVarAsString('uri')
-        def oldProtocol = getProtocol(u)
+        String oldProtocol = getProtocol(u)
 
         if (oldProtocol) { // not null and not empty
             if (newProtocol == null) {
@@ -165,8 +166,8 @@ class ProfileDelegate {
     // short-circuiting behaviour and delegate to this via super.scrape(...)
     // XXX: we need to declare these two signatures explicitly to work around
     // issues with @Delegate and default parameters
-    public Function1<Object, Boolean> scrape(Map options) { // curry
-        return { Object regex -> scrape(options, regex) }
+    public Closure<Boolean> scrape(Map options) { // curry
+        return { Object regex -> scrape(options, regex) } as Closure<Boolean>
     }
 
     // DSL method
@@ -186,13 +187,12 @@ class ProfileDelegate {
         String document = (options['source'] == null) ? httpCache[uri] : options['source']
         boolean decode = options['decode'] == null ? false : options['decode']
 
-        def newStash = new Stash()
         def scraped = false
 
         if (document == null) {
             logger.debug("getting $uri")
-            assert http != null
-            document = httpCache[uri] = http.get(uri)
+            assert getHttp() != null
+            document = httpCache[uri] = getHttp().get(uri)
         }
 
         if (document == null) {
@@ -207,9 +207,11 @@ class ProfileDelegate {
 
         logger.debug("matching content of $uri against $regex")
 
-        if (RegexHelper.match(document, regex, newStash)) {
+        def matchResult = RegexHelper.match(document, regex)
+
+        if (matchResult) {
             logger.debug('success')
-            newStash.each { name, value -> command.setVar(name, value) }
+            matchResult.named.each { name, value -> command.setVar(name, value) }
             scraped = true
         } else {
             logger.debug('failure')
@@ -219,8 +221,8 @@ class ProfileDelegate {
     }
 
     // DSL method
-    public Function1<Object, Elements> $(Map options) { // curry
-        return { Object query -> $(options, query) }
+    public Closure<Elements> $(Map options) { // curry
+        return { Object query -> $(options, query) } as Closure<Elements>
     }
 
     // DSL method
@@ -230,7 +232,7 @@ class ProfileDelegate {
 
     // DSL method
     public Elements $(Map options, Object query) {
-        def jsoup
+        Document jsoup
 
         if (options['source']) {
             jsoup = getJsoupForString(options['source'].toString())
@@ -251,7 +253,7 @@ class ProfileDelegate {
 
     // DSL method
     public Document jsoup(Map options) {
-        def jsoup
+        Document jsoup
 
         if (options['source']) {
             jsoup = getJsoupForString(options['source'].toString())
@@ -264,12 +266,14 @@ class ProfileDelegate {
         return jsoup
     }
 
+    @groovy.transform.CompileStatic(groovy.transform.TypeCheckingMode.SKIP)
     private Document getJsoupForUri(Object obj) {
         def uri = obj.toString()
-        def cached = httpCache[uri] ?: (httpCache[uri] = http.get(uri))
+        def cached = httpCache[uri] ?: (httpCache[uri] = getHttp().get(uri))
         return getJsoupForString(cached)
     }
 
+    @groovy.transform.CompileStatic(groovy.transform.TypeCheckingMode.SKIP)
     private Document getJsoupForString(Object obj) {
         def string = obj.toString()
         return jsoupCache[string] ?: (jsoupCache[string] = Jsoup.parse(string))

@@ -1,4 +1,3 @@
-@Typed
 package com.chocolatey.pmsencoder
 
 import java.lang.NoClassDefFoundError
@@ -8,6 +7,7 @@ import java.lang.NoClassDefFoundError
     MIXED typing. seems to be fixed now
 */
 
+@groovy.transform.CompileStatic
 class HTTPClientTest extends PMSEncoderTestCase {
     private HTTPClient http = new HTTPClient()
 

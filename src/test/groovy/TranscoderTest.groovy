@@ -1,6 +1,6 @@
-@Typed
 package com.chocolatey.pmsencoder
 
+@groovy.transform.CompileStatic
 class TranscoderTest extends PMSEncoderTestCase {
     def transcoder = '/usr/bin/transcoder'
 

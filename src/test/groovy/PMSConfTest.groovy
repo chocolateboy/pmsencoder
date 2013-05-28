@@ -1,6 +1,6 @@
-@Typed
 package com.chocolatey.pmsencoder
 
+@groovy.transform.CompileStatic
 class PMSConfTest extends PMSEncoderTestCase {
     void testPMSConf() {
         assertMatch([

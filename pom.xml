@@ -8,27 +8,35 @@
     <name>PMSEncoder</name>
     <description>A plugin for PS3 Media Server that adds support for scriptable web video streaming.</description>
     <properties>
-        <groovypp-repo>http://groovypp.artifactoryonline.com/groovypp</groovypp-repo>
-        <groovypp-version>0.9.0_1.8.2</groovypp-version>
+        <groovy-version>2.1.3</groovy-version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <junit-version>4.11</junit-version>
-        <pms-version>1.80.0</pms-version>
+        <pms-version>1.81.0</pms-version>
         <regexplus-version>2010-04-16</regexplus-version>
     </properties>
 
+    <prerequisites>
+        <maven>2.2.1</maven>
+    </prerequisites>
+
     <dependencies>
         <dependency>
-            <groupId>org.mbte.groovypp</groupId>
-            <artifactId>groovypp-all</artifactId>
-            <version>${groovypp-version}</version>
-            <scope>compile</scope>
+            <groupId>org.codehaus.groovy</groupId>
+            <artifactId>groovy-all</artifactId>
+            <version>${groovy-version}</version>
         </dependency>
+
         <dependency>
             <groupId>org.codehaus.groovy.modules.http-builder</groupId>
             <artifactId>http-builder</artifactId>
             <version>0.6</version>
             <scope>compile</scope>
-            <!-- we're using groovy 1.8. prevent http-builder dragging in groovy-1.7.11 (which breaks closures) -->
+            <!--
+                XXX might not need this.
+                We're using groovy 2.x. Prevent http-builder dragging in an
+                old (currently 1.8.x) version, which has broken closures in
+                the past
+            -->
             <exclusions>
                 <exclusion>
                     <groupId>org.codehaus.groovy</groupId>
@@ -36,44 +44,44 @@
                 </exclusion>
             </exclusions>
         </dependency>
+
         <dependency>
             <groupId>log4j</groupId>
             <artifactId>log4j</artifactId>
             <version>1.2.17</version>
         </dependency>
+
         <dependency>
             <groupId>mockit</groupId>
             <artifactId>jmockit</artifactId>
             <version>0.999.4</version>
             <scope>test</scope>
         </dependency>
+
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
             <version>${junit-version}</version>
             <scope>test</scope>
         </dependency>
+
         <dependency>
             <groupId>com.google.code</groupId>
             <artifactId>ps3mediaserver</artifactId>
             <version>${pms-version}</version>
             <scope>provided</scope>
         </dependency>
-        <dependency>
-            <groupId>info.codesaway</groupId>
-            <artifactId>regexplus</artifactId>
-            <version>${regexplus-version}</version>
-        </dependency>
+
         <dependency>
             <groupId>org.jsoup</groupId>
             <artifactId>jsoup</artifactId>
             <version>1.7.2</version>
         </dependency>
+
         <dependency>
             <groupId>org.apache.httpcomponents</groupId>
             <artifactId>httpclient</artifactId>
             <version>4.2.3</version>
-            <scope>compile</scope>
             <!--  XXX cargo-culted from the PMS POM, not sure if it's needed here -->
             <exclusions>
                 <!--  no need for commons-logging, as jcl-over-slf4j provides the impl -->
@@ -83,17 +91,16 @@
                 </exclusion>
             </exclusions>
         </dependency>
+
+        <!-- XXX non-Mavenized -->
+        <dependency>
+            <groupId>info.codesaway</groupId>
+            <artifactId>regexplus</artifactId>
+            <version>${regexplus-version}</version>
+        </dependency>
     </dependencies>
 
     <repositories>
-        <repository>
-            <id>libs-releases</id>
-            <url>${groovypp-repo}/libs-releases</url>
-        </repository>
-        <repository>
-            <id>libs-snapshots</id>
-            <url>${groovypp-repo}/libs-snapshots</url>
-        </repository>
         <repository>
             <snapshots>
                 <enabled>true</enabled>
@@ -102,6 +109,7 @@
             <name>Java.net Repository</name>
             <url>http://download.java.net/maven/2/</url>
         </repository>
+
         <repository>
             <snapshots>
                 <enabled>true</enabled>
@@ -113,14 +121,6 @@
     </repositories>
 
     <pluginRepositories>
-        <pluginRepository>
-            <id>plugins-releases</id>
-            <url>${groovypp-repo}/plugins-releases</url>
-        </pluginRepository>
-        <pluginRepository>
-            <id>plugins-snapshots</id>
-            <url>${groovypp-repo}/plugins-snapshots</url>
-        </pluginRepository>
         <pluginRepository>
             <id>ossrh</id>
             <name>Sonatype OSS Repository</name>
@@ -136,7 +136,7 @@
         <plugins>
             <plugin>
                 <artifactId>maven-compiler-plugin</artifactId>
-                <version>2.3.2</version>
+                <version>2.5.1</version>
                 <configuration>
                     <source>1.6</source>
                     <target>1.6</target>
@@ -146,7 +146,7 @@
             <plugin>
                 <groupId>org.codehaus.gmaven</groupId>
                 <artifactId>gmaven-plugin</artifactId>
-                <version>1.3</version>
+                <version>1.5</version>
                 <executions>
                     <execution>
                         <goals>
@@ -168,15 +168,16 @@
                                     def resources = 'src/main/resources'
                                     def manifest = new File(project.basedir, "$resources/lib.txt")
 
-                                    manifest.parentFile.mkdirs();
+                                    manifest.parentFile.mkdirs()
 
-                                    if (manifest.exists())
+                                    if (manifest.exists()) {
                                         manifest.delete()
+                                    }
 
                                     def files = []
                                     new File(project.basedir, "$resources/scripts").eachFileRecurse(groovy.io.FileType.FILES) {
-                                        if (it.file && it.name.endsWith(".groovy")) {
-                                            files << "scripts/$it.name\n"
+                                        if (it.file && it.name.endsWith('.groovy')) {
+                                            files << "scripts/${it.name}\\n"
                                         }
                                     }
 
@@ -186,11 +187,24 @@
                         </configuration>
                     </execution>
                 </executions>
+
                 <dependencies>
                     <dependency>
+                        <groupId>org.codehaus.groovy</groupId>
+                        <artifactId>groovy-all</artifactId>
+                        <version>${groovy-version}</version>
+                    </dependency>
+
+                    <dependency>
+                        <groupId>junit</groupId>
+                        <artifactId>junit</artifactId>
+                        <version>${junit-version}</version>
+                    </dependency>
+
+                    <dependency>
                         <groupId>org.codehaus.gmaven.runtime</groupId>
-                        <artifactId>gmaven-runtime-1.7</artifactId>
-                        <version>1.3</version>
+                        <artifactId>gmaven-runtime-2.0</artifactId>
+                        <version>1.5</version>
                         <exclusions>
                             <exclusion>
                                 <artifactId>groovy-all</artifactId>
@@ -202,19 +216,10 @@
                             </exclusion>
                         </exclusions>
                     </dependency>
-                    <dependency>
-                        <groupId>org.mbte.groovypp</groupId>
-                        <artifactId>groovypp</artifactId>
-                        <version>${groovypp-version}</version>
-                    </dependency>
-                    <dependency>
-                        <groupId>junit</groupId>
-                        <artifactId>junit</artifactId>
-                        <version>${junit-version}</version>
-                    </dependency>
                 </dependencies>
+
                 <configuration>
-                    <providerSelection>1.7</providerSelection>
+                    <providerSelection>2.0</providerSelection>
                     <verbose>true</verbose>
                     <debug>true</debug>
                     <stacktrace>true</stacktrace>
@@ -223,7 +228,7 @@
 
             <plugin>
                 <artifactId>maven-assembly-plugin</artifactId>
-                <version>2.1</version>
+                <version>2.3</version>
                 <configuration>
                     <descriptorRefs>
                         <descriptorRef>jar-with-dependencies</descriptorRef>
@@ -269,6 +274,7 @@
                             <force>false</force>
                             <checksum>b31c60f99a3c163af1658e6d894f579af98011d6</checksum>
                         </artifactItem>
+
                         <artifactItem>
                             <groupId>com.google.code</groupId>
                             <artifactId>ps3mediaserver</artifactId>
@@ -277,9 +283,9 @@
                             <downloadUrl>https://ps3mediaserver.googlecode.com/files/pms-generic-linux-unix-${pms-version}.tgz</downloadUrl>
                             <install>true</install>
                             <force>false</force>
-                            <checksum>423610a0c3bd17f2c0f7d4c8f58ee2651423bf26</checksum>
+                            <checksum>2efec9344a0fad45e83f9080027341cca22c5961</checksum>
                             <extractFile>pms-${pms-version}/pms.jar</extractFile>
-                            <extractFileChecksum>cce62d06131e403b152f950a3c924ab66a30804f</extractFileChecksum>
+                            <extractFileChecksum>8ee1469c5fb918c1b839ce6e2c4b35522de0e9c0</extractFileChecksum>
                         </artifactItem>
                     </artifactItems>
                 </configuration>
@@ -291,7 +297,7 @@
         <plugins>
             <plugin>
                 <artifactId>maven-surefire-report-plugin</artifactId>
-                <version>2.7</version>
+                <version>2.12</version>
                 <configuration>
                     <showSuccess>false</showSuccess>
                 </configuration>

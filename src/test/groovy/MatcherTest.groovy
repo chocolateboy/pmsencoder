@@ -1,6 +1,6 @@
-@Typed
 package com.chocolatey.pmsencoder
 
+@groovy.transform.CompileStatic
 class MatcherTest extends PMSEncoderTestCase {
     // no match - change nothing
     private void noMatch() {
@@ -17,6 +17,7 @@ class MatcherTest extends PMSEncoderTestCase {
         noMatch()
     }
 
+    @groovy.transform.CompileStatic(groovy.transform.TypeCheckingMode.SKIP)
     void testInterpolationInDefaultTranscoderArgs() {
         assertMatch([
             loadDefaultScripts: true,

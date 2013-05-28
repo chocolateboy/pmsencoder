@@ -1,8 +1,8 @@
-@Typed
 package com.chocolatey.pmsencoder
 
 import static com.chocolatey.pmsencoder.Util.guard
 
+@groovy.transform.CompileStatic
 class UtilTest extends PMSEncoderTestCase {
     void testGuard() {
         assert guard(1) { Integer.parseInt("42") } == 42

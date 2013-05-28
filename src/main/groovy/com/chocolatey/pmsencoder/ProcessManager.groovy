@@ -1,4 +1,3 @@
-@Typed
 package com.chocolatey.pmsencoder
 
 import net.pms.io.OutputParams
@@ -7,7 +6,9 @@ import net.pms.io.ProcessWrapper
 import net.pms.io.ProcessWrapperImpl
 import net.pms.PMS
 
-private class ProcessManager implements LoggerMixin {
+@groovy.transform.CompileStatic
+@groovy.util.logging.Log4j(value="logger")
+class ProcessManager {
     static final long LAUNCH_TRANSCODE_SLEEP = 200
     static final long MKFIFO_SLEEP = 200
     List<ProcessWrapper> attachedProcesses
@@ -112,7 +113,7 @@ private class ProcessManager implements LoggerMixin {
     }
 
     public ProcessWrapper launchTranscode(ProcessWrapperImpl transcoderProcess) {
-        attachedProcesses.each { transcoderProcess.attachProcess(it) }
+        attachedProcesses.each { ProcessWrapper it -> transcoderProcess.attachProcess(it) }
         transcoderProcess.runInNewThread()
         sleepFor(LAUNCH_TRANSCODE_SLEEP)
         return transcoderProcess

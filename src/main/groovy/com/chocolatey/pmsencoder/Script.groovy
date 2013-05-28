@@ -1,6 +1,6 @@
-@Typed
 package com.chocolatey.pmsencoder
 
+@groovy.transform.CompileStatic
 public class Script {
     Stage stage
     @Delegate private Matcher matcher

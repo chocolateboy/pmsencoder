@@ -1,4 +1,3 @@
-@Typed
 package com.chocolatey.pmsencoder
 
 import net.pms.dlna.DLNAMediaInfo
@@ -11,7 +10,9 @@ import org.apache.log4j.Level
 /*
  * this object encapsulates the per-request state passed from/to the PMS transcode launcher (PMSEncoder.java).
  */
-public class Command implements LoggerMixin {
+@groovy.transform.CompileStatic
+@groovy.util.logging.Log4j(value="logger")
+public class Command {
     private Level defaultStashAssignmentLogLevel = Level.DEBUG
 
     DLNAMediaInfo media
@@ -42,6 +43,12 @@ public class Command implements LoggerMixin {
     // e.g. new Command([ uri: uri ])
     public Command(Map<Object, Object> map) {
         this.stash = new Stash(map)
+    }
+
+    // this is needed to appease CompileStatic
+    public Command(Stash stash, List<String> transcoder) {
+        this.stash = stash
+        this.transcoder = transcoder
     }
 
     public Command(Map<Object, Object> map, List<String> transcoder) {

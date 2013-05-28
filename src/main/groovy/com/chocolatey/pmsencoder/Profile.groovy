@@ -1,8 +1,9 @@
-@Typed
 package com.chocolatey.pmsencoder
 
 // this holds a reference to the pattern and action blocks, and isn't delegated to
-class Profile implements LoggerMixin {
+@groovy.transform.CompileStatic
+@groovy.util.logging.Log4j(value="logger")
+class Profile {
     private final Matcher matcher
     private Closure patternBlock
     private Closure actionBlock

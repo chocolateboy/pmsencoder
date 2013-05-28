@@ -1,6 +1,6 @@
-@Typed
 package com.chocolatey.pmsencoder
 
+@groovy.transform.CompileStatic
 class DownloaderTest extends PMSEncoderTestCase {
     def downloader = '/usr/bin/downloader'
 

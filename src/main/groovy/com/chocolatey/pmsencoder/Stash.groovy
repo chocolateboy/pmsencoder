@@ -1,22 +1,23 @@
-@Typed
 package com.chocolatey.pmsencoder
 
 /*
     a Map<String, Object> that works around GString annoyances:
     http://www.nearinfinity.com/blogs/scott_leberknight/wackiness_with_string_gstring_and.html
 
-    keys and values can be any type, but keys are
-    converted to String before being set and GString values are converted to String.
+    keys and values can be any type, but keys and GString values
+    are converted to String before being set.
     note: the Java String type is spelled out to avoid GString surprises
 
     LinkedHashMap rather than HashMap to preserve insertion order.
 */
+@groovy.transform.CompileStatic
 public class Stash extends LinkedHashMap<String, Object> {
     public Stash() {
         super()
     }
 
-    public Stash(Map<Object, Object> map) {
+    public Stash(Map map) {
+        super()
         putAll(map)
     }
 

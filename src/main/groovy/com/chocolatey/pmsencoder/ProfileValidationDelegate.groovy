@@ -1,6 +1,6 @@
-@Typed
 package com.chocolatey.pmsencoder
 
+@groovy.transform.CompileStatic
 class ProfileValidationDelegate {
     public Closure patternBlock
     public Closure actionBlock

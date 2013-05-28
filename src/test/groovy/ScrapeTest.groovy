@@ -1,6 +1,6 @@
-@Typed
 package com.chocolatey.pmsencoder
 
+@groovy.transform.CompileStatic
 class ScrapeTest extends PMSEncoderTestCase {
     void testScrapeString() {
         def uri = 'http://scrape.string'

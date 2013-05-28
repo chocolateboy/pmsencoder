@@ -1,6 +1,6 @@
-@Typed
 package com.chocolatey.pmsencoder
 
+@groovy.transform.CompileStatic
 class ActionTest extends PMSEncoderTestCase {
     void testIsOption() {
         def action = getAction()

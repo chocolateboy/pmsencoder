@@ -1,10 +1,10 @@
-@Typed
 package com.chocolatey.pmsencoder
 
 import static com.chocolatey.pmsencoder.Util.quoteURI
 
 import java.util.Collections
 
+import net.pms.PMS
 import net.pms.configuration.PmsConfiguration
 import net.pms.dlna.DLNAMediaInfo
 import net.pms.dlna.DLNAResource
@@ -12,12 +12,14 @@ import net.pms.encoders.FFMpegWebVideo
 import net.pms.encoders.Player
 import net.pms.io.OutputParams
 import net.pms.io.ProcessWrapper
+import net.pms.io.ProcessWrapperImpl
 import net.pms.network.HTTPResource
-import net.pms.PMS
 
 // import net.pms.encoders.FFMpegVideo // TODO add support for video transcode profiles
 
-public class PMSEncoder extends FFMpegWebVideo implements LoggerMixin {
+@groovy.transform.CompileStatic
+@groovy.util.logging.Log4j(value="logger")
+public class PMSEncoder extends FFMpegWebVideo {
     public static final boolean isWindows = PMS.get().isWindows()
     private Plugin plugin
     private final PmsConfiguration configuration
@@ -57,6 +59,7 @@ public class PMSEncoder extends FFMpegWebVideo implements LoggerMixin {
     }
 
     @Override
+    @groovy.transform.CompileStatic(groovy.transform.TypeCheckingMode.SKIP)
     public ProcessWrapper launchTranscode(
         String oldURI,
         DLNAResource dlna,
@@ -156,7 +159,7 @@ public class PMSEncoder extends FFMpegWebVideo implements LoggerMixin {
 
         // Groovy's "documentation" doesn't make it clear whether local variables are null-initialized
         // http://stackoverflow.com/questions/4025222
-        def transcoderProcess = null
+        ProcessWrapperImpl transcoderProcess = null
 
         if (downloaderArgs) {
             Collections.replaceAll(downloaderArgs, 'DOWNLOADER_OUT', downloaderOutputPath)

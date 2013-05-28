@@ -1,10 +1,11 @@
-@Typed
 package com.chocolatey.pmsencoder
 
 import org.apache.http.NameValuePair
 
+// FIXME @groovy.transform.CompileStatic
+@groovy.util.logging.Log4j(value="logger")
 class ActionDelegate {
-    private Closure contextThunk
+    private Closure<List<String>> contextThunk
     @Delegate final ProfileDelegate profileDelegate
     // FIXME: sigh: transitive delegation doesn't work (Groovy bug)
     @Delegate private final Matcher matcher
@@ -46,12 +47,22 @@ class ActionDelegate {
      *
      *     set '-baz', 'quux' // back to transcoder
      *
-     * note: we use a thunk because the targeted list (transcoder, hook &c.)
+     * note: we use a thunk e.g.:
+     *
+     *     { return self.transcoder }
+     *
+     * rather than a list e.g.:
+     *
+     *     self.transcoder
+     *
+     * because the targeted list (transcoder, hook &c.)
      * is mutable e.g. we need to modify self.transcoder, rather than a reference
      * to transcoder, which may no longer be used
      *
-     * FIXME Every other attempt to get this simple thunk to work
+     * FIXME (Groovy++) Every other attempt to get this simple thunk to work
      * fails (including the recommended Function0<Closure>>).
+     *
+     * TODO try to clean this up now we're using Groovy 2
      */
     private void setContextThunk(Closure closure) {
         contextThunk = closure
@@ -71,7 +82,7 @@ class ActionDelegate {
     // in Groovy++ without this:
     //
     //     Duplicate method name&signature in class file com/chocolatey/pmsencoder/ActionDelegate$hook$2
-    @Typed(TypePolicy.DYNAMIC)
+    @groovy.transform.CompileStatic(groovy.transform.TypeCheckingMode.SKIP)
     void hook (Closure closure) {
         if (getHook() == null) {
             logger.error("can't modify null hook command list")
@@ -87,7 +98,7 @@ class ActionDelegate {
         }
     }
 
-    @Typed(TypePolicy.DYNAMIC)
+    @groovy.transform.CompileStatic(groovy.transform.TypeCheckingMode.SKIP)
     void downloader (Closure closure) {
         if (getDownloader() == null) {
             logger.error("can't modify null downloader command list")
@@ -102,7 +113,7 @@ class ActionDelegate {
         }
     }
 
-    @Typed(TypePolicy.DYNAMIC)
+    @groovy.transform.CompileStatic(groovy.transform.TypeCheckingMode.SKIP)
     void transcoder (Closure closure) {
         if (getTranscoder() == null) {
             logger.error("can't modify null transcoder command list")
@@ -243,10 +254,10 @@ class ActionDelegate {
         // the sort order is predictable (for tests) as long as we (and Groovy) use LinkedHashMap
         replaceMap.each { name, map ->
             // squashed bug (see above): take care to modify context in-place
-            def index = context.findIndexOf { it == name.toString() }
+            int index = context.findIndexOf { String it -> it == name.toString() }
 
             if (index != -1) {
-                map.each { search, replace ->
+                map.each { Object search, Object replace ->
                     if ((index + 1) < context.size()) {
                         // TODO support named captures
                         logger.debug("replacing $search with $replace in $name")
@@ -274,7 +285,7 @@ class ActionDelegate {
             are too many gotchas e.g. "pairs" (split on '=') with 1 or 3 elements as well
             as the expected 2...
         */
-        return http.getNameValuePairs(qs).collectEntries { NameValuePair pair -> [ pair.name, pair.value ] }
+        return getHttp().getNameValuePairs(qs).collectEntries { NameValuePair pair -> [ pair.name, pair.value ] }
     }
 
     // XXX numerous type-inference fails, hence the explicit types
@@ -288,7 +299,7 @@ class ActionDelegate {
 
         for (String el : elements) {
             def uri = "http://www.youtube.com/get_video_info?video_id=${video_id}${el}&ps=default&eurl=&gl=US&hl=en"
-            def document = http.get(uri)
+            String document = getHttp().get(uri)
 
             if (document == null) {
                 logger.warn("Can't download metadata for $video_id from $uri")
@@ -364,7 +375,8 @@ class ActionDelegate {
     }
 
     // DSL method
-    void youtube(List<Integer> formats = YOUTUBE_ACCEPT) {
+    void youtube(List<Integer> formats = getYOUTUBE_ACCEPT()) {
+        def command = getCommand()
         def uri = command.getVarAsString('uri')
         def video_id = command.getVarAsString('youtube_video_id')
         def found = false

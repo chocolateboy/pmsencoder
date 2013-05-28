@@ -1,4 +1,3 @@
-@Typed
 package com.chocolatey.pmsencoder
 
 import static groovy.io.FileType.FILES
@@ -10,6 +9,7 @@ enum Stage { BEGIN, INIT, SCRIPT, CHECK, END }
 
 // no need to extend HashMap<...>: we only need the subscript - i.e. getAt() and putAt() - syntax
 @Singleton
+@groovy.transform.CompileStatic
 class PMSConf {
     @Lazy private PmsConfiguration configuration = PMS.getConfiguration()
 
@@ -24,7 +24,9 @@ class PMSConf {
 }
 
 // XXX note: only public methods can be delegated to
-class Matcher implements LoggerMixin {
+@groovy.transform.CompileStatic
+@groovy.util.logging.Log4j(value="logger")
+class Matcher {
     // XXX work around Groovy fail: getHttp goes into an infinite loop if this is lazy
     private HTTPClient http = new HTTPClient()
     // this is the default Map type, but let's be explicit as we strictly need this type
@@ -39,6 +41,7 @@ class Matcher implements LoggerMixin {
         this.pms = pms
     }
 
+    @groovy.transform.CompileStatic(groovy.transform.TypeCheckingMode.SKIP)
     boolean match(Command command, boolean useDefault = true) {
         if (useDefault) {
             command.transcoder = ffmpeg*.toString()
@@ -132,13 +135,14 @@ class Matcher implements LoggerMixin {
 
     // we could impose a constraint here that a script (file) must
     // contain exactly one script block, but why bother?
+    @groovy.transform.CompileStatic(groovy.transform.TypeCheckingMode.SKIP)
     void load(Reader reader, String filename) {
         def binding = new Binding(
-            begin:  this.&begin,
-            init:   this.&init,
-            script: this.&script,
-            check:  this.&check,
-            end:    this.&end
+            'begin':  this.&begin,
+            'init':   this.&init,
+            'script': this.&script,
+            'check':  this.&check,
+            'end':    this.&end
         )
 
         def groovy = new GroovyShell(binding)

@@ -1,4 +1,3 @@
-@Typed
 package com.chocolatey.pmsencoder
 
 import groovy.util.GroovyTestCase
@@ -7,11 +6,13 @@ import net.pms.configuration.PmsConfiguration
 import net.pms.PMS
 import org.apache.log4j.xml.DOMConfigurator
 
-import ch.qos.logback.classic.Logger
+import ch.qos.logback.classic.Logger as LogbackLogger
+import ch.qos.logback.classic.Level as LogbackLevel
 import org.slf4j.LoggerFactory
 
 // there's no point trying to optimize this while we're still using JUnit:
 // http://tinyurl.com/6k6z6dj
+@groovy.transform.CompileStatic
 abstract class PMSEncoderTestCase extends GroovyTestCase {
     protected Matcher matcher
     private PMS pms
@@ -19,10 +20,10 @@ abstract class PMSEncoderTestCase extends GroovyTestCase {
 
     static {
         // FIXME hack to shut httpclient the hell up
-        Logger tempLogger = LoggerFactory.getLogger("org.apache.http");
-        tempLogger.setLevel(ch.qos.logback.classic.Level.WARN)
-        tempLogger = LoggerFactory.getLogger("groovyx.net.http");
-        tempLogger.setLevel(ch.qos.logback.classic.Level.WARN)
+        LogbackLogger tempLogger = LoggerFactory.getLogger('org.apache.http') as LogbackLogger
+        tempLogger.setLevel(LogbackLevel.WARN)
+        tempLogger = LoggerFactory.getLogger('groovyx.net.http') as LogbackLogger
+        tempLogger.setLevel(LogbackLevel.WARN)
     }
 
     void setUp() {
@@ -94,20 +95,27 @@ abstract class PMSEncoderTestCase extends GroovyTestCase {
             matcher.loadDefaultScripts()
         }
 
-        List<URL> scripts
+        List<URL> scriptURLs
 
         if (spec['script'] != null) {
-            if (!(spec['script'] instanceof List)) {
-                spec['script'] = [ spec['script'] ]
+            List<Object> scripts
+
+            if (spec['script'] instanceof List) {
+                scripts = spec['script'] as List<Object>
+            } else {
+                scripts = [ spec['script'] ]
             }
 
-            scripts = spec['script'].collect {
+            scriptURLs = scripts.collect {
                 URL url
 
                 if (it instanceof URL) {
+                    // needed to fix a CompileStatic error, but according to
+                    // the "documentation", a successful instanceof is meant to
+                    // resolve the type (like Kotlin)
                     url = it as URL
                 } else {
-                    url = this.getClass().getResource(it as String)
+                    url = this.getClass().getResource(it.toString())
                 }
 
                 assert url != null
@@ -118,7 +126,7 @@ abstract class PMSEncoderTestCase extends GroovyTestCase {
         Stash stash
 
         if (spec.containsKey('stash')) {
-            Map<String, Object> map = spec['stash']
+            Map<String, Object> map = spec['stash'] as Map<String, Object>
             stash = new Stash(map)
         } else { // uri can be null (not all tests need it)
             String uri = spec['uri']
@@ -130,10 +138,10 @@ abstract class PMSEncoderTestCase extends GroovyTestCase {
             }
         }
 
-        List<String> wantMatches = getValue(spec, 'wantMatches')
-        List<String> hook = getValue(spec, 'hook')
-        List<String> downloader = getValue(spec, 'downloader')
-        List<String> transcoder = getValue(spec, 'transcoder')
+        List<String> wantMatches = getValue(spec, 'wantMatches') as List<String>
+        List<String> hook = getValue(spec, 'hook') as List<String>
+        List<String> downloader = getValue(spec, 'downloader') as List<String>
+        List<String> transcoder = getValue(spec, 'transcoder') as List<String>
 
         def wantStash = getValue(spec, 'wantStash')
         def wantHook = getValue(spec, 'wantHook')
@@ -142,10 +150,10 @@ abstract class PMSEncoderTestCase extends GroovyTestCase {
 
         boolean useDefaultTranscoder = getValue(spec, 'useDefaultTranscoder', false)
 
-        if (scripts != null) {
-            scripts.each {
-                assert it != null
-                matcher.load(it)
+        if (scriptURLs != null) {
+            scriptURLs.each { URL url ->
+                assert url != null
+                matcher.load(url)
             }
         }
 

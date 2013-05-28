@@ -1,6 +1,6 @@
-@Typed
 package com.chocolatey.pmsencoder
 
+@groovy.transform.CompileStatic
 class ProtocolVarTest extends PMSEncoderTestCase {
     void setUp() {
         super.setUp()

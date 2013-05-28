@@ -1,9 +1,9 @@
-@Typed
 package com.chocolatey.pmsencoder
 
 import net.pms.encoders.Player
 import net.pms.PMS
 
+@groovy.transform.CompileStatic
 public class WEB extends net.pms.formats.WEB {
     // unless otherwise indicated, these protocols are only supported by ffmpeg
     // see here for supported ffmpeg protocols: http://ffmpeg.org/pipermail/ffmpeg-cvslog/2011-November/043067.html
@@ -40,23 +40,12 @@ public class WEB extends net.pms.formats.WEB {
     ]
 
     @Override
-    public ArrayList<Class<? extends Player>> getProfiles() {
-        ArrayList<Class<? extends Player>> profiles = super.getProfiles()
-
-        if (type == VIDEO) {
-            for (engine in PMS.getConfiguration().getEnginesAsList(PMS.get().getRegistry())) {
-                if (engine == PMSEncoder.ID) {
-                    profiles.add(0, PMSEncoder.class)
-                    break // ignore duplicates
-                }
-            }
-        }
-
-        return profiles
+    public String [] getId() {
+        return PROTOCOLS
     }
 
-    // PMS checks the extension before the protocol, which might cause surprises for e.g.
-    // /path/to/foo.cue, so only match on the protocol.
+    // WEB should only match on the protocol (and everything else should
+    // only match on the extension)
     // XXX this should be fixed in PMS
     @Override
     public boolean match(String filename) {
@@ -78,10 +67,5 @@ public class WEB extends net.pms.formats.WEB {
         }
 
         return match
-    }
-
-    @Override
-    public String [] getId() {
-        return PROTOCOLS
     }
 }

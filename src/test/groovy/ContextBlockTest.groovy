@@ -1,6 +1,6 @@
-@Typed
 package com.chocolatey.pmsencoder
 
+@groovy.transform.CompileStatic
 class ContextBlockTest extends PMSEncoderTestCase {
     void testContextBlockSet() {
         def uri = 'http://context-block-set.com'
