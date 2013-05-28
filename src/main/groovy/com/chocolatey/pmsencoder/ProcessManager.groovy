@@ -26,7 +26,7 @@ class ProcessManager {
     }
 
     private String[] listToArray(List<String> list) {
-        def array = new String[ list.size() ]
+        String[] array = new String[ list.size() ]
         list.toArray(array)
         return array
     }
