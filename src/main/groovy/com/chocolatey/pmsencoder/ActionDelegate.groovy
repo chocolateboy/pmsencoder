@@ -13,7 +13,7 @@ class ActionDelegate {
     ActionDelegate(ProfileDelegate profileDelegate) {
         this.profileDelegate = profileDelegate
         this.matcher = profileDelegate.matcher
-        setContextThunk({ getTranscoder() }) // default context
+        setContextThunk(this.&getTranscoder) // default context
     }
 
     boolean isOption(String arg) {
@@ -88,7 +88,7 @@ class ActionDelegate {
             logger.error("can't modify null hook command list")
         } else {
             def oldContextThunk = getContextThunk() // support nested blocks
-            setContextThunk({ getHook() })
+            setContextThunk(this.&getHook)
 
             try {
                 closure.call()
@@ -104,7 +104,7 @@ class ActionDelegate {
             logger.error("can't modify null downloader command list")
         } else {
             def oldContextThunk = getContextThunk() // support nested blocks
-            setContextThunk({ getDownloader() })
+            setContextThunk(this.&getDownloader)
             try {
                 closure.call()
             } finally {
@@ -119,7 +119,7 @@ class ActionDelegate {
             logger.error("can't modify null transcoder command list")
         } else {
             def oldContextThunk = getContextThunk() // support nested blocks
-            setContextThunk({ getTranscoder() })
+            setContextThunk(this.&getTranscoder)
 
             try {
                 closure.call()
