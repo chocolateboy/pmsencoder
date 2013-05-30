@@ -20,6 +20,16 @@ class Profile {
         this.alwaysRun = alwaysRun
     }
 
+    public String toString() {
+        """
+        {
+            name:        $name
+            stage:       $stage
+            stopOnMatch: $stopOnMatch
+            alwaysRun:   $alwaysRun
+        }"""
+    }
+
     void extractBlocks(Closure closure) {
         def profileValidationDelegate = new ProfileValidationDelegate(name)
         // wrapper method: runs the closure then validates the result, raising an exception if anything is amiss

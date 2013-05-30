@@ -321,12 +321,12 @@ class ProfileDelegate {
     }
 
     // DSL method
-    public Boolean isGetFlashVideosCompatible(Object maybeList, Object u) {
+    public Boolean isGetFlashVideosCompatible(Object maybeList, Object uri) {
         return isDownloaderCompatible(
             getGetFlashVideosCache(),
             maybeList,
             uri,
-            [ '-i', Util.shellQuote(u) ],
+            [ '-i', Util.shellQuote(uri) ],
             'get-flash-videos'
         )
     }

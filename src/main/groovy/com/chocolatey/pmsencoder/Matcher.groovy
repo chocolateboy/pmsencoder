@@ -33,6 +33,7 @@ class Matcher {
     private HTTPClient http = new HTTPClient()
     // this is the default Map type, but let's be explicit as we strictly need this type
     private Map<String, Profile> profiles = new LinkedHashMap<String, Profile>()
+    private List<Profile> sortedProfiles
     private PMS pms
     private List<String> ffmpeg = []
     private List<Integer> youtubeAccept = []
@@ -47,41 +48,51 @@ class Matcher {
         this.pms = pms
     }
 
+    // sort the profiles by a) stage b) document order
+    // within a script (which is preserved in the unsorted list)
+    public void sortProfiles() {
+        List<Profile> unsortedProfiles = profiles.values().asList()
+        sortedProfiles = unsortedProfiles.sort { Profile profile1, Profile profile2 ->
+            // XXX Groovy truth (0 == false) doesn't work under CompileStatic
+            def cmp = profile1.stage.compareTo(profile2.stage)
+            if (cmp != 0) {
+                return cmp
+            } else {
+                return unsortedProfiles.indexOf(profile1).compareTo(unsortedProfiles.indexOf(profile2))
+            }
+        }
+    }
+
     @groovy.transform.CompileStatic(groovy.transform.TypeCheckingMode.SKIP)
     boolean match(Command command, boolean useDefault = true) {
+        if (sortedProfiles == null) {
+            sortProfiles()
+        }
+
         if (useDefault) {
             command.transcoder = ffmpeg*.toString()
         }
 
         def uri = command.getVarAsString('uri')
         logger.debug("matching URI: $uri")
-
         boolean stopMatching = false
 
-        // XXX this is horribly inefficient, but it's a) trivial to implement and b)
-        // has the right semantics. the small number of scripts make this a non-issue
-        // for now
-        Stage.each { Stage stage ->
-            profiles.values().each { Profile profile ->
-                if (profile.stage == stage) {
-                    if (stopMatching == false || profile.alwaysRun == true) {
-                        if (profile.match(command)) {
-                            // XXX make sure we take the name from the profile itself
-                            // rather than the Map key - the latter may have been usurped
-                            // by a profile with a different name
-                            command.matches << profile.name
+        sortedProfiles.each { Profile profile ->
+            if (stopMatching == false || profile.alwaysRun == true) {
+                if (profile.match(command)) {
+                    // XXX make sure we take the name from the profile itself
+                    // rather than the Map key - the latter may have been usurped
+                    // by a profile with a different name
+                    command.matches << profile.name
 
-                            if (profile.stopOnMatch) {
-                                stopMatching = true
-                            }
-                        }
+                    if (profile.stopOnMatch) {
+                        stopMatching = true
                     }
                 }
             }
         }
 
         def matched = command.matches.size() > 0
-
         if (matched) {
             logger.debug("command: $command")
         }
