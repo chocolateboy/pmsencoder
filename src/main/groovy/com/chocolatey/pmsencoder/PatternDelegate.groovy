@@ -43,7 +43,7 @@ class PatternDelegate {
         }
     }
 
-    // DLS method (alias for domain)
+    // DSL method (alias for domain)
     protected void domains(Object maybeList) {
         domain(maybeList)
     }
@@ -64,6 +64,11 @@ class PatternDelegate {
         if (!matched) {
             throw STOP_MATCHING
         }
+    }
+
+    // DSL method (alias for protocol)
+    protected void protocols(Object maybeList) {
+        protocol(maybeList)
     }
 
     /*

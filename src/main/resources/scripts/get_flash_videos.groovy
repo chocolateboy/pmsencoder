@@ -17,7 +17,7 @@ check {
 
         pattern {
             match { GET_FLASH_VIDEOS_PATH }
-            protocol([ 'http', 'https' ])
+            protocols([ 'http', 'https' ])
             match { isGetFlashVideosCompatible(GET_FLASH_VIDEOS_PATH, uri) }
         }
 
