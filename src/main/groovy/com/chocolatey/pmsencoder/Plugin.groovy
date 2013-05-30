@@ -255,7 +255,7 @@ public class Plugin implements ExternalListener, FinalizeTranscoderArgsListener,
 
         boolean matched // Groovy++ type inference fail
 
-        pmsencoderLogger.info('invoking matcher for: ' + originalURI)
+        pmsencoderLogger.info('matching: ' + originalURI)
 
         try {
             matched = matcher.match(command)

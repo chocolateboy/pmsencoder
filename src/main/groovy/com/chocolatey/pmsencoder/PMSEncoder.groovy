@@ -77,13 +77,14 @@ public class PMSEncoder extends FFMpegWebVideo {
         // whatever happens, we need a transcoder output FIFO (even if there's a match error, we carry
         // on with the unmodified URI), so we can create that upfront
         processManager.createTranscoderFifo(transcoderOutputBasename)
-
+        def ffmpegPath = normalizePath(configuration.getFfmpegPath())
         def command = new Command()
         def oldStash = command.getStash()
 
         command.setDlna(dlna)
         command.setMedia(media)
         command.setParams(params)
+        command.setFfmpegPath(ffmpegPath)
 
         oldStash.put('uri', oldURI)
 
@@ -107,9 +108,6 @@ public class PMSEncoder extends FFMpegWebVideo {
 
         // automagically add extra command-line options for the PMS-native downloaders/transcoders
         // and substitute the configured path for 'FFMPEG'
-
-        def ffmpegPath = normalizePath(configuration.getFfmpegPath())
-
         if (transcoderArgs) {
             Collections.replaceAll(transcoderArgs, 'DOWNLOADER_OUT', downloaderOutputPath)
             Collections.replaceAll(transcoderArgs, 'TRANSCODER_OUT', transcoderOutputPath)
@@ -146,13 +144,33 @@ public class PMSEncoder extends FFMpegWebVideo {
                     // end input args
                     '-i', transcoderInput,
                     // output args
-                    '-threads', nbCores
+                    '-threads', "" + nbCores
                 ]
 
                 transcoderArgs.addAll(args)
-                transcoderArgs.addAll(getVideoBitrateOptions(renderer, media))
-                transcoderArgs.addAll(getAudioBitrateOptions(renderer, media))
-                transcoderArgs.addAll(getTranscodeVideoOptions(renderer, media))
+
+                List<String> audioBitrateOptions = command.getAudioBitrateOptions()
+                List<String> videoBitrateOptions = command.getVideoBitrateOptions()
+                List<String> videoTranscodeOptions = command.getVideoTranscodeOptions()
+
+                if (audioBitrateOptions == null) {
+                    transcoderArgs.addAll(getAudioBitrateOptions(transcoderInput, dlna, media, params))
+                } else {
+                    transcoderArgs.addAll(audioBitrateOptions)
+                }
+
+                if (videoBitrateOptions == null) {
+                    transcoderArgs.addAll(getVideoBitrateOptions(transcoderInput, dlna, media, params))
+                } else {
+                    transcoderArgs.addAll(videoBitrateOptions)
+                }
+
+                if (videoTranscodeOptions == null) {
+                    transcoderArgs.addAll(getVideoTranscodeOptions(transcoderInput, dlna, media, params))
+                } else {
+                    transcoderArgs.addAll(videoTranscodeOptions)
+                }
+
                 transcoderArgs.add(transcoderOutputPath)
             }
         }

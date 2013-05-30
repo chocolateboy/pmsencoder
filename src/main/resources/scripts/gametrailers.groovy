@@ -1,4 +1,5 @@
-// videofeed.Web,Test,GameTrailers=http://www.gametrailers.com/rssgenerate.php?s1=&favplats[ps3]=ps3&quality[hd]=on&agegate[no]=on&orderby=newest&limit=100
+// videofeed.Web,Test,GameTrailers=http://www.gametrailers.com/about/rss
+// see: http://www.gametrailers.com/about/rss
 
 script {
     profile ('GameTrailers') {

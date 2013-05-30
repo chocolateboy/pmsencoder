@@ -14,18 +14,22 @@ import org.apache.log4j.Level
 @groovy.util.logging.Log4j(value="logger")
 public class Command {
     private Level defaultStashAssignmentLogLevel = Level.DEBUG
+    private Stash oldStash
+    private Level stashAssignmentLogLevel = Level.DEBUG
 
     DLNAMediaInfo media
     DLNAResource dlna
-    Level stashAssignmentLogLevel = Level.DEBUG
     List<String> downloader = []
     List<String> hook = []
     List<String> matches = []
+    List<String> audioBitrateOptions = null
+    List<String> videoBitrateOptions = null
+    List<String> videoTranscodeOptions = null
     List<String> transcoder = []
     OutputParams params
     Player player
-    Stash oldStash
     Stash stash
+    String ffmpegPath
 
     public Command() {
         this(new Stash())
@@ -59,11 +63,15 @@ public class Command {
     public java.lang.String toString() {
         def repr = """
         {
-            matches:    $matches
-            hook:       $hook
-            downloader: $downloader
-            transcoder: $transcoder
-            stash:      $stash
+            matches:               $matches
+            hook:                  $hook
+            downloader:            $downloader
+            transcoder:            $transcoder
+            stash:                 $stash
+            ffmpegPath:            $ffmpegPath
+            audioBitrateOptions:   $audioBitrateOptions
+            videoBitrateOptions:   $videoBitrateOptions
+            videoTranscodeOptions: $videoTranscodeOptions
         }""".substring(1).stripIndent(8)
     }
 

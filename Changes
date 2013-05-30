@@ -8,9 +8,10 @@
     allow the engine to be demoted
 
     scripts:
-        - add IMDb script
+        - add IMDb
         - rm obsolete hls-player script (supported natively by ffmpeg)
-        - rm navix.groovy
+        - rm navix
+        - add dshow
 
     DSL changes:
         - add new profile method: uri() - returns current or supplied URI string as a URI object

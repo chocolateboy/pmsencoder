@@ -1,28 +1,28 @@
 /*
-    rtmpdump://channel?-v&-r=http%3A//example.com&-y=yvalue&-W=Wvalue
+    pmsencoder://rtmpdump?-v&-r=http%3A//example.com&-y=yvalue&-W=Wvalue
 
     -o is set automatically
     -r or --rtmp is required
-    boolean values can be set without a value e.g. rtmpdump://channel?--rtmp=http%3A//example.com&--live&--foo=bar
+    boolean values can be set without a value e.g. pmsencoder://rtmpdump?--rtmp=http%3A//example.com&--live&--foo=bar
     values *must* be URL-encoded
     keys can be, but hyphens are not special characters, so they don't need to be
 */
 
 init {
-    profile ('rtmpdump://') {
+    profile ('pmsencoder://rtmpdump') {
         pattern {
-            protocol 'rtmpdump'
+            match uri: '^pmsencoder://rtmpdump\\?'
             match { RTMPDUMP }
         }
 
         action {
             def rtmpdumpArgs = []
-            def pairs = http.getNameValuePairs(uri) // uses URLDecoder.decode to decode the name and value
+            def params = http.getNameValuePairs(uri) // uses URLDecoder.decode to decode the name and value
             def seenURL = false
 
-            for (pair in pairs) {
-                def name = pair.name
-                def value = pair.value
+            for (param in params) {
+                def name = param.name
+                def value = param.value
 
                 switch (name) {
                     // Special case: don't quote this (JSON) value on Windows

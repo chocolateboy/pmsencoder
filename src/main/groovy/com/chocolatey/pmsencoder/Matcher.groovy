@@ -66,7 +66,7 @@ class Matcher {
         def matched = command.matches.size() > 0
 
         if (matched) {
-            logger.trace("command: $command")
+            logger.debug("command: $command")
         }
 
         return matched

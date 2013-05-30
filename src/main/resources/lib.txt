@@ -2,6 +2,7 @@ scripts/BEGIN.groovy
 scripts/INIT.groovy
 scripts/apple_trailers.groovy
 scripts/bloomberg_live.groovy
+scripts/dshow.groovy
 scripts/eurogamer.groovy
 scripts/gamestar.groovy
 scripts/gameswelt.groovy

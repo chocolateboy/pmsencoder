@@ -130,8 +130,28 @@ class ActionDelegate {
     }
 
     // DSL method
+    boolean setAudioBitrateOptions(Object maybeList) {
+        return maybeList == null ? null : command.setAudioBitrateOptions(Util.toStringList(maybeList, true))
+    }
+
+    // DSL method
+    boolean setVideoBitrateOptions(Object maybeList) {
+        return maybeList == null ? null : command.setVideoBitrateOptions(Util.toStringList(maybeList, true))
+    }
+
+    // DSL method
+    boolean setVideoTranscodeOptions(Object maybeList) {
+        return maybeList == null ? null : command.setVideoTranscodeOptions(Util.toStringList(maybeList, true))
+    }
+
+    // DSL accessor (ffmpegPath): getter
+    String getFfmpegPath() {
+        return command.getFfmpegPath()
+    }
+
+    // DSL method
     String quoteURI(Object uri) {
-        Util.quoteURI(uri?.toString())
+        return Util.quoteURI(uri?.toString())
     }
 
     // DSL method

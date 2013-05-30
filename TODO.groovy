@@ -246,7 +246,7 @@ Downloaders:
 
 // migrate to Groovy 2.x
 
-// rename "script" to (e.g.) "run" to make it clear it's a phase?
+// rename "script" to (e.g.) "run" to make it clear it's a stage?
 
 // stash values are strings, which is all we need currently and saves a few toString() calls internally,
 // but there may be a use case for exporting non-strings from the pattern block e.g.:

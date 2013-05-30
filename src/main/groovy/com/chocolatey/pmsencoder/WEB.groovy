@@ -21,8 +21,8 @@ public class WEB extends net.pms.formats.WEB {
         "mmshttp", // probably supported if changed to mmsh
         "mmst",
         "pipe", // ffmpeg - not sure how to use this with PMSEncoder
+        "pmsencoder", // PMSEncoder pseudo-protocol
         "rtmp",
-        "rtmpdump", // PMSEncoder pseudo-protocol
         "rtmpe",
         "rtmps",
         "rtmpt",
@@ -36,7 +36,6 @@ public class WEB extends net.pms.formats.WEB {
         "sap",
         "tcp",
         "udp",
-        "x11grab" // pseudo-protocol for X11 screen capture via ffmpeg
     ]
 
     @Override
