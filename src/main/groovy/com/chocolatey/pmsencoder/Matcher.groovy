@@ -5,6 +5,8 @@ import static groovy.io.FileType.FILES
 import net.pms.PMS
 import net.pms.configuration.PmsConfiguration
 
+import org.jsoup.nodes.Document
+
 enum Stage { BEGIN, INIT, SCRIPT, CHECK, END }
 
 // no need to extend HashMap<...>: we only need the subscript - i.e. getAt() and putAt() - syntax
@@ -37,6 +39,10 @@ class Matcher {
     private Map<String, Object> globals = new Stash()
     private PMSConf pmsConf = PMSConf.getInstance()
 
+    // global caches
+    Map<String, Boolean> youTubeDLCache = [:]
+    Map<String, Boolean> getFlashVideosCache = [:]
+
     Matcher(PMS pms) {
         this.pms = pms
     }
@@ -50,15 +56,26 @@ class Matcher {
         def uri = command.getVarAsString('uri')
         logger.debug("matching URI: $uri")
 
-        // XXX this is horribly inefficient, but it's a) trivial to implement and b) has the right semantics
-        // the small number of scripts make this a non-issue for now
-        Stage.each { stage ->
-            profiles.values().each { profile ->
-                if (profile.stage == stage && profile.match(command)) {
-                    // XXX make sure we take the name from the profile itself
-                    // rather than the Map key - the latter may have been usurped
-                    // by a profile with a different name
-                    command.matches << profile.name
+        boolean stopMatching = false
+
+        // XXX this is horribly inefficient, but it's a) trivial to implement and b)
+        // has the right semantics. the small number of scripts make this a non-issue
+        // for now
+        Stage.each { Stage stage ->
+            profiles.values().each { Profile profile ->
+                if (profile.stage == stage) {
+                    if (stopMatching == false || profile.alwaysRun == true) {
+                        if (profile.match(command)) {
+                            // XXX make sure we take the name from the profile itself
+                            // rather than the Map key - the latter may have been usurped
+                            // by a profile with a different name
+                            command.matches << profile.name
+
+                            if (profile.stopOnMatch) {
+                                stopMatching = true
+                            }
+                        }
+                    }
                 }
             }
         }
@@ -75,9 +92,12 @@ class Matcher {
     // DSL method
     // a Profile consists of a name, a pattern block and an action block - all
     // determined when the script is loaded/compiled
-    public void registerProfile(String name, Stage stage, Map<String, String> options, Closure closure) {
-        def extendz = options['extends']
-        def replaces = options['replaces']
+    public void registerProfile(String name, Stage stage, Map<String, Object> options, Closure closure) {
+        Boolean stopOnMatch = options.containsKey('stopOnMatch') ? options['stopOnMatch'] : true
+        Boolean alwaysRun = options.containsKey('alwaysRun') ? options['alwaysRun'] : false
+        String extendz = options['extends']?.toString()
+        String replaces = options['replaces']?.toString()
+
         def target
 
         if (replaces != null) {
@@ -88,11 +108,15 @@ class Matcher {
             if (profiles[name] != null) {
                 logger.info("replacing profile: $name")
             } else {
-                logger.info("registering ${stage.toString().toLowerCase()} profile: $name")
+                if (options) {
+                    logger.info("registering ${stage.toString().toLowerCase()} profile: $name ($options)")
+                } else {
+                    logger.info("registering ${stage.toString().toLowerCase()} profile: $name")
+                }
             }
         }
 
-        def profile = new Profile(this, name, stage)
+        def profile = new Profile(this, name, stage, stopOnMatch, alwaysRun)
 
         try {
             // run the profile block at compile-time to extract its (optional) pattern and action blocks,

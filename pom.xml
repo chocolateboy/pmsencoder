@@ -107,11 +107,10 @@
             </exclusions>
         </dependency>
 
-        <!-- XXX non-Mavenized -->
         <dependency>
-            <groupId>info.codesaway</groupId>
-            <artifactId>regexplus</artifactId>
-            <version>${regexplus-version}</version>
+            <groupId>com.github.tony19</groupId>
+            <artifactId>named-regexp</artifactId>
+            <version>0.1.9</version>
         </dependency>
     </dependencies>
 
@@ -269,17 +268,6 @@
                     <skipChecksumVerification>false</skipChecksumVerification>
                     <force>false</force>
                     <artifactItems>
-                        <artifactItem>
-                            <groupId>info.codesaway</groupId>
-                            <artifactId>regexplus</artifactId>
-                            <version>${regexplus-version}</version>
-                            <packaging>jar</packaging>
-                            <downloadUrl>http://codesaway.info/RegExPlus/RegExPlus.jar</downloadUrl>
-                            <install>true</install>
-                            <force>false</force>
-                            <checksum>b31c60f99a3c163af1658e6d894f579af98011d6</checksum>
-                        </artifactItem>
-
                         <artifactItem>
                             <groupId>com.google.code</groupId>
                             <artifactId>ps3mediaserver</artifactId>

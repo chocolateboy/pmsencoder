@@ -13,7 +13,7 @@ public class Script {
     // DSL method
     // XXX more annoying DDWIM magic: Groovy reorders the arguments
     // http://enfranchisedmind.com/blog/posts/groovy-argument-reordering/
-    public void profile(Map<String, String> options = [:], String name, Closure closure) throws PMSEncoderException {
+    public void profile(Map<String, Object> options = [:], String name, Closure closure) throws PMSEncoderException {
         matcher.registerProfile(name, stage, options, closure)
     }
 }

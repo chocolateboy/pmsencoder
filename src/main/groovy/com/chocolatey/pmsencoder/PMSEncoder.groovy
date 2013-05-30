@@ -1,6 +1,6 @@
 package com.chocolatey.pmsencoder
 
-import static com.chocolatey.pmsencoder.Util.quoteURI
+import static com.chocolatey.pmsencoder.Util.shellQuote
 
 import java.util.Collections
 
@@ -100,7 +100,15 @@ public class PMSEncoder extends FFMpegWebVideo {
         List<String> hookArgs = command.getHook()
         List<String> downloaderArgs = command.getDownloader()
         List<String> transcoderArgs = command.getTranscoder()
-        def newURI = quoteURI(newStash.get('uri')?.toString())
+        def newURI = newStash.get('uri')?.toString()
+
+        // work around an ffmpeg bug:
+        // http://ffmpeg.org/trac/ffmpeg/ticket/998
+        if (newURI.startsWith('mms:')) {
+            newURI = 'mmsh:' + newURI.substring(4);
+        }
+
+        newURI = shellQuote(newURI)
 
         if (hookArgs) {
             processManager.handleHook(hookArgs)

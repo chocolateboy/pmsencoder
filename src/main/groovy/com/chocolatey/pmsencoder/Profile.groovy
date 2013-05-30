@@ -9,11 +9,15 @@ class Profile {
     private Closure actionBlock
     final Stage stage
     final String name
+    final boolean stopOnMatch
+    final boolean alwaysRun
 
-    Profile(Matcher matcher, String name, Stage stage) {
+    Profile(Matcher matcher, String name, Stage stage, boolean stopOnMatch, boolean alwaysRun) {
         this.matcher = matcher
         this.name = name
         this.stage = stage
+        this.stopOnMatch = stopOnMatch
+        this.alwaysRun = alwaysRun
     }
 
     void extractBlocks(Closure closure) {

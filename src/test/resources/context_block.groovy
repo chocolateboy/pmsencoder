@@ -1,5 +1,5 @@
 script {
-    profile ('Context Block') {
+    profile ('Context Block', stopOnMatch: false) {
         action {
             hook = 'hook -foo -bar -baz'
         }

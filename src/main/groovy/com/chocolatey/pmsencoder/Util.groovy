@@ -32,9 +32,14 @@ class Util {
         return result
     }
 
-    public static String quoteURI(String uri) {
-        // double quote a URI to make it safe for cmd.exe
-        // XXX need to test this
-        return PMS.get().isWindows() ? '"' + uri.replaceAll('"', '%22') + '"' : uri
+    public static String shellQuote(Object obj) {
+        if (obj == null) {
+            return null
+        } else {
+            String uri = obj.toString()
+            // double quote a URI to make it safe for cmd.exe
+            // XXX need to test this
+            return PMS.get().isWindows() ? '"' + uri.replaceAll('"', '""') + '"' : uri
+        }
     }
 }

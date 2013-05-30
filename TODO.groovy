@@ -241,9 +241,6 @@ Downloaders:
 // maybe (could cause problems with e.g. feedburner): if they do and the resolved
 // domain matches the source domain, cache the domain and match on that
 
-// if a profile sets a downloader, the other profiles shoudn't usually run (and may break things)
-// soluton: commit method to abort further matches? (but what about the mms -> mmsh fix?)
-
 // migrate to Groovy 2.x
 
 // rename "script" to (e.g.) "run" to make it clear it's a stage?

@@ -1,7 +1,6 @@
 scripts/BEGIN.groovy
 scripts/INIT.groovy
 scripts/apple_trailers.groovy
-scripts/bloomberg_live.groovy
 scripts/dshow.groovy
 scripts/eurogamer.groovy
 scripts/gamestar.groovy
@@ -10,10 +9,7 @@ scripts/gametrailers.groovy
 scripts/get_flash_videos.groovy
 scripts/giantbomb.groovy
 scripts/hardware_clips.groovy
-scripts/icanhascheezburger.groovy
 scripts/imdb.groovy
-scripts/mms_to_mmsh.groovy
-scripts/movshare.groovy
 scripts/notify_send.groovy
 scripts/onion_news_network.groovy
 scripts/politiek24.groovy

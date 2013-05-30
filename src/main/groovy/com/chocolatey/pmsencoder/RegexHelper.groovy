@@ -1,7 +1,10 @@
 package com.chocolatey.pmsencoder
 
-import info.codesaway.util.regex.Pattern
-import info.codesaway.util.regex.Matcher
+import com.google.code.regexp.Matcher
+import com.google.code.regexp.MatchResult as NativeMatchResult
+import com.google.code.regexp.Pattern
+
+import static java.util.regex.Pattern.DOTALL
 
 @groovy.transform.CompileStatic
 class MatchResult {
@@ -32,46 +35,23 @@ class MatchResult {
     }
 }
 
-// XXX could be a singleton if we implement caching
-// @Singleton(lazy=true)
 @groovy.transform.CompileStatic
 class RegexHelper {
     static MatchResult match(Object string, Object regex) {
-        Map<String, String> named = new LinkedHashMap<String, String>()
-        List<String> indexed = new ArrayList<String>()
-        // Compile and use regular expression
-        def pattern = Pattern.compile(regex.toString(), Pattern.DOTALL)
-        def matcher = pattern.matcher(string.toString())
-        def matched = matcher.find()
+        Map<String, String> named
+        List<String> indexed
+
+        Pattern pattern = Pattern.compile(regex.toString(), DOTALL)
+        Matcher matcher = pattern.matcher(string.toString())
+        boolean matched = matcher.find()
 
         if (matched) {
-            /*
-                store named groups as name => match pairs in named
-                XXX 0 is the index of the entire matched string, so group indices start at 1
-                XXX groupCount is the number of explicit groups
-            */
-
-            int groupCount = matcher.groupCount()
-
-            indexed << matcher.group(0)
-
-            /*
-                we have to use a traditional for-loop here because groovy ranges
-                are bidirectional (i.e. (1 .. 0) works)
-            */
-            for (int i = 1; i <= groupCount; ++i) {
-                String name = matcher.getGroupName(i)
-
-                if (name) {
-                    if (named != null) {
-                        String value = matcher.group(i, "") /* default to an empty string */
-                        named.put(name, value)
-                    }
-                } else if (indexed != null) {
-                    String value = matcher.group(i, "") /* default to an empty string */
-                    indexed << value
-                }
-            }
+            NativeMatchResult matchResult = matcher.toMatchResult()
+            named = matchResult.namedGroups()
+            indexed = matchResult.orderedGroups()
+        } else {
+            named = [:] // new LinkedHashMap<String, String>()
+            indexed = [] // new ArrayList<String>()
         }
 
         return new MatchResult(matched, named, indexed)

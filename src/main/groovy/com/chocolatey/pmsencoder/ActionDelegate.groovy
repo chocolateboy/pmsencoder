@@ -150,8 +150,8 @@ class ActionDelegate {
     }
 
     // DSL method
-    String quoteURI(Object uri) {
-        return Util.quoteURI(uri?.toString())
+    String shellQuote(Object uri) {
+        return Util.shellQuote(uri)
     }
 
     // DSL method

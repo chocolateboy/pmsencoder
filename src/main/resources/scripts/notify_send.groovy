@@ -1,5 +1,5 @@
-script {
-    profile ('Notify Send') {
+begin {
+    profile ('Notify Send', stopOnMatch: false) {
         pattern {
             match { NOTIFY_SEND }
         }

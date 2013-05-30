@@ -33,7 +33,7 @@ init {
                     case '-r':
                     case '--rtmp':
                         if (value) {
-                            uri = quoteURI(value)
+                            uri = shellQuote(value)
                             seenURL = true
                         }
                         break
@@ -42,9 +42,9 @@ init {
                         break // ignore
                     default:
                         rtmpdumpArgs << name
-                        // not all values are URIs, but quoteURI() is harmless (except for -j) on Windows and a no-op on other platforms
+                        // not all values are URIs, but shellQuote() is harmless (except for -j) on Windows and a no-op on other platforms
                         if (value)
-                            rtmpdumpArgs << quoteURI(value)
+                            rtmpdumpArgs << shellQuote(value)
                 }
             }
 

@@ -1,17 +1,18 @@
 2.0.0 TBC
 
     output video in the renderer's preferred format (i.e. don't downscale HD video if the renderer supports HD)
-    PMSEncoder scripts can now implement finalizeTranscoderArgs hooks
+    scripts can now implement finalizeTranscoderArgs hooks
     use ffmpeg for all protocols
     prevent script names conflicting with DSL identifiers
     fix rtmp2pms.pl and rtmp2pms.js to work with quoted parameter values and embedded commas
     allow the engine to be demoted
+    by default, profiles now halt after matching
+    moved mmsh -> mms workaround into the engine
 
     scripts:
         - add IMDb
-        - rm obsolete hls-player script (supported natively by ffmpeg)
-        - rm navix
         - add dshow
+        - rm obsolete scripts
 
     DSL changes:
         - add new profile method: uri() - returns current or supplied URI string as a URI object

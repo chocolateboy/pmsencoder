@@ -29,12 +29,15 @@ import org.jsoup.select.Elements
 @groovy.transform.CompileStatic
 @groovy.util.logging.Log4j(value="logger")
 class ProfileDelegate {
-    private final Map<String, String> httpCache = [:] // only needed/used by this.scrape()
-    private final Map<String, Document> jsoupCache = [:]
     // FIXME: sigh: transitive delegation doesn't work (groovy bug)
     // so make this public so dependent classes can manually delegate to it
     @Delegate Matcher matcher
     Command command
+
+    // caches (per-request)
+    private final Map<String, String> httpCache = [:]
+    private final Map<String, Document> jsoupCache = [:]
+    private static final int PROCESS_TIMEOUT = 10000
 
     public ProfileDelegate(Matcher matcher, Command command) {
         this.matcher = matcher
@@ -191,8 +194,8 @@ class ProfileDelegate {
 
         if (document == null) {
             logger.debug("getting $uri")
-            assert getHttp() != null
-            document = httpCache[uri] = getHttp().get(uri)
+            document = getHttp().get(uri)
+            httpCache[uri] = document
         }
 
         if (document == null) {
@@ -269,7 +272,13 @@ class ProfileDelegate {
     @groovy.transform.CompileStatic(groovy.transform.TypeCheckingMode.SKIP)
     private Document getJsoupForUri(Object obj) {
         def uri = obj.toString()
-        def cached = httpCache[uri] ?: (httpCache[uri] = getHttp().get(uri))
+        def cached = httpCache[uri]
+
+        if (cached == null) {
+            cached = getHttp().get(uri)
+            httpCache[uri] = cached
+        }
+
         return getJsoupForString(cached)
     }
 
@@ -277,5 +286,48 @@ class ProfileDelegate {
     private Document getJsoupForString(Object obj) {
         def string = obj.toString()
         return jsoupCache[string] ?: (jsoupCache[string] = Jsoup.parse(string))
+    }
+
+    private Boolean isDownloaderCompatible(Map<String, Boolean> cache, Object maybeList, Object u, List<String> args, String name) {
+        URI uri = uri(u)
+        String key = String.format('%s://%s', uri.scheme, uri.host)
+        Boolean cached = cache.get(key)
+        String status = 'cached'
+
+        if (cached == null) {
+            status = 'new'
+            List<String> command = Util.toStringList(maybeList, true)
+            command.addAll(args)
+            Process process = command.execute()
+            process.consumeProcessOutput()
+            process.waitForOrKill(PROCESS_TIMEOUT)
+            cached = process.exitValue() == 0
+            cache.put(key, cached)
+        }
+
+        logger.info("$name compatible: $cached ($status), key: $key, uri: $uri")
+        return cached
+    }
+
+    // DSL method
+    public Boolean isYouTubeDLCompatible(Object maybeList, Object uri) {
+        return isDownloaderCompatible(
+            getYouTubeDLCache(),
+            maybeList,
+            uri,
+            [ '-g', Util.shellQuote(uri) ],
+            'youtube-dl'
+        )
+    }
+
+    // DSL method
+    public Boolean isGetFlashVideosCompatible(Object maybeList, Object u) {
+        return isDownloaderCompatible(
+            getGetFlashVideosCache(),
+            maybeList,
+            uri,
+            [ '-i', Util.shellQuote(u) ],
+            'get-flash-videos'
+        )
     }
 }

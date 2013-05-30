@@ -1,5 +1,5 @@
 script {
-    profile ('Base') {
+    profile ('Base', stopOnMatch: false) {
         pattern {
             domain 'inherit.pattern'
         }
