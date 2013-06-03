@@ -318,3 +318,5 @@ Downloaders:
     profile(on: [ 'launchTranscode', 'finaliseTranscodeArgs', 'isCompatible' ]) { ... }
 
 // default event is launchTranscode
+
+// change pattern/action to when/then?
