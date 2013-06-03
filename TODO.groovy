@@ -315,7 +315,7 @@ Downloaders:
 
 // or:
 
-    profile(on: [ 'launchTranscode', 'finaliseTranscodeArgs', 'isCompatible' ]) { ... }
+    profile(on: [ 'launchTranscode', 'finalizeTranscodeArgs', 'isCompatible' ]) { ... }
 
 // default event is launchTranscode
 

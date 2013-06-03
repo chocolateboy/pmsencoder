@@ -1,5 +1,7 @@
 # PMSEncoder
 
+[![Build Status](http://pms.smoeller.de/buildStatus/icon?job=pmsencoder)](http://pms.smoeller.de/job/pmsencoder/)
+
 - [Description](#description)
 - [Prerequisites](#prerequisites)
 - [Installation](#installation)
