@@ -299,3 +299,22 @@ Downloaders:
 // log the version of youtube-dl and get-flash-videos if available
 
 // add web audio engine
+
+// there are other places where a matcher can be useful e.g. isCompatible
+// this would allow PMSEncoder to fall through to another engine (e.g. VLC)
+// rather than having to construct a command line for another engine, which
+// might be a pain to build options for (e.g. VLC)
+//
+// add an "on" field to profile to simplify/unify hooks i.e.
+// "finalizeTransdcodeArgs", "isCompatible" matcher only runs profile
+// if the supplied event is in the profile's list of events to match
+
+    profile(on: 'transcode') { ... }
+    profile(on: 'finalize-transcode-args') { ... }
+    profile(on: 'check-compatibility') { ... }
+
+// or:
+
+    profile(on: [ 'launchTranscode', 'finaliseTranscodeArgs', 'isCompatible' ]) { ... }
+
+// default event is launchTranscode

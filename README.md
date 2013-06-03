@@ -69,7 +69,9 @@ Please do the following when reporting any issues:
 1. restart (or start) PMS
 2. try to stream a web video
 3. wait until it fails
-4. report the problem in [this thread](http://ps3mediaserver.org/forum/viewtopic.php?f=6&t=8776) with your PMS.conf, WEB.conf, pmsencoder.log and debug.log attached in a zip file.
+4. navigate to the directory where the PMS [`debug.log`](http://www.ps3mediaserver.org/forum/viewtopic.php?f=6&t=3507&p=38484#p38484) is located (see [here](http://www.ps3mediaserver.org/forum/viewtopic.php?f=6&t=3507&p=32731#p32731) for the default location)
+4. either a) pastie or b) zip and attach the **full**  [`debug.log`](http://www.ps3mediaserver.org/forum/viewtopic.php?f=6&t=3507&p=38484#p38484) and the **full** `pmsencoder.log`
+5. report the problem in [this thread](http://ps3mediaserver.org/forum/viewtopic.php?f=6&t=8776) along with any other relevant details e.g. your WEB.conf, PMS.conf &c.
 
 ### Support
 
