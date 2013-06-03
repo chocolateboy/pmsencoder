@@ -45,8 +45,8 @@ To build PMSEncoder from source, see the [Wiki](https://github.com/chocolateboy/
 
 ## Tips
 
-* To work around the PMS [bug](http://code.google.com/p/ps3mediaserver/issues/detail?id=759) that causes web video playback to be delayed for ~40s, uncheck "HTTP Engine V2" in the PMS "General Configuration" tab. This can also be done by setting `http_engine_v2 = false` in PMS.conf. Then restart PMS. See [below](#HTTPEngine) for caveats.
-* To take PMSEncoder for a spin, try [this WEB.conf](https://raw.github.com/chocolateboy/pmsencoder/release/misc/conf/WEB.conf), which contains a list of feeds that are regularly tested.
+* To work around the PMS [bug](http://code.google.com/p/ps3mediaserver/issues/detail?id=759) that causes web video playback to be delayed for ~40s, uncheck "HTTP Engine V2" in the PMS "General Configuration" tab. This can also be done by setting `http_engine_v2 = false` in `PMS.conf`. Then restart PMS. See [below](#http-engine) for caveats.
+* To take PMSEncoder for a spin, try [this `WEB.conf`](https://raw.github.com/chocolateboy/pmsencoder/release/misc/conf/WEB.conf), which contains a list of feeds that are regularly tested.
 * For help with particular feeds/streams/sites, see [here](http://www.ps3mediaserver.org/forum/viewtopic.php?f=6&t=8776&p=46696#p46696).
 
 
@@ -57,9 +57,9 @@ To build PMSEncoder from source, see the [Wiki](https://github.com/chocolateboy/
 * Make sure there's only one version of the plugin in the `plugins` directory.
 * Make sure PMSEncoder is first in the list of web video engines.
 * Make sure the error is reproducible after a PMS restart. Caching in PMS and/or the PS3 often produces one-off errors.
-* <a name="tips"></a>If you [disabled "HTTP Engine V2"](#tips), try re-enabling it as some renderers, such as the Sony Bravia KDL-37V5500, require it.
+* <a name="http-engine"></a>If you [disabled "HTTP Engine V2"](#tips), try re-enabling it as some renderers, such as the Sony Bravia KDL-37V5500, require it.
 * Internet Explorer saves .jar files as .zip files. Either save the file with a [different](http://www.mozilla.com/firefox/) [browser](http://www.google.com/chrome), or rename it, replacing the .zip extension with .jar.
-* Check the PMS trace, PMS debug.log, and pmsencoder.log (which should be in the same directory as the debug.log) for
+* Check the PMS trace, PMS `debug.log`, and `pmsencoder.log` (which should be in the same directory as the `debug.log`) for
   errors.
 
 ### Reporting Issues
@@ -70,8 +70,10 @@ Please do the following when reporting any issues:
 2. try to stream a web video
 3. wait until it fails
 4. navigate to the PMS logfile directory (see [here](http://www.ps3mediaserver.org/forum/viewtopic.php?f=6&t=3507&p=32731#p32731) for the default location)
-4. either a) [pastebin](http://pastebin.com/) or b) zip and attach the **full**  [`debug.log`](http://www.ps3mediaserver.org/forum/viewtopic.php?f=6&t=3507&p=38484#p38484) and the **full** `pmsencoder.log`
-5. report the problem in [this thread](http://ps3mediaserver.org/forum/viewtopic.php?f=6&t=8776) along with any other relevant details e.g. your WEB.conf, PMS.conf &c.
+5. either a) [pastebin](http://pastebin.com/) or b) zip the **full**  [`debug.log`](http://www.ps3mediaserver.org/forum/viewtopic.php?f=6&t=3507&p=38484#p38484) and the **full** `pmsencoder.log`
+6. report the problem in [this thread](http://ps3mediaserver.org/forum/viewtopic.php?f=6&t=8776) and link/attach the logfiles
+7. describe the problem and include any other relevant details e.g. the [`WEB.conf`](http://www.ps3mediaserver.org/forum/viewtopic.php?f=6&t=3507&p=32731#p32731),
+[`PMS.conf`](http://www.ps3mediaserver.org/forum/viewtopic.php?f=6&t=3507&p=32731#p32731) &c.
 
 ### Support
 
