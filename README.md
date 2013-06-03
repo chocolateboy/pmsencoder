@@ -71,7 +71,7 @@ Please do the following when reporting any issues:
 3. wait until it fails
 4. navigate to the PMS logfile directory (see [here](http://www.ps3mediaserver.org/forum/viewtopic.php?f=6&t=3507&p=32731#p32731) for the default location)
 5. either a) [pastebin](http://pastebin.com/) or b) zip the **full**  [`debug.log`](http://www.ps3mediaserver.org/forum/viewtopic.php?f=6&t=3507&p=38484#p38484) and the **full** `pmsencoder.log`
-6. report the problem in [this thread](http://ps3mediaserver.org/forum/viewtopic.php?f=6&t=8776) and link/attach the logfiles
+6. create a new post in [this thread](http://ps3mediaserver.org/forum/viewtopic.php?f=6&t=8776) and link/attach the logfiles
 7. describe the problem and include any other relevant details e.g. the [`WEB.conf`](http://www.ps3mediaserver.org/forum/viewtopic.php?f=6&t=3507&p=32731#p32731),
 [`PMS.conf`](http://www.ps3mediaserver.org/forum/viewtopic.php?f=6&t=3507&p=32731#p32731) &c.
 
