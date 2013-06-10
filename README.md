@@ -49,10 +49,12 @@ To build PMSEncoder from source, see the [Wiki](https://github.com/chocolateboy/
 
 * To work around the PMS [bug](http://code.google.com/p/ps3mediaserver/issues/detail?id=759) that causes web video playback to be delayed for ~40s, uncheck "HTTP Engine V2" in the PMS "General Configuration" tab. This can also be done by setting `http_engine_v2 = false` in `PMS.conf`. Then restart PMS. See [below](#http-engine) for caveats.
 * To take PMSEncoder for a spin, try [this `WEB.conf`](https://raw.github.com/chocolateboy/pmsencoder/release/misc/conf/WEB.conf), which contains a list of feeds that are regularly tested.
+* For help with particular feeds/streams/sites, see [here](http://www.ps3mediaserver.org/forum/viewtopic.php?f=6&t=8776&p=46696#p46696).
 * For details on customizing PMSEncoder, see [here](https://github.com/chocolateboy/pmsencoder/wiki/PMS.conf-options).
 
 ## Troubleshooting
 
+* For help with particular feeds/streams/sites, see [here](http://www.ps3mediaserver.org/forum/viewtopic.php?f=6&t=8776&p=46696#p46696).
 * Make sure you're using the [latest version of PMS](http://www.ps3mediaserver.org/forum/viewtopic.php?f=6&t=3507&p=38376#p38376) and the latest version of PMSEncoder.
 * Make sure the [WEB.conf](http://www.ps3mediaserver.org/forum/viewtopic.php?f=6&t=3507&p=64418#p64418) is in the profile directory (see [here](http://www.ps3mediaserver.org/forum/viewtopic.php?f=6&t=3507&p=32731#p32731) for the default locations).
 * Make sure there's only one version of the plugin in the `plugins` directory.
@@ -60,7 +62,6 @@ To build PMSEncoder from source, see the [Wiki](https://github.com/chocolateboy/
 * Make sure the error is reproducible after a PMS restart. Caching in PMS and/or the PS3 often produces one-off errors.
 * <a name="http-engine"></a>If you [disabled "HTTP Engine V2"](#tips), try re-enabling it as some renderers, such as the Sony Bravia KDL-37V5500, require it.
 * Internet Explorer saves .jar files as .zip files. Either save the file with a [different](http://www.mozilla.com/firefox/) [browser](http://www.google.com/chrome), or rename it, replacing the .zip extension with .jar.
-* For help with particular feeds/streams/sites, see [here](http://www.ps3mediaserver.org/forum/viewtopic.php?f=6&t=8776&p=46696#p46696).
 
 ### Reporting Issues
 
