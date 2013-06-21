@@ -33,6 +33,7 @@ class Matcher {
     private HTTPClient http = new HTTPClient()
     // this is the default Map type, but let's be explicit as we strictly need this type
     private Map<String, Profile> profiles = new LinkedHashMap<String, Profile>()
+    private boolean isSortProfiles = false
     private List<Profile> sortedProfiles
     private PMS pms
     private List<String> ffmpeg = []
@@ -48,10 +49,11 @@ class Matcher {
         this.pms = pms
     }
 
-    // sort the profiles by a) stage b) document order
-    // within a script (which is preserved in the unsorted list)
+    // sort the profiles by a) stage b) document order within
+    // a script (which is preserved in the unsorted list)
     public void sortProfiles() {
         List<Profile> unsortedProfiles = profiles.values().asList()
+
         sortedProfiles = unsortedProfiles.sort { Profile profile1, Profile profile2 ->
             // XXX Groovy truth (0 == false) doesn't work under CompileStatic
             def cmp = profile1.stage.compareTo(profile2.stage)
@@ -61,12 +63,16 @@ class Matcher {
                 return unsortedProfiles.indexOf(profile1).compareTo(unsortedProfiles.indexOf(profile2))
             }
         }
+
+        isSortProfiles = false
     }
 
     @groovy.transform.CompileStatic(groovy.transform.TypeCheckingMode.SKIP)
     boolean match(Command command, boolean useDefault = true) {
-        if (sortedProfiles == null) {
-            sortProfiles()
+        synchronized(isSortProfiles) {
+            if (isSortProfiles) {
+                sortProfiles()
+            }
         }
 
         if (useDefault) {
@@ -80,9 +86,13 @@ class Matcher {
         sortedProfiles.each { Profile profile ->
             if (stopMatching == false || profile.alwaysRun == true) {
                 if (profile.match(command)) {
-                    // XXX make sure we take the name from the profile itself
-                    // rather than the Map key - the latter may have been usurped
-                    // by a profile with a different name
+                    /*
+                        XXX make sure we take the name from the profile itself
+                        rather than the Map key - the latter may have been
+                        usurped by a profile with a different name e.g.
+
+                            profile ('Foo', replaces: 'Bar')
+                    */
                     command.matches << profile.name
 
                     if (profile.stopOnMatch) {
@@ -172,6 +182,10 @@ class Matcher {
     // contain exactly one script block, but why bother?
     @groovy.transform.CompileStatic(groovy.transform.TypeCheckingMode.SKIP)
     void load(Reader reader, String filename) {
+        // we'll typically be adding new profiles, so notify match() to
+        // recalculate the list of sorted profiles when we're done
+        isSortProfiles = true
+
         def binding = new Binding(
             'begin':  this.&begin,
             'init':   this.&init,

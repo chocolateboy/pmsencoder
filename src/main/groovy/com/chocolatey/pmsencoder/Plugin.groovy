@@ -48,7 +48,6 @@ public class Plugin implements ExternalListener, FinalizeTranscoderArgsListener,
     private Matcher matcher
     private PmsConfiguration configuration
     private PMS pms
-    private Object lock = new Object()
 
     public Plugin() {
         info('initializing PMSEncoder ' + VERSION)
@@ -233,19 +232,17 @@ public class Plugin implements ExternalListener, FinalizeTranscoderArgsListener,
         createMatcher()
     }
 
-    private void createMatcher() {
-        synchronized (lock) {
-            matcher = new Matcher(pms)
+    private synchronized void createMatcher() {
+        matcher = new Matcher(pms)
 
-            try {
-                matcher.loadDefaultScripts()
+        try {
+            matcher.loadDefaultScripts()
 
-                if (directoryExists(scriptDirectory)) {
-                    matcher.loadUserScripts(scriptDirectory)
-                }
-            } catch (Exception e) {
-                error('error loading scripts', e)
+            if (directoryExists(scriptDirectory)) {
+                matcher.loadUserScripts(scriptDirectory)
             }
+        } catch (Exception e) {
+            error('error loading scripts', e)
         }
     }
 
