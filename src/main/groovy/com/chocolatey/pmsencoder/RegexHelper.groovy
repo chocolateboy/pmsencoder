@@ -27,7 +27,7 @@ class MatchResult {
     }
 
     public boolean asBoolean() {
-        !!matched
+        matched
     }
 
     public String toString() {
