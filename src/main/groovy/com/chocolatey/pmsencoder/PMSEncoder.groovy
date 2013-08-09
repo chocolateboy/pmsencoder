@@ -2,25 +2,28 @@ package com.chocolatey.pmsencoder
 
 import static com.chocolatey.pmsencoder.Util.shellQuote
 
+import com.sun.jna.Platform
+
 import java.util.Collections
 
 import net.pms.PMS
 import net.pms.configuration.PmsConfiguration
 import net.pms.dlna.DLNAMediaInfo
 import net.pms.dlna.DLNAResource
-import net.pms.encoders.FFMpegWebVideo
+import net.pms.encoders.FFmpegWebVideo
 import net.pms.encoders.Player
+import net.pms.util.PlayerUtil
 import net.pms.io.OutputParams
 import net.pms.io.ProcessWrapper
 import net.pms.io.ProcessWrapperImpl
 import net.pms.network.HTTPResource
 
-// import net.pms.encoders.FFMpegVideo // TODO add support for video transcode profiles
+// import net.pms.encoders.FFmpegVideo // TODO add support for video transcode profiles
 
 @groovy.transform.CompileStatic
 @groovy.util.logging.Log4j(value="logger")
-public class PMSEncoder extends FFMpegWebVideo {
-    public static final boolean isWindows = PMS.get().isWindows()
+public class PMSEncoder extends FFmpegWebVideo {
+    public static final boolean isWindows = Platform.isWindows()
     private Plugin plugin
     private final PmsConfiguration configuration
     private final int nbCores
@@ -52,20 +55,32 @@ public class PMSEncoder extends FFMpegWebVideo {
     }
 
     public PMSEncoder(PmsConfiguration configuration, Plugin plugin) {
-        super(configuration)
+        // FIXME temporary hack for 1.90.0 compatibility.
+        // the null FFmpegProtocols instance is required to work around
+        // the fact that the FFMpegWebVideo constructor requires this parameter.
+        // null is OK (for the time being) since we don't need to call any
+        // FFmpegWebVideo methods that use the protocols object
+        super(configuration, null)
         this.configuration = configuration
         this.plugin = plugin
         this.nbCores = configuration.getNumberOfCpuCores()
     }
 
     @Override
+    public boolean isCompatible(DLNAResource dlna) {
+        // support every protocol i.e. allow scripts
+        // to handle custom protocols
+        return PlayerUtil.isWebVideo(dlna)
+    }
+
+    @Override
     @groovy.transform.CompileStatic(groovy.transform.TypeCheckingMode.SKIP)
     public ProcessWrapper launchTranscode(
-        String oldURI,
         DLNAResource dlna,
         DLNAMediaInfo media,
         OutputParams params
     ) throws IOException {
+        def oldURI = dlna.getSystemName()
         def processManager = new ProcessManager(this, params)
         def threadId = currentThreadId() // make sure concurrent threads don't use the same filename
         def uniqueId = System.currentTimeMillis() + '_' + threadId
@@ -104,6 +119,8 @@ public class PMSEncoder extends FFMpegWebVideo {
 
         // work around an ffmpeg bug:
         // http://ffmpeg.org/trac/ffmpeg/ticket/998
+        // FIXME: use protocols.getFilename(newURI) when
+        // FFmpegProtocols is fixed (PMS > 1.90.0)
         if (newURI.startsWith('mms:')) {
             newURI = 'mmsh:' + newURI.substring(4);
         }
@@ -162,19 +179,19 @@ public class PMSEncoder extends FFMpegWebVideo {
                 List<String> videoTranscodeOptions = command.getVideoTranscodeOptions()
 
                 if (audioBitrateOptions == null) {
-                    transcoderArgs.addAll(getAudioBitrateOptions(transcoderInput, dlna, media, params))
+                    transcoderArgs.addAll(getAudioBitrateOptions(dlna, media, params))
                 } else {
                     transcoderArgs.addAll(audioBitrateOptions)
                 }
 
                 if (videoBitrateOptions == null) {
-                    transcoderArgs.addAll(getVideoBitrateOptions(transcoderInput, dlna, media, params))
+                    transcoderArgs.addAll(getVideoBitrateOptions(dlna, media, params))
                 } else {
                     transcoderArgs.addAll(videoBitrateOptions)
                 }
 
                 if (videoTranscodeOptions == null) {
-                    transcoderArgs.addAll(getVideoTranscodeOptions(transcoderInput, dlna, media, params))
+                    transcoderArgs.addAll(getVideoTranscodeOptions(dlna, media, params))
                 } else {
                     transcoderArgs.addAll(videoTranscodeOptions)
                 }

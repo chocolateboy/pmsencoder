@@ -1,5 +1,7 @@
 package com.chocolatey.pmsencoder
 
+import com.sun.jna.Platform
+
 import net.pms.io.OutputParams
 import net.pms.io.PipeProcess
 import net.pms.io.ProcessWrapper
@@ -50,7 +52,7 @@ class ProcessManager {
 
     public String getFifoPath(String basename) {
         try {
-            return pmsencoder.isWindows ?
+            return Platform.isWindows() ?
                 '\\\\.\\pipe\\' + basename :
                 (new File(PMS.getConfiguration().getTempFolder(), basename)).getCanonicalPath()
         } catch (IOException e) {

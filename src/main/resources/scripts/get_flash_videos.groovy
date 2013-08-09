@@ -3,6 +3,9 @@
 // FIXME find a better example as wimp.com doesn't currently work
 // check: youtube-dl (stage: script) is the preferred downloader
 // so this must be run later
+
+import com.sun.jna.Platform
+
 check {
     profile ('Get Flash Videos') {
         def GET_FLASH_VIDEOS_PATH
@@ -22,7 +25,7 @@ check {
         }
 
         action {
-            if (pms.isWindows()) {
+            if (Platform.isWindows()) {
                 // --quiet: make sure it doesn't write to stdout
                 downloader = GET_FLASH_VIDEOS_PATH + [ '--quality', 'high', '--quiet', '--yes', '--filename', 'DOWNLOADER_OUT', uri ]
             } else {

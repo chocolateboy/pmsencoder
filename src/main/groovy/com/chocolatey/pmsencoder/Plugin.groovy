@@ -161,13 +161,7 @@ public class Plugin implements ExternalListener, FinalizeTranscoderArgsListener,
         // initialize the transcoding engine
         pmsencoder = new PMSEncoder(configuration, this)
 
-        /*
-         * FIXME: don't assume the position is fixed
-         * short term: find and replace *if it exists*
-         * long term: patch PMS to allow plugins to register engines a) separately and b) cleanly
-         * */
-        def extensions = pms.getExtensions()
-        extensions.set(0, new WEB())
+        // register the engine with PMS
         PlayerFactory.registerPlayer(pmsencoder)
 
         // add to the engines list

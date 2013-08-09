@@ -1,13 +1,15 @@
 // videostream.Web,Screen=Screen,pmsencoder://show
-aaaaaaaaaaas://ffmpeg.org/trac/ffmpeg/wiki/How%20to%20grab%20the%20desktop%20%28screen%29%20with%20FFmpeg
+// http://ffmpeg.org/trac/ffmpeg/wiki/How%20to%20grab%20the%20desktop%20%28screen%29%20with%20FFmpeg
 
 // since this produces an invalid URI (e.g. :0.0), we need to run
 // it as late as possible so that it doesn't break
 // scripts that call uri()
+import com.sun.jna.Platform
+
 end {
     profile ('pmsencoder://x11grab') {
         pattern {
-            match { !pms.isWindows() }
+            match { Platform.isWindows() }
             match uri: '^pmsencoder://x11grab\\b'
         }
 

@@ -8,10 +8,10 @@
     <name>PMSEncoder</name>
     <description>A plugin for PS3 Media Server that adds support for scriptable web video streaming.</description>
     <properties>
-        <groovy-version>2.1.3</groovy-version>
+        <groovy-version>2.1.6</groovy-version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <junit-version>4.11</junit-version>
-        <pms-version>1.81.0</pms-version>
+        <pms-version>1.90.0</pms-version>
         <regexplus-version>2010-04-16</regexplus-version>
     </properties>
 
@@ -20,6 +20,16 @@
     </prerequisites>
 
     <dependencies>
+        <!--
+            FIXME use groovy-all rather than the separate libs to work around an issue with PMS' use of an old/incompatible version of asm
+            http://groovy.329449.n5.nabble.com/Groovy-Spring-and-ASM-td5447603.html
+        -->
+        <dependency>
+            <groupId>org.codehaus.groovy</groupId>
+            <artifactId>groovy-all</artifactId>
+            <version>${groovy-version}</version>
+        </dependency>
+        <!--
         <dependency>
             <groupId>org.codehaus.groovy</groupId>
             <artifactId>groovy</artifactId>
@@ -40,6 +50,7 @@
             <artifactId>groovy-test</artifactId>
             <version>${groovy-version}</version>
         </dependency>
+        -->
 
         <dependency>
             <groupId>org.codehaus.groovy.modules.http-builder</groupId>
@@ -273,12 +284,12 @@
                             <artifactId>ps3mediaserver</artifactId>
                             <version>${pms-version}</version>
                             <packaging>jar</packaging>
-                            <downloadUrl>https://ps3mediaserver.googlecode.com/files/pms-generic-linux-unix-${pms-version}.tgz</downloadUrl>
+                            <downloadUrl>http://surfnet.dl.sourceforge.net/project/ps3mediaserver/pms-${pms-version}-generic-linux-unix.tar.gz</downloadUrl>
                             <install>true</install>
                             <force>false</force>
-                            <checksum>2efec9344a0fad45e83f9080027341cca22c5961</checksum>
+                            <checksum>7df9673a35439f5e4f5f469e9e9ce6cb59b652b3</checksum>
                             <extractFile>pms-${pms-version}/pms.jar</extractFile>
-                            <extractFileChecksum>8ee1469c5fb918c1b839ce6e2c4b35522de0e9c0</extractFileChecksum>
+                            <extractFileChecksum>42241138e6a793e6ee93a0693ea7af9c15e96837</extractFileChecksum>
                         </artifactItem>
                     </artifactItems>
                 </configuration>

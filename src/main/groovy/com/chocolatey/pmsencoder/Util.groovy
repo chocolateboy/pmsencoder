@@ -1,5 +1,7 @@
 package com.chocolatey.pmsencoder
 
+import com.sun.jna.Platform
+
 import net.pms.PMS
 
 @groovy.transform.CompileStatic
@@ -39,7 +41,7 @@ class Util {
             String uri = obj.toString()
             // double quote a URI to make it safe for cmd.exe
             // XXX need to test this
-            return PMS.get().isWindows() ? '"' + uri.replaceAll('"', '""') + '"' : uri
+            return Platform.isWindows() ? '"' + uri.replaceAll('"', '""') + '"' : uri
         }
     }
 }

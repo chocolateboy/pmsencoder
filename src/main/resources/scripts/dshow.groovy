@@ -4,10 +4,13 @@
 // since this produces an invalid URI (i.e. video="UScreenCapture"),
 // we need to run it as late as possible so that it doesn't break
 // scripts that call uri()
+
+import com.sun.jna.Platform
+
 end {
     profile ('pmsencoder://dshow') {
         pattern {
-            match { pms.isWindows() }
+            match { Platform.isWindows() }
             match uri: '^pmsencoder://dshow\\b'
         }
 
