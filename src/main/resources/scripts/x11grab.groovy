@@ -9,7 +9,7 @@ import com.sun.jna.Platform
 end {
     profile ('pmsencoder://x11grab') {
         pattern {
-            match { Platform.isWindows() }
+            match { !Platform.isWindows() }
             match uri: '^pmsencoder://x11grab\\b'
         }
 
