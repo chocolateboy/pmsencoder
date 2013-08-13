@@ -45,8 +45,29 @@ class Matcher {
     Map<String, Boolean> youTubeDLCache = [:]
     Map<String, Boolean> getFlashVideosCache = [:]
 
+    static {
+        installExtensionMethods()
+    }
+
     Matcher(PMS pms) {
         this.pms = pms
+    }
+
+    // install extension methods: (G)String.match(pattern) -> RegexHelper.match(delegate, pattern).
+    // the obvious place to put this is in Plugin, but the test suite doesn't load that class.
+    // FIXME these extensions are global: we want to restrict them to scripts
+    // FIXME the META-INF way doesn't work: from the Maven output:
+    //
+    //     WARNING: Module [pmsencoder-extensions] - Unable to load extension class [com.chocolatey.pmsencoder.StringExtension]
+    @groovy.transform.CompileStatic(groovy.transform.TypeCheckingMode.SKIP)
+    static private void installExtensionMethods() {
+        String.metaClass {
+            match { Object regex -> RegexHelper.match(delegate, regex) }
+        }
+
+        GString.metaClass {
+            match { Object regex -> RegexHelper.match(delegate, regex) }
+        }
     }
 
     // sort the profiles by a) stage b) document order within
