@@ -21,7 +21,7 @@
     </appender>
 
     <category name="com.chocolatey.pmsencoder">
-        <priority value="INFO" />
+        <priority value="DEBUG" />
     </category>
 
     <category name="groovyx.net.http">
@@ -29,7 +29,6 @@
     </category>
 
     <!-- Use DEBUG to see basic request/response info; Use TRACE to see headers for HttpURLClient. -->
-
     <category name="groovyx.net.http.HttpURLClient">
         <priority value="DEBUG" />
     </category>
