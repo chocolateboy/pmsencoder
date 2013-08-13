@@ -294,18 +294,15 @@ class ActionDelegate {
 
     // take a query string (a list of key=value pairs joined by '&') and
     // return them as a map. if a key is seen more than once, overwrite the value.
-    // XXX note: URLEncodedUtils.parse (which getNameValuePairs calls) unescapes the key and value
+    // XXX note: URLEncodedUtils.parse (which getNameValueMap calls) unescapes the key and value
     // XXX numerous type-inference fails, hence the explicit types
     private Map<String, String> queryStringToMap(String qs) {
         /*
-            collectEntries (new in Groovy 1.7.9) transforms (via the supplied closure)
-            a list of elements into a list of pairs and then
-            assembles a map from those pairs. mapBy or toMapBy might have been a clearer name...
             XXX squashed bug: don't try to implement this by hand (with tokenize()) - there
             are too many gotchas e.g. "pairs" (split on '=') with 1 or 3 elements as well
             as the expected 2...
         */
-        return getHttp().getNameValuePairs(qs).collectEntries { NameValuePair pair -> [ pair.name, pair.value ] }
+        return getHttp().getNameValueMap(qs)
     }
 
     // XXX numerous type-inference fails, hence the explicit types

@@ -29,6 +29,7 @@ import java.nio.charset.Charset
 class HTTPClient {
     final static private DEFAULT_CHARSET = 'UTF-8'
     private JsonSlurper jsonSlurper = new JsonSlurper()
+    private XmlSlurper xmlSlurper = new XmlSlurper()
 
     // these methods are called from scripts so need to be forgiving (Object) in what
     // they receive
@@ -38,28 +39,61 @@ class HTTPClient {
     }
 
     public GPathResult getXML(Object uri) {
-        return getType(uri?.toString(), ContentType.XML) as GPathResult
+        // XXX using HTTPBuilder's XML converter causes the following error when retrieving a file
+        // that loads fine as plain text:
+        //
+        //     java.util.zip.ZipException: Not in GZIP format
+        //
+        // return getType(uri?.toString(), ContentType.XML) as GPathResult
+        return xmlSlurper.parse(uri?.toString())
     }
 
     public GPathResult getHTML(Object uri) {
         return getType(uri?.toString(), ContentType.HTML) as GPathResult
     }
 
+    // FIXME unused
     public Map<String, String> getForm(Object uri) {
         return getType(uri?.toString(), ContentType.URLENC) as Map<String, String>
     }
 
+    // TODO JsonSlurper will add a parse(URL) method in Groovy 2.2.0
     public Object getJSON(Object uri) {
         return jsonSlurper.parseText(get(uri))
     }
 
+    // allow the getNameValueX(Object) methods to handle a query string or a URI with a query string
+    private String getQuery(Object str) {
+        if (str != null) {
+            try {
+                def uri = new URI(str.toString())
+                return uri.query
+            } catch (URISyntaxException use) { } // already a query string
+        }
+
+        return str
+    }
+
     public List<NameValuePair> getNameValuePairs(Object str, String charset = DEFAULT_CHARSET) {
         // introduced in HttpClient 4.2
-        return URLEncodedUtils.parse(str?.toString(), Charset.forName(charset))
+        return URLEncodedUtils.parse(getQuery(str), Charset.forName(charset))
     }
 
     public List<NameValuePair> getNameValuePairs(URI uri, String charset = DEFAULT_CHARSET) {
         return URLEncodedUtils.parse(uri, charset)
+    }
+
+    public Map<String, String> getNameValueMap(Object str, String charset = DEFAULT_CHARSET) {
+        /*
+            collectEntries (new in Groovy 1.7.9) transforms (via the supplied closure)
+            a list of elements into a list of pairs and then
+            assembles a map from those pairs. mapBy, mapFrom, or toMapBy might have been a clearer name...
+        */
+        return getNameValuePairs(getQuery(str)).collectEntries { NameValuePair pair -> [ pair.name, pair.value ] }
+    }
+
+    public Map<String, String> getNameValueMap(URI uri, String charset = DEFAULT_CHARSET) {
+        return getNameValuePairs(uri).collectEntries { NameValuePair pair -> [ pair.name, pair.value ] }
     }
 
     @groovy.transform.CompileStatic(groovy.transform.TypeCheckingMode.SKIP)
