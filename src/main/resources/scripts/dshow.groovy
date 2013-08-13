@@ -7,7 +7,7 @@
 
 import com.sun.jna.Platform
 
-end {
+script (END) {
     profile ('pmsencoder://dshow') {
         pattern {
             match { Platform.isWindows() }

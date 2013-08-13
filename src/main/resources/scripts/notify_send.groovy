@@ -1,4 +1,4 @@
-begin {
+script (BEGIN) {
     profile ('Notify Send', stopOnMatch: false) {
         pattern {
             match { NOTIFY_SEND }

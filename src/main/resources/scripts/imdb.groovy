@@ -1,4 +1,4 @@
-check {
+script (CHECK) {
     profile ('IMDb Trailer') {
         pattern {
             domain 'imdb.com'

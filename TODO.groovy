@@ -162,7 +162,7 @@ Groovy++ bytecode compilation error (both at compile-time and runtime): see Plug
 
         begin
         init
-        script (rename to e.g. run or main?)
+        default
         check
         end
 
@@ -278,7 +278,7 @@ Downloaders:
 
 // investigate using gmock: https://code.google.com/p/gmock/
 
-// TODO: add RegexHelper.match to String
+// TODO: add RegexHelper.match to String (XXX the META-INF method doesn't appear to work for dynamically-loaded jars i.e. PMS plugins)
 
 // test nested context blocks
 

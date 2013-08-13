@@ -1,42 +1,52 @@
 // confirm that profiles are sorted by stage (by adding them in reverse order)
 // also confirm that document ordering is preserved
 
-end {
+script (END) {
     profile('End 1', stopOnMatch: false) { }
 }
 
-end {
+script (END) {
     profile('End 2', stopOnMatch: false) { }
 }
 
-check {
+script (CHECK) {
     profile('Check 1', stopOnMatch: false) { }
 }
 
-check {
+script (CHECK) {
     profile('Check 2', stopOnMatch: false) { }
 }
 
+// make sure an explicit stage doesn't break document ordering (i.e. isn't sorted before an implicit stage)
 script {
-    profile('Script 1', stopOnMatch: false) { }
+    profile('Default 1', stopOnMatch: false) { }
+}
+
+script (DEFAULT) {
+    profile('Default 2', stopOnMatch: false) { }
+}
+
+// make sure an implicit stage doesn't break document ordering (i.e. isn't sorted before an explicit stage)
+script (DEFAULT) {
+    profile('Default 3', stopOnMatch: false) { }
 }
 
 script {
-    profile('Script 2', stopOnMatch: false) { }
+    profile('Default 4', stopOnMatch: false) { }
 }
 
-init {
+script (INIT) {
     profile('Init 1', stopOnMatch: false) { }
 }
 
-init {
+script (INIT) {
     profile('Init 2', stopOnMatch: false) { }
 }
 
-begin {
+script (BEGIN) {
     profile('Begin 1', stopOnMatch: false) { }
 }
 
-begin {
+script (BEGIN) {
     profile('Begin 2', stopOnMatch: false) { }
 }

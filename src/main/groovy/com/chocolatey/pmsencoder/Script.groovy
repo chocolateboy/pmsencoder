@@ -2,7 +2,7 @@ package com.chocolatey.pmsencoder
 
 @groovy.transform.CompileStatic
 public class Script {
-    Stage stage
+    final Stage stage // read-only
     @Delegate private Matcher matcher
 
     public Script(Matcher matcher, Stage stage) {

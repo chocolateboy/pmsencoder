@@ -7,7 +7,7 @@ import net.pms.configuration.PmsConfiguration
 
 import org.jsoup.nodes.Document
 
-enum Stage { BEGIN, INIT, SCRIPT, CHECK, END }
+enum Stage { BEGIN, INIT, DEFAULT, CHECK, END }
 
 // no need to extend HashMap<...>: we only need the subscript - i.e. getAt() and putAt() - syntax
 @Singleton
@@ -33,7 +33,7 @@ class Matcher {
     private HTTPClient http = new HTTPClient()
     // this is the default Map type, but let's be explicit as we strictly need this type
     private Map<String, Profile> profiles = new LinkedHashMap<String, Profile>()
-    private boolean isSortProfiles = false
+    private boolean doSortProfiles = false
     private List<Profile> sortedProfiles
     private PMS pms
     private List<String> ffmpeg = []
@@ -57,6 +57,7 @@ class Matcher {
         sortedProfiles = unsortedProfiles.sort { Profile profile1, Profile profile2 ->
             // XXX Groovy truth (0 == false) doesn't work under CompileStatic
             def cmp = profile1.stage.compareTo(profile2.stage)
+
             if (cmp != 0) {
                 return cmp
             } else {
@@ -64,13 +65,13 @@ class Matcher {
             }
         }
 
-        isSortProfiles = false
+        doSortProfiles = false
     }
 
     @groovy.transform.CompileStatic(groovy.transform.TypeCheckingMode.SKIP)
     boolean match(Command command, boolean useDefault = true) {
-        synchronized(isSortProfiles) {
-            if (isSortProfiles) {
+        synchronized(doSortProfiles) {
+            if (doSortProfiles) {
                 sortProfiles()
             }
         }
@@ -126,6 +127,7 @@ class Matcher {
             logger.info("replacing profile $replaces with: $name")
         } else {
             target = name
+
             if (profiles[name] != null) {
                 logger.info("replacing profile: $name")
             } else {
@@ -179,20 +181,24 @@ class Matcher {
     }
 
     // we could impose a constraint here that a script (file) must
-    // contain exactly one script block, but why bother?
+    // contain exactly one script block, but why do that?
     @groovy.transform.CompileStatic(groovy.transform.TypeCheckingMode.SKIP)
     void load(Reader reader, String filename) {
         // we'll typically be adding new profiles, so notify match() to
         // recalculate the list of sorted profiles when we're done
-        isSortProfiles = true
+        doSortProfiles = true
 
-        def binding = new Binding(
-            'begin':  this.&begin,
-            'init':   this.&init,
-            'script': this.&script,
-            'check':  this.&check,
-            'end':    this.&end
-        )
+        // XXX the stage imports are a workaround for the fact that:
+        //
+        //     import static Stage.*
+        //
+        // doesn't work in Script.groovy (i.e. isn't exported to scripts).
+        // Cryptic '*:' syntax suggested here:
+        // https://groovy.codeplex.com/wikipage?title=Guillaume%20Laforge%27s%20%22Mars%20Rover%22%20tutorial%20on%20Groovy%20DSL%27s
+        def binding = new Binding([
+            *:      (Stage.values().collectEntries { [ (it.name()): it ] }),
+            script: this.&script
+        ])
 
         def groovy = new GroovyShell(binding)
 
@@ -238,6 +244,7 @@ class Matcher {
         getResource('lib.txt').eachLine() { String scriptName ->
             logger.info("loading built-in script: $scriptName")
             def scriptURL = getResource(scriptName)
+
             if (scriptURL == null) {
                 logger.error("can't load $scriptURL")
             } else {
@@ -269,36 +276,14 @@ class Matcher {
     }
 
     // DSL method
-    protected void begin(Closure closure) {
-        closure.delegate = new Script(this, Stage.BEGIN)
-        closure.resolveStrategy = Closure.DELEGATE_FIRST
-        closure()
-    }
-
-    // DSL method
-    protected void init(Closure closure) {
-        closure.delegate = new Script(this, Stage.INIT)
-        closure.resolveStrategy = Closure.DELEGATE_FIRST
-        closure()
-    }
-
-    // DSL method
+    // spell these out (no default parameters) to work around Groovy bugs
     protected void script(Closure closure) {
-        closure.delegate = new Script(this, Stage.SCRIPT)
-        closure.resolveStrategy = Closure.DELEGATE_FIRST
-        closure()
+        script(Stage.DEFAULT, closure)
     }
 
     // DSL method
-    protected void check(Closure closure) {
-        closure.delegate = new Script(this, Stage.CHECK)
-        closure.resolveStrategy = Closure.DELEGATE_FIRST
-        closure()
-    }
-
-    // DSL method
-    protected void end(Closure closure) {
-        closure.delegate = new Script(this, Stage.END)
+    protected void script(Stage stage, Closure closure) {
+        closure.delegate = new Script(this, stage)
         closure.resolveStrategy = Closure.DELEGATE_FIRST
         closure()
     }

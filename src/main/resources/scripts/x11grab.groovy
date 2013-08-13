@@ -6,7 +6,7 @@
 // scripts that call uri()
 import com.sun.jna.Platform
 
-end {
+script (END) {
     profile ('pmsencoder://x11grab') {
         pattern {
             match { !Platform.isWindows() }

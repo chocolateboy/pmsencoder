@@ -1,12 +1,12 @@
 // videofeed.Web,Wimp=http://www.wimp.com/rss/
 
 // FIXME find a better example as wimp.com doesn't currently work
-// check: youtube-dl (stage: script) is the preferred downloader
-// so this must be run later
+// CHECK: youtube-dl (DEFAULT) is the preferred downloader
+// so this must be run after it
 
 import com.sun.jna.Platform
 
-check {
+script (CHECK) {
     profile ('Get Flash Videos') {
         def GET_FLASH_VIDEOS_PATH
 

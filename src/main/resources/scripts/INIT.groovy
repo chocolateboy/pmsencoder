@@ -10,7 +10,7 @@
     XXX: The scripting framework/DSL is constantly changing, so don't rely on anything here.
 */
 
-init {
+script (INIT) {
     def nbcores = pms.getConfiguration().getNumberOfCpuCores()
 
     /*

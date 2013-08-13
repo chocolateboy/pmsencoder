@@ -8,7 +8,7 @@
     keys can be, but hyphens are not special characters, so they don't need to be
 */
 
-init {
+script (INIT) {
     profile ('pmsencoder://rtmpdump') {
         pattern {
             match uri: '^pmsencoder://rtmpdump\\?'

@@ -31,6 +31,7 @@
             $HTTP       -> http
             &c.
         - shared pattern/action block values are no longer limited to strings e.g.: match { json = getJson(uri) }
+        - stages are now specified via script parameters rather than methods e.g. script (BEGIN) { ... }
 
 1.6.3 Sat Apr 20 17:43:00 2013
     - fix latest YouTube breakage
