@@ -17,17 +17,17 @@ script (INIT) {
         Matcher-level (global) list of strings that define the ffmpeg command:
 
             transcoder = "FFMPEG -loglevel warning -y -threads nbcores \
-                -i ${uri} -output -args $TRANSCODER_OUT"
+                -i ${uri} -output -args TRANSCODER_OUT"
 
             transcoder = "FFMPEG -loglevel warning -y -threads nbcores \
-                -i $DOWNLOADER_OUT -output -args $TRANSCODER_OUT"
+                -i DOWNLOADER_OUT -output -args TRANSCODER_OUT"
 
         By default, ffmpeg is used without a separate downloader.
 
         If ffmpeg is used, PMSEncoder adds the appropriate output options as shown above. Otherwise they must be set manually.
 
         Note: the uppercase executable name (e.g. FFMPEG) is used to signal to PMSEncoder.groovy that the
-        configured path should be substituted.
+        configured ffmpeg path should be substituted.
 
         matcher-scoped (i.e. global): FFMPEG is a list of strings, but, as seen below, can be assigned a string,
         which is split on whitespace.
@@ -36,9 +36,9 @@ script (INIT) {
         of a profile block.
     */
 
-    // default ffmpeg transcode command - all of these defaults can be (p)redefined in a userscript (e.g. BEGIN.groovy)
+    // default ffmpeg input options - all of these defaults can be (p)redefined in a userscript (e.g. BEGIN.groovy)
     if (!FFMPEG) // not null and not empty
-        FFMPEG = "FFMPEG -loglevel warning -y -threads ${nbcores}" // -threads 0 doesn't work for all codecs - better to specify
+        FFMPEG = "FFMPEG -loglevel ${FFMPEG_LOG_LEVEL} -y -threads ${nbcores}" // -threads 0 doesn't work for all codecs - better to specify
 
     /*
         this is the default list of YouTube format/resolution IDs we should accept/select - in descending

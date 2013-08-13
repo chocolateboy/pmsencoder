@@ -1,5 +1,6 @@
 script (BEGIN) {
     // pull globals from PMS.conf i.e. translate PMS.conf settings into global PMSEncoder values
+    FFMPEG_LOG_LEVEL = 'warning' // i.e. -loglevel warning
     GET_FLASH_VIDEOS = pmsConf['get-flash-videos.path']
     NOTIFY_SEND = pmsConf['notify-send.path']
     PERL = pmsConf['perl.path']
@@ -7,5 +8,5 @@ script (BEGIN) {
     RTMPDUMP = pmsConf['rtmpdump.path']
     YOUTUBE_DL = pmsConf['youtube-dl.path']
     // see https://secure.wikimedia.org/wikipedia/en/wiki/YouTube#Quality_and_codecs
-    YOUTUBE_DL_MAX_QUALITY = pmsConf['youtube-dl.max-quality'] ?: 22
+    YOUTUBE_DL_MAX_QUALITY = pmsConf['youtube-dl.max-quality'] ?: 37 // (1080p)
 }
