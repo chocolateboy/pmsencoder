@@ -3,7 +3,7 @@
 script {
    profile ('Gameswelt') {
         pattern {
-            match uri: '^http://www\\.gameswelt\\.de/videos/'
+            domain 'gameswelt.de'
         }
 
         // source: javascript: openDownloadsPopup('43769', '201109/insert_coin_sendung_81_teaser_gameswelt_tv_720p.mp4')
