@@ -72,7 +72,7 @@ class HTTPClient {
                 // if query is defined (e.g. a full URI), return it, otherwise return the string as is
                 def uri = new URI(str.toString())
                 return uri.query ?: str
-            } catch (URISyntaxException use) { } // already a query string
+            } catch (URISyntaxException use) { } // not a full URI or query string
         }
 
         return str

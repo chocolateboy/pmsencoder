@@ -1,23 +1,19 @@
-// videofeed.Web,PCGames=http://www.pcgames.de/feed.cfm?menu_alias=Videos/
 // videofeed.Web,Hardware Clips=http://www.hardwareclips.com/rss/new/
+// videofeed.Web,Hardware Clips=http://www.hardwareclips.com/rss/views/
+// videofeed.Web,Hardware Clips=http://www.hardwareclips.com/rss/comments/
 
 script {
-    profile ('HardwareClips Whitelabels') {
+    profile ('HardwareClips') {
         pattern {
-            domains([ 'hardwareclips.com', 'pcgames.de' ])
+            domain 'hardwareclips.com'
         }
 
-        // source: <embed flashvars='config=http://videos.pcgames.de/embed/pcgames/7aaa99f9804d0905fe58/' />
-        // source: 'url': 'http://videos.pcgames.de:8080/405a31b06b9ece50772e9c4d9f04826d/4899_mini.mp4',
-        // target: http://videos.pcgames.de:8080/405a31b06b9ece50772e9c4d9f04826d/4899_mini.mp4
         action {
-            // the playlist URL is defined in an embed's @flashvars attribute, but these embeds may appear
-            // inside textareas, in which case jSoup escapes the markup - &lt;embed &c. - so those embeds
-            // don't appear in the DOM. so scrape instead
-            scrape """\\bflashvars=(["'])config=(?<playlistURI>[^'"]+)\\1"""
+            // get the URI of the "JSON" file that contains the video stream URI
+            def jsonUri = http.getNameValueMap($('link[rel=video_src]').attr('href')).config
 
-            // the playlist is invalid JSON (uses single quotes), so we need to scrape again
-            scrape uri: playlistURI, "url.+?'url':\\s*'(?<uri>[^']+)'"
+            // the "JSON" is invalid (uses single quotes), so we can't use getJSON
+            scrape uri: jsonUri, "'(?<uri>http://(\\w+\\.)?hardwareclips.com:8080/[^']+)'"
         }
     }
 }
