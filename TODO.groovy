@@ -1,3 +1,15 @@
+/*
+    links:
+
+        - *real* (i.e. type-checked/validated) named parameters: http://jira.codehaus.org/browse/GROOVY-3520
+        - transitive delegation (via @Delegate): http://jira.codehaus.org/browse/GRECLIPSE-1627
+        - non-mavenized dependencies in gradle:
+            - https://github.com/Ullink/gradle-repositories-plugin
+            - http://issues.gradle.org/browse/GRADLE-2179
+            - http://forums.gradle.org/gradle/topics/how_to_use_a_jar_from_a_sourceforge_project_as_a_dependency_in_a_project
+            - https://github.com/GradleFx/GradleFx-Examples/blob/master/sdk-autoinstall/build.gradle
+*/
+
 // move all of this to GitHub issues
 
 /*
@@ -225,14 +237,12 @@ keep a list of Script objects rather than (just) a hash of profiles?
         def rv = exec '/usr/bin/foo --bar --baz'
         // rv.stdout, rv.stderr, rv.status
 
-/*
-    links:
+// alow the command contexts to be assigned an executable?
 
-        - *real* (i.e. type-checked/validated) named parameters: http://jira.codehaus.org/browse/GROOVY-3520
-        - transitive delegation (via @Delegate): http://jira.codehaus.org/browse/GRECLIPSE-1627
-        - non-mavenized dependencies in gradle:
-            - https://github.com/Ullink/gradle-repositories-plugin
-            - http://issues.gradle.org/browse/GRADLE-2179
-            - http://forums.gradle.org/gradle/topics/how_to_use_a_jar_from_a_sourceforge_project_as_a_dependency_in_a_project
-            - https://github.com/GradleFx/GradleFx-Examples/blob/master/sdk-autoinstall/build.gradle
-*/
+    downloader ('/usr/bin/mydownloader') {
+        set '-foo': 'bar'
+    }
+
+// XXX can be done already/better with list/string assignment:
+
+    downloader = '/usr/bin/downloader -foo bar'
