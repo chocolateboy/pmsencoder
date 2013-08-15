@@ -18,8 +18,6 @@ import net.pms.io.ProcessWrapper
 import net.pms.io.ProcessWrapperImpl
 import net.pms.network.HTTPResource
 
-// import net.pms.encoders.FFmpegVideo // TODO add support for video transcode profiles
-
 @groovy.transform.CompileStatic
 @groovy.util.logging.Log4j(value="logger")
 public class PMSEncoder extends FFmpegWebVideo {
