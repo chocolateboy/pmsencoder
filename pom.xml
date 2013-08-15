@@ -12,7 +12,6 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <junit-version>4.11</junit-version>
         <pms-version>1.90.0</pms-version>
-        <regexplus-version>2010-04-16</regexplus-version>
     </properties>
 
     <prerequisites>
