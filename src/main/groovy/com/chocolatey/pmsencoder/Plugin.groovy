@@ -306,9 +306,11 @@ public class Plugin implements ExternalListener, FinalizeTranscoderArgsListener,
         return null
     }
 
+    public static String getName() { 'PMSEncoder' }
+
     @Override
     public String name() {
-        return 'PMSEncoder'
+        return getName()
     }
 
     @Override

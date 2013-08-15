@@ -115,7 +115,7 @@ class ProcessManager {
     }
 
     public ProcessWrapper launchTranscode(ProcessWrapperImpl transcoderProcess) {
-        attachedProcesses.each { ProcessWrapper it -> transcoderProcess.attachProcess(it) }
+        attachedProcesses.each { ProcessWrapper pw -> transcoderProcess.attachProcess(pw) }
         transcoderProcess.runInNewThread()
         sleepFor(LAUNCH_TRANSCODE_SLEEP)
         return transcoderProcess

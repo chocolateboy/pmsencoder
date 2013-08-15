@@ -5,15 +5,7 @@
     Groovy++ 0.2.26: https://groups.google.com/group/groovyplusplus/msg/a765fe77975650db
 */
 
-// script management: disable/enable scripts through the Swing UI (cf. GreaseMonkey)
-
-/*
-    fix the sigil mess - the whole thing is a workaround for the URI property conflicting with the class.
-    groovysh has the same problem, but groovy script.groovy doesn't
-    also: https://code.google.com/p/awsgroovyclouds/source/browse/trunk/AWSDrivers/src/com/groovyclouds/aws/S3Driver.groovy#897
-
-        private static final def URI = "URI"
-*/
+// script management: disable/enable scripts/settings through the Swing UI (cf. GreaseMonkey)
 
 /*
   investigate adding seek support for YouTube videos:
@@ -39,79 +31,11 @@ videofeed ('Web/YouTube/Favourites') {
     uri = 'http://youtube.com/api/whatever?50-100'
 }
 
-/*
-
-fix the design: http://groovy.codehaus.org/Replace+Inheritance+with+Delegation
-
-Should be:
-
-    Matcher receives an exchange (request/response) object. It creates a
-    wrapper that holds methods and members common to Patterns and Actions:
-
-        def exchange = new Exchange(this, request)
-
-    For each Profile, Matcher instantiates a Pattern:
-
-        def pattern = new Pattern(exchange)
-
-    If the pattern matches, it then creates an Action:
-
-        def action = new Action(exchange)
-
-Read-only options could go in request and r/w objects in response e.g.
-
-new Request(
-    DOWNLOADER_OUT: ...,
-    TRANSCODER_OUT: ...,
-    URI: ...,
-)
-
-new Response(
-    ARGS: ...,
-    DOWNLOADER: ...
-    TRANSCODER: ...
-    URI: ...
-)
-
-matcher.run(request, response)
-
-http://stackoverflow.com/questions/325346/name-for-http-requestresponse
-http://stackoverflow.com/questions/1039513/what-is-a-request-response-pair-called
-
-*/
-
-// Fix the Script delegate so that globals can be shared e.g. (unix_paths_example.groovy):
-
-script {
-    PERL             = '/usr/bin/perl'
-    PYTHON           = '/usr/bin/python'
-    YOUTUBE_DL       = '/usr/bin/youtube-dl'
-    GET_FLASH_VIDEOS = '/usr/bin/get-flash-videos'
-}
-
 // tests for append
 
 // when documenting scripting, note poor man's script versioning via Github's "Switch Tags" menu
 
-// download/install standard library (GitHub API/JGit):
-
-    pmsencoder.library.root = /tmp/pmsencoder/scripts
-    pmsencoder.library.repository = http://example.com/path/to/scripts,http://...
-
-// asynchronously downloads + installs scripts for this version of PMSEncoder and saves them to the specified
-// (writable) location under the version
-
-    /tmp/pmsencoder/scripts/1.3.0
-    /tmp/pmsencoder/scripts/1.4.0
-
-// Do this by default and eliminate the built-in DEFAULT.groovy?
-
-// query youtube-dl and get-flash-videos for supported sites at startup?
-
-// add (overridable) INIT.groovy (or DEFAULT.groovy) for one-off initializations (e.g. $DEFAULT_MENCODER_ARGS)
-
-// print a debug version of the MEncoder (if used) command-line (i.e. pump up the debug level), target e.g.
-// deleteme.tmp, and quote the URI (i.e. would need to be done in DEFAULT.groovy)
+// print a copy 'n' pasteable version of the ffmpeg command-line
 
 // add namespace support?
 
@@ -191,8 +115,7 @@ keep a list of Script objects rather than (just) a hash of profiles?
 // bring back reject: e.g.:
 
     reject uri: '^concat:'
-
-// add a commit method which stops all further profile matching for this request
+    reject { domain == 'members.example.com' }
 
 /*
 
@@ -203,51 +126,16 @@ keep a list of Script objects rather than (just) a hash of profiles?
 
 */
 
-/*
-
-Players:
-
-    MEncoder
-    FFmpeg
-
-Downloaders:
-
-    SopCast
-    MPlayer
-    GetFlashVideos
-    YoutubeDL
-*/
-
-// Ruby-style initialization blocks?
-
-// add a navix:// protocol e.g. navix://default?referrer=url_encoded_uri&url=...
-
 // use MPlayer -dumpstream as a downloader/null transcoder
 // FIXME: MPlayer can't dump to stdout: http://lists.mplayerhq.hu/pipermail/mplayer-users/2006-April/059898.html
 
-// make the renderer available to profiles?
-
 // test Pattern.scrape
-
-// need better VLC detection i.e. query PMS
 
 // make the rtmp2pms functionality available via a web page (e.g. GitHub page) using JavaScript:
 // i.e. enter 1) name/path 2) the command line 3) optional thumbnail URI and click to generate the WEB.conf
 // line
 
-// complement (asynchronous) "hook" with "before" and "after". "after" attaches a dummy process started by stopProcess()
-
-// get-flash-videos and youtube-dl: query them to see if they support the URI.
-// maybe (could cause problems with e.g. feedburner): if they do and the resolved
-// domain matches the source domain, cache the domain and match on that
-
-// migrate to Groovy 2.x
-
-// rename "script" to (e.g.) "run" to make it clear it's a stage?
-
-// stash values are strings, which is all we need currently and saves a few toString() calls internally,
-// but there may be a use case for exporting non-strings from the pattern block e.g.:
-// XXX done: move to documentation
+// unused example/pattern
 // TODO: expose guard in scripts
 
     import static example.getJson
@@ -265,10 +153,14 @@ Downloaders:
         }
     }
 
+// unused example/pattern: access the renderer (RendererConfiguration):
+
+    def renderer = params.mediaRenderer
+
 // weird Groovy(++) bug:
 
-    println("patternMap class: ${patternMap.class.name}") fails in stash_objects.groovy
-    println("actionMap class: ${patternMap.class.name}") fails in stash_objects.groovy
+    println("patternMap class: ${patternMap.class.name}") // fails in stash_objects.groovy
+    println("actionMap class: ${patternMap.class.name}") // fails in stash_objects.groovy
 
 // these work:
 
@@ -278,7 +170,7 @@ Downloaders:
 
 // investigate using gmock: https://code.google.com/p/gmock/
 
-// TODO: add RegexHelper.match to String (XXX the META-INF method doesn't appear to work for dynamically-loaded jars i.e. PMS plugins)
+// extension methods (e.g. String.match): figure out why the META-INF method doesn't work
 
 // test nested context blocks
 
@@ -309,14 +201,38 @@ Downloaders:
 // "finalizeTransdcodeArgs", "isCompatible" matcher only runs profile
 // if the supplied event is in the profile's list of events to match
 
-    profile(on: 'transcode') { ... }
-    profile(on: 'finalize-transcode-args') { ... }
-    profile(on: 'check-compatibility') { ... }
+    profile(on: TRANSCODE) { ... } // launchTranscode (default)
+    profile(on: FINALIZE) { ... } // finalizeTranscoderArgs
+    profile(on: COMPATIBLE) { ... } // isCompatible
 
 // or:
 
-    profile(on: [ 'launchTranscode', 'finalizeTranscodeArgs', 'isCompatible' ]) { ... }
-
-// default event is launchTranscode
+    profile(on: [ TRANSCODE, FINALIZE, COMPATIBLE ]) { ... }
 
 // change pattern/action to when/then?
+
+// replace hook with:
+
+        exec  stringOrList
+        async stringOrList
+
+// e.g.
+
+        async ([ NOTIFY_SEND, 'PMSEncoder', "Playing ${dlna.getName()}" ]) {
+            // optional callback
+        }
+
+        def rv = exec '/usr/bin/foo --bar --baz'
+        // rv.stdout, rv.stderr, rv.status
+
+/*
+    links:
+
+        - *real* (i.e. type-checked/validated) named parameters: http://jira.codehaus.org/browse/GROOVY-3520
+        - transitive delegation (via @Delegate): http://jira.codehaus.org/browse/GRECLIPSE-1627
+        - non-mavenized dependencies in gradle:
+            - https://github.com/Ullink/gradle-repositories-plugin
+            - http://issues.gradle.org/browse/GRADLE-2179
+            - http://forums.gradle.org/gradle/topics/how_to_use_a_jar_from_a_sourceforge_project_as_a_dependency_in_a_project
+            - https://github.com/GradleFx/GradleFx-Examples/blob/master/sdk-autoinstall/build.gradle
+*/

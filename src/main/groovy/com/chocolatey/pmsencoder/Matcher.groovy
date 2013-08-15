@@ -1,11 +1,11 @@
 package com.chocolatey.pmsencoder
 
-import static groovy.io.FileType.FILES
-
-import net.pms.PMS
 import net.pms.configuration.PmsConfiguration
+import net.pms.PMS
 
 import org.jsoup.nodes.Document
+
+import static groovy.io.FileType.FILES
 
 enum Stage { BEGIN, INIT, DEFAULT, CHECK, END }
 
@@ -46,6 +46,8 @@ class Matcher {
     Map<String, Boolean> getFlashVideosCache = [:]
 
     static {
+        // make String.match(pattern) (i.e. RegexHelper.match(string, pattern))
+        // available to scripts (FIXME currently global)
         installExtensionMethods()
     }
 
