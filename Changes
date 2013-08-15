@@ -23,8 +23,9 @@
         - deprecated url option is no longer supported by rtmpdump.groovy
         - PMS.conf settings can now be stored as well as read: pmsConf['foo.bar.baz'] = 'quux'
         - http:
-            - add getJSON method
-            - add getNameValuePairs(String) method
+            - add getJSON()
+            - add getNameValuePairs()
+            - add getNameValueMap()
         - remove sigils and only use uppercase for constants:
             $URI        -> uri
             $TRANSCODER -> transcoder
