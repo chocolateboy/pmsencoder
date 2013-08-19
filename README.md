@@ -9,6 +9,8 @@
 	- [Uninstalling](#uninstalling)
 	- [Building](#building)
 - [Tips](#tips)
+        - [Downloaders](#downloaders)
+        - [Scripting](#scripting)
 - [Troubleshooting](#troubleshooting)
 	- [Reporting Issues](#reporting-issues)
 	- [Support](#support)
@@ -27,7 +29,7 @@ These instructions assume you have the [latest version](http://www.ps3mediaserve
 
 ## Installation
 
-* download the [PMSEncoder jar file](http://dl.bintray.com/content/chocolateboy/PMS/pmsencoder/pmsencoder-1.6.3.jar?direct) and place it in the PMS `plugins` directory
+* download the [PMSEncoder jar file](https://github.com/chocolateboy/pmsencoder/releases/download/v2.0.0-rc1/pmsencoder-2.0.0-rc1.jar) and place it in the PMS `plugins` directory
 * restart PMS
 
 ### Upgrading
@@ -35,7 +37,7 @@ These instructions assume you have the [latest version](http://www.ps3mediaserve
 To upgrade to a new version of the plugin:
 
 * check the [release notes](https://github.com/chocolateboy/pmsencoder/wiki/Release-Notes) to see if there are any breaking changes or other incompatibilities
-* replace the old jar file in the `plugins` directory with the [new version](http://dl.bintray.com/content/chocolateboy/PMS/pmsencoder/pmsencoder-1.6.3.jar?direct) and restart PMS
+* replace the old jar file in the `plugins` directory with the [new version](https://github.com/chocolateboy/pmsencoder/releases/download/v2.0.0-rc1/pmsencoder-2.0.0-rc1.jar) and restart PMS
 
 ### Uninstalling
 
@@ -51,6 +53,27 @@ To build PMSEncoder from source, see the [Wiki](https://github.com/chocolateboy/
 * To take PMSEncoder for a spin, try [this `WEB.conf`](https://raw.github.com/chocolateboy/pmsencoder/release/misc/conf/WEB.conf), which contains a list of feeds that are regularly tested.
 * For help with particular feeds/streams/sites, see [here](http://www.ps3mediaserver.org/forum/viewtopic.php?f=6&t=8776&p=46696#p46696).
 * For details on customizing PMSEncoder, see [here](https://github.com/chocolateboy/pmsencoder/wiki/PMS.conf-options).
+
+### Downloaders
+
+While PMSEncoder has basic support for a few sites built-in, it can be configured to support a much wider range of sites by means of external downloaders. For example, youtube-dl is highly recommended since it supports a much wider range of YouTube videos and, unlike PMSEncoder's built-in YouTube support, is regularly updated to keep track of changes on the YouTube site. It also supports many other sites that are not natively supported by PMSEncoder. Setup is easy: download youtube-dl, close PMS, and add something like the following to your PMS.conf:
+
+    Windows:
+
+        # make sure there are no spaces in the path
+        youtube-dl.path = C:\Apps\youtube-dl.exe
+
+    Linux, Mac OS X &c.:
+
+        youtube-dl.path = /path/to/youtube-dl
+
+Several downloaders are supported. See [here](https://github.com/chocolateboy/pmsencoder/wiki/PMS.conf-options#options-) for more details.
+
+### Scripting
+
+PMSEncoder can be configured to support any video site by writing a small script, similar to a GreaseMonkey-style userscript. Scripts are written in Groovy with a page-scraping syntax very similar to jQuery. See the source of the [builtin scripts](https://github.com/chocolateboy/pmsencoder/tree/master/src/main/resources/scripts) for more details and [here](https://github.com/chocolateboy/pmsencoder/wiki/PMS.conf-options#pmsencoderscriptdirectory-) for details on where to add your own scripts.
+
+In addition, PMSEncoder scripts can be used to change or customize ffmpeg commands for local files and to dynamically script all aspects of PMS. Almost all of PMSEncoder's own settings are implemented in scripts and can be customized and overridden by user-created scripts.
 
 ## Troubleshooting
 
@@ -83,7 +106,7 @@ For more details, discussion and troubleshooting tips, see the [wiki](http://wik
 
 ## Version
 
-1.6.3
+2.0.0-rc1
 
 ## License
 
