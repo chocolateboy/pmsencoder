@@ -17,6 +17,7 @@ import net.pms.external.FinalizeTranscoderArgsListener
 import net.pms.io.OutputParams
 import net.pms.logging.DebugLogPathDefiner
 import net.pms.PMS
+import net.pms.util.FileUtil
 
 import no.geosoft.cc.io.FileListener
 import no.geosoft.cc.io.FileMonitor
@@ -39,7 +40,7 @@ public class Plugin implements ExternalListener, FinalizeTranscoderArgsListener,
     // 1 second is flaky - it results in overlapping file change events
     private static final int MIN_SCRIPT_POLL_INTERVAL = 2
     private static Log4jLogger pmsencoderLogger
-    private static final LogbackLogger PMS_LOGGER = LoggerFactory.getLogger(this.class) as LogbackLogger
+    private static final LogbackLogger pmsLogger = LoggerFactory.getLogger(this.class) as LogbackLogger
 
     private PMSEncoder pmsencoder
     private FileMonitor fileMonitor
@@ -208,11 +209,11 @@ public class Plugin implements ExternalListener, FinalizeTranscoderArgsListener,
     }
 
     private void info(String message) {
-        PMS_LOGGER.info("PMSEncoder: $message")
+        pmsLogger.info("PMSEncoder: $message")
     }
 
     private void error(String message, Throwable e) {
-        PMS_LOGGER.error("PMSEncoder: $message", e)
+        pmsLogger.error("PMSEncoder: $message", e)
     }
 
     private void monitorScriptDirectory() {
@@ -278,7 +279,10 @@ public class Plugin implements ExternalListener, FinalizeTranscoderArgsListener,
         OutputParams params,
         List<String> cmdList
     ) {
-        def uri = new File(filename).toURI().toString() // file:// URI
+        def uri = FileUtil.getProtocol(filename) ?
+            filename :
+            new File(filename).toURI().toString() // file:// URI
+
         def stash = new Stash([
             engine: player.id(),
             filename: filename,
@@ -287,6 +291,7 @@ public class Plugin implements ExternalListener, FinalizeTranscoderArgsListener,
 
         def command = new Command(stash, cmdList)
 
+        command.setEvent(Event.FINALIZE)
         command.setDlna(dlna)
         command.setMedia(media)
         command.setParams(params)

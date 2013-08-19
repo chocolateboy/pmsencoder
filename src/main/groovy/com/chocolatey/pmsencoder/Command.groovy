@@ -14,11 +14,12 @@ import org.apache.log4j.Level
 @groovy.util.logging.Log4j(value="logger")
 public class Command {
     private Level defaultStashAssignmentLogLevel = Level.DEBUG
-    private Stash oldStash
     private Level stashAssignmentLogLevel = Level.DEBUG
+    private Stash oldStash
 
     DLNAMediaInfo media
     DLNAResource dlna
+    Event event = Event.TRANSCODE
     List<String> downloader = []
     List<String> hook = []
     List<String> matches = []
@@ -63,6 +64,7 @@ public class Command {
     public java.lang.String toString() {
         def repr = """
         {
+            event:                 $event
             matches:               $matches
             hook:                  $hook
             downloader:            $downloader

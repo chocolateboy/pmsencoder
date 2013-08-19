@@ -3,6 +3,9 @@ package com.chocolatey.pmsencoder
 import net.pms.configuration.PmsConfiguration
 import net.pms.PMS
 
+import org.codehaus.groovy.control.CompilerConfiguration
+import org.codehaus.groovy.control.customizers.ImportCustomizer
+
 import org.jsoup.nodes.Document
 
 import static groovy.io.FileType.FILES
@@ -49,10 +52,16 @@ class Matcher {
         // make String.match(pattern) (i.e. RegexHelper.match(string, pattern))
         // available to scripts (FIXME currently global)
         installExtensionMethods()
+
+        // initialize the static CompilerConfiguration object we
+        // use to inject "import static {Enum, Stage}.*" to scripts
+        // https://groovy.codeplex.com/wikipage?title=Guillaume%20Laforge%27s%20%22Mars%20Rover%22%20tutorial%20on%20Groovy%20DSL%27s
+        // imports.addStaticStars(new String[] { Stage.name, Event.name })
     }
 
     Matcher(PMS pms) {
         this.pms = pms
+
     }
 
     // install extension methods: (G)String.match(pattern) -> RegexHelper.match(delegate, pattern).
@@ -142,6 +151,7 @@ class Matcher {
         Boolean alwaysRun = options.containsKey('alwaysRun') ? options['alwaysRun'] : false
         String extendz = options['extends']?.toString()
         String replaces = options['replaces']?.toString()
+        Event event = (options['on'] != null) ? (options['on'] as Event) : Event.TRANSCODE
 
         def target
 
@@ -162,7 +172,7 @@ class Matcher {
             }
         }
 
-        def profile = new Profile(this, name, stage, stopOnMatch, alwaysRun)
+        def profile = new Profile(this, name, stage, stopOnMatch, alwaysRun, event)
 
         try {
             // run the profile block at compile-time to extract its (optional) pattern and action blocks,
@@ -211,19 +221,22 @@ class Matcher {
         // recalculate the list of sorted profiles when we're done
         doSortProfiles = true
 
-        // XXX the stage imports are a workaround for the fact that:
-        //
-        //     import static Stage.*
-        //
-        // doesn't work in Script.groovy (i.e. isn't exported to scripts).
-        // Cryptic '*:' syntax suggested here:
-        // https://groovy.codeplex.com/wikipage?title=Guillaume%20Laforge%27s%20%22Mars%20Rover%22%20tutorial%20on%20Groovy%20DSL%27s
         def binding = new Binding([
-            *:      (Stage.values().collectEntries { [ (it.name()): it ] }),
             script: this.&script
         ])
 
-        def groovy = new GroovyShell(binding)
+        // XXX these should be static fields (they don't change) but Groovy
+        // throws unhelpful errors if we try to configure them in a static initializer
+        // XXX ditto if we configure them in the constructor
+        def CompilerConfiguration compilerConfiguration = new CompilerConfiguration()
+        def ImportCustomizer imports = new ImportCustomizer()
+        imports.addStaticStars(Stage.name)
+        imports.addStaticStars(Event.name)
+        compilerConfiguration.addCompilationCustomizers(imports)
+
+        // imports.addStaticStars(Stage.name, Event.name)
+        // compilerConfiguration.addCompilationCustomizers(imports)
+        def groovy = new GroovyShell(binding, compilerConfiguration)
 
         // the file (or URL) basename (e.g. foo for foo.groovy) determines the classname
         // (e.g. foo.class). this can cause problems if a userscript has a name that conflicts

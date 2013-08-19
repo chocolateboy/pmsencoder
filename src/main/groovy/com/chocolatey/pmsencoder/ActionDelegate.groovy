@@ -2,7 +2,8 @@ package com.chocolatey.pmsencoder
 
 import org.apache.http.NameValuePair
 
-// FIXME @groovy.transform.CompileStatic
+// FIXME investigate why this doesn't work. typed closures?
+// @groovy.transform.CompileStatic
 @groovy.util.logging.Log4j(value="logger")
 class ActionDelegate {
     private Closure<List<String>> contextThunk

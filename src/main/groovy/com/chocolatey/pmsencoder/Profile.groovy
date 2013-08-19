@@ -7,17 +7,20 @@ class Profile {
     private final Matcher matcher
     private Closure patternBlock
     private Closure actionBlock
+
     final Stage stage
     final String name
+    final Event event
     final boolean stopOnMatch
     final boolean alwaysRun
 
-    Profile(Matcher matcher, String name, Stage stage, boolean stopOnMatch, boolean alwaysRun) {
+    Profile(Matcher matcher, String name, Stage stage, boolean stopOnMatch, boolean alwaysRun, Event event) {
         this.matcher = matcher
         this.name = name
         this.stage = stage
         this.stopOnMatch = stopOnMatch
         this.alwaysRun = alwaysRun
+        this.event = event
     }
 
     public String toString() {
@@ -25,6 +28,7 @@ class Profile {
         {
             name:        $name
             stage:       $stage
+            event:       $event
             stopOnMatch: $stopOnMatch
             alwaysRun:   $alwaysRun
         }"""
@@ -89,6 +93,12 @@ class Profile {
     }
 
     boolean match(Command command) {
+        logger.debug("matching profile: $name")
+
+        if (this.event != command.event) {
+            return false
+        }
+
         if (patternBlock == null && actionBlock == null) {
             return true
         }
@@ -102,8 +112,6 @@ class Profile {
         } else {
             def patternProfileDelegate = new ProfileDelegate(matcher, command)
             def patternDelegate = new PatternDelegate(patternProfileDelegate)
-
-            logger.debug("matching profile: $name")
 
             // notify the Command that we're processing the pattern block. The Command uses a temporary
             // stash, which a) logs assignments at the quietest level (TRACE) and b) can revert

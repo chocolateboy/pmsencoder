@@ -94,6 +94,7 @@ public class PMSEncoder extends FFmpegWebVideo {
         def command = new Command()
         def oldStash = command.getStash()
 
+        command.setEvent(Event.TRANSCODE)
         command.setDlna(dlna)
         command.setMedia(media)
         command.setParams(params)

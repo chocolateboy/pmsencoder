@@ -142,6 +142,7 @@ abstract class PMSEncoderTestCase extends GroovyTestCase {
         List<String> hook = getValue(spec, 'hook') as List<String>
         List<String> downloader = getValue(spec, 'downloader') as List<String>
         List<String> transcoder = getValue(spec, 'transcoder') as List<String>
+        Event event = getValue(spec, 'event') as Event
 
         def wantStash = getValue(spec, 'wantStash')
         def wantHook = getValue(spec, 'wantHook')
@@ -181,6 +182,10 @@ abstract class PMSEncoderTestCase extends GroovyTestCase {
 
         if (transcoder != null) {
             command.transcoder = transcoder
+        }
+
+        if (event != null) {
+            command.setEvent(event)
         }
 
         matcher.match(command, useDefaultTranscoder)
