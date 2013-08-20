@@ -71,7 +71,7 @@ Several downloaders are supported. See [here](https://github.com/chocolateboy/pm
 
 ### Scripting
 
-PMSEncoder can be configured to support any video site by writing a small script, similar to a [GreaseMonkey](http://wiki.greasespot.net/Greasemonkey)-style userscript. Scripts are written in [Groovy](http://groovy.codehaus.org/) with a page-scraping syntax very similar to [jQuery](http://jquery.com/). See the source of the [builtin scripts](https://github.com/chocolateboy/pmsencoder/tree/master/src/main/resources/scripts) for more details and [here](https://github.com/chocolateboy/pmsencoder/wiki/PMS.conf-options#pmsencoderscriptdirectory-) for details on where to add your own scripts.
+PMSEncoder can be configured to support any video site by writing a small script, similar to a GreaseMonkey-style userscript. Scripts are written in [Groovy](http://groovy.codehaus.org/) with a page-scraping syntax very similar to jQuery. See the source of the [builtin scripts](https://github.com/chocolateboy/pmsencoder/tree/master/src/main/resources/scripts) for more details and [here](https://github.com/chocolateboy/pmsencoder/wiki/PMS.conf-options#pmsencoderscriptdirectory-) for details on where to add your own scripts.
 
 In addition, PMSEncoder scripts can be used to change or customize transcoding commands for local files and to dynamically script all aspects of PMS. Almost all of PMSEncoder's own settings are implemented in scripts and can be customized and overridden by user-created scripts.
 
