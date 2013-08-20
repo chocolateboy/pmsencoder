@@ -73,14 +73,14 @@ class ProcessManager {
 
     public void handleHook(List<String> hookArgs) {
         def cmdArray = listToArray(hookArgs)
+
         // PMS doesn't require input from this process - so use new OutputParams
         def params = new OutputParams(configuration)
-
         params.log = true
 
         def hookProcess = new ProcessWrapperImpl(cmdArray, params)
 
-        logger.info('hook command: ' + Arrays.toString(cmdArray))
+        logger.info("hook command: ${hookArgs.join(' ')}")
         hookProcess.runInNewThread()
         attachedProcesses << hookProcess
     }
@@ -90,7 +90,7 @@ class ProcessManager {
         def cmdArray = listToArray(cmdList)
         def pw = new ProcessWrapperImpl(cmdArray, outputParams) // may modify cmdArray[0]
 
-        logger.info('command: ' + Arrays.toString(cmdArray))
+        logger.info("command: ${cmdList.join(' ')}")
         return pw
     }
 
@@ -105,14 +105,14 @@ class ProcessManager {
 
         def downloaderProcess = new ProcessWrapperImpl(cmdArray, params) // may modify cmdArray[0]
         attachedProcesses << downloaderProcess
-        logger.info('downloader command: ' + Arrays.toString(cmdArray))
+        logger.info("downloader command: ${downloaderArgs.join(' ')}")
         downloaderProcess.runInNewThread()
     }
 
     public ProcessWrapperImpl handleTranscode(List<String> transcoderArgs) {
         def cmdArray = listToArray(transcoderArgs)
         def transcoderProcess = new ProcessWrapperImpl(cmdArray, outputParams) // may modify cmdArray[0]
-        logger.info('transcoder command: ' + Arrays.toString(cmdArray))
+        logger.info("transcoder command: ${transcoderArgs.join(' ')}")
         return transcoderProcess
     }
 

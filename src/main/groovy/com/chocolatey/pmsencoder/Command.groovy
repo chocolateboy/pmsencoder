@@ -64,14 +64,14 @@ public class Command {
         def repr = """
         {
             event:                 $event
-            matches:               $matches
-            hook:                  $hook
-            downloader:            $downloader
-            transcoder:            $transcoder
-            stash:                 $stash
-            audioBitrateOptions:   $audioBitrateOptions
-            videoBitrateOptions:   $videoBitrateOptions
-            videoTranscodeOptions: $videoTranscodeOptions
+            matches:               ${matches.inspect()}
+            hook:                  ${hook.inspect()}
+            downloader:            ${downloader.inspect()}
+            transcoder:            ${transcoder.inspect()}
+            stash:                 ${stash.inspect()}
+            audioBitrateOptions:   ${audioBitrateOptions.inspect()}
+            videoBitrateOptions:   ${videoBitrateOptions.inspect()}
+            videoTranscodeOptions: ${videoTranscodeOptions.inspect()}
         }""".substring(1).stripIndent(8)
     }
 

@@ -95,9 +95,10 @@ class Profile {
     boolean match(Command command) {
         logger.debug("matching profile: $name")
 
-        if (this.event != command.event) {
-            return false
-        }
+        // we expect to be called via Matcher.match, which makes
+        // sure the events match before calling this method.
+        // if that's not the case, we need to know about it
+        assert this.event == command.event
 
         if (patternBlock == null && actionBlock == null) {
             return true

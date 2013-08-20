@@ -43,6 +43,7 @@ class Matcher {
     private List<Integer> youtubeAccept = []
     private Map<String, Object> globals = new Stash()
     private PMSConf pmsConf = PMSConf.getInstance()
+    private Map<Event, Integer> eventConsumers = [:].withDefault { 0 }
 
     // global caches
     Map<String, Boolean> youTubeDLCache = [:]
@@ -56,7 +57,6 @@ class Matcher {
 
     Matcher(PMS pms) {
         this.pms = pms
-
     }
 
     // install extension methods: (G)String.match(pattern) -> RegexHelper.match(delegate, pattern).
@@ -96,23 +96,30 @@ class Matcher {
     }
 
     @groovy.transform.CompileStatic(groovy.transform.TypeCheckingMode.SKIP)
-    boolean match(Command command, boolean useDefault = true) {
+    boolean match(Command command, boolean useDefaultTranscoder = true) {
+        def uri = command.getVarAsString('uri')
+        logger.debug("matching (${command.event}): ${uri.inspect()}")
+
+        // bypass matching altogether if none of the profiles
+        // consume this event
+        if (eventConsumers[command.event] == 0) {
+            return false
+        }
+
         synchronized(doSortProfiles) {
             if (doSortProfiles) {
                 sortProfiles()
             }
         }
 
-        if (useDefault) {
+        if (useDefaultTranscoder) {
             command.transcoder = ffmpeg*.toString()
         }
 
-        def uri = command.getVarAsString('uri')
-        logger.debug("matching URI: $uri")
         boolean stopMatching = false
 
         sortedProfiles.each { Profile profile ->
-            if (stopMatching == false || profile.alwaysRun == true) {
+            if ((profile.event == command.event) && (stopMatching == false || profile.alwaysRun == true)) {
                 if (profile.match(command)) {
                     /*
                         XXX make sure we take the name from the profile itself
@@ -132,7 +139,7 @@ class Matcher {
 
         def matched = command.matches.size() > 0
         if (matched) {
-            logger.debug("command: $command")
+            logger.debug("command: ${command}")
         }
 
         return matched
@@ -147,6 +154,11 @@ class Matcher {
         String extendz = options['extends']?.toString()
         String replaces = options['replaces']?.toString()
         Event event = (options['on'] != null) ? (options['on'] as Event) : Event.TRANSCODE
+
+        // keep count of the number of profiles that consume each event
+        // so that we can short-circuit matching if no profiles are registered
+        // for a particular event
+        eventConsumers[event] = eventConsumers[event] + 1
 
         def target
 
@@ -291,7 +303,7 @@ class Matcher {
     }
 
     Object propertyMissing(String name, Object value) {
-        logger.info("setting global variable: $name = $value")
+        logger.info("setting global variable: $name = ${value.inspect()}")
         return globals.put(name, value)
     }
 

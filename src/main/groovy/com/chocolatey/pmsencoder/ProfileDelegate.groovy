@@ -310,7 +310,7 @@ class ProfileDelegate {
             cache.put(key, cached)
         }
 
-        logger.info("$name compatible: $cached ($status), key: $key, uri: $uri")
+        logger.info("$name compatible: $cached ($status), key: ${key.inspect()}, uri: ${u.inspect()}")
         return cached
     }
 

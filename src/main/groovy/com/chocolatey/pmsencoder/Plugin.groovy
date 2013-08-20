@@ -260,11 +260,12 @@ public class Plugin implements ExternalListener, FinalizeTranscoderArgsListener,
 
     public boolean match(Command command) {
         def stash = command.stash
-        def originalURI = command.getVarAsString('uri')
+        def event = command.event
+        def uri = command.getVarAsString('uri').inspect()
 
         boolean matched // Groovy++ type inference fail
 
-        pmsencoderLogger.info('matching: ' + originalURI)
+        pmsencoderLogger.trace("matching (${event}): ${uri}")
 
         try {
             matched = matcher.match(command)
@@ -275,13 +276,14 @@ public class Plugin implements ExternalListener, FinalizeTranscoderArgsListener,
 
         def matches = command.getMatches()
         def nMatches = matches.size()
+        def sMatches = matches.inspect()
 
         if (nMatches == 0) {
-            pmsencoderLogger.info('0 matches for: ' + originalURI)
+            pmsencoderLogger.info("0 matches for (${event}): ${uri}")
         } else if (nMatches == 1) {
-            pmsencoderLogger.info('1 match (' + matches + ') for: ' + originalURI)
+            pmsencoderLogger.info("1 match (${sMatches}) for (${event}): ${uri}")
         } else {
-            pmsencoderLogger.info(nMatches + ' matches (' + matches + ') for: ' + originalURI)
+            pmsencoderLogger.info("${nMatches} matches (${sMatches}) for (${event}): ${uri}")
         }
 
         return matched
