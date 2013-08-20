@@ -102,7 +102,7 @@ any relevant [`WEB.conf`](http://www.ps3mediaserver.org/forum/viewtopic.php?f=6&
 
 ### Support
 
-For more details, discussion and troubleshooting tips, see the [wiki](http://wiki.github.com/chocolateboy/pmsencoder/) and [this thread](http://ps3mediaserver.org/forum/viewtopic.php?f=6&t=8776) (start [here](http://ps3mediaserver.org/forum/viewtopic.php?f=6&t=8776#p22479)).
+For more details, discussion and troubleshooting tips, see the [wiki](http://wiki.github.com/chocolateboy/pmsencoder/) and [this thread](http://www.ps3mediaserver.org/forum/viewtopic.php?f=12&t=6644).
 
 ## Version
 
