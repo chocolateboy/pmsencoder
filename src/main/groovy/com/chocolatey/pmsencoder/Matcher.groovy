@@ -52,11 +52,6 @@ class Matcher {
         // make String.match(pattern) (i.e. RegexHelper.match(string, pattern))
         // available to scripts (FIXME currently global)
         installExtensionMethods()
-
-        // initialize the static CompilerConfiguration object we
-        // use to inject "import static {Enum, Stage}.*" to scripts
-        // https://groovy.codeplex.com/wikipage?title=Guillaume%20Laforge%27s%20%22Mars%20Rover%22%20tutorial%20on%20Groovy%20DSL%27s
-        // imports.addStaticStars(new String[] { Stage.name, Event.name })
     }
 
     Matcher(PMS pms) {
@@ -227,7 +222,8 @@ class Matcher {
 
         // XXX these should be static fields (they don't change) but Groovy
         // throws unhelpful errors if we try to configure them in a static initializer
-        // XXX ditto if we configure them in the constructor
+        // XXX ditto if we configure them in the constructor.
+        // https://groovy.codeplex.com/wikipage?title=Guillaume%20Laforge%27s%20%22Mars%20Rover%22%20tutorial%20on%20Groovy%20DSL%27s
         def CompilerConfiguration compilerConfiguration = new CompilerConfiguration()
         def ImportCustomizer imports = new ImportCustomizer()
         imports.addStaticStars(Stage.name)
