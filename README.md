@@ -19,7 +19,7 @@
 
 ## Description
 
-This is a plugin for [PS3 Media Server](http://sourceforge.net/projects/ps3mediaserver/) (PMS) that adds scriptable support for web video streaming.
+This is a plugin for [PS3 Media Server](https://github.com/ps3mediaserver/ps3mediaserver#readme) (PMS) that adds scriptable support for web video streaming.
 
 ## Prerequisites
 
