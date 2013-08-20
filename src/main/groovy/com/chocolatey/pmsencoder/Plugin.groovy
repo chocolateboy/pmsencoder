@@ -52,6 +52,26 @@ public class Plugin implements ExternalListener, FinalizeTranscoderArgsListener,
 
     public Plugin() {
         info('initializing PMSEncoder ' + VERSION)
+
+        // log the build ID (i.e. commit hash) and date
+        def properties = new Properties()
+
+        try {
+            properties.load(
+                getClass().getResourceAsStream('/git.properties')
+            )
+
+            def build = String.format(
+                'build: %s (%s)',
+                properties.get('git.commit.id.abbrev'),
+                properties.get('git.commit.time')
+            )
+
+            info(build)
+        } catch (IOException ioe) {
+            error("error loading git.properties resource", ioe)
+        }
+
         pms = PMS.get()
         configuration = PMS.getConfiguration()
 
