@@ -38,6 +38,7 @@ class ProfileDelegate {
     private final Map<String, String> httpCache = [:]
     private final Map<String, Document> jsoupCache = [:]
     private static final int PROCESS_TIMEOUT = 10000
+    private static final int TRUNCATE = 16
 
     public ProfileDelegate(Matcher matcher, Command command) {
         this.matcher = matcher
@@ -193,7 +194,7 @@ class ProfileDelegate {
         def scraped = false
 
         if (document == null) {
-            logger.debug("getting $uri")
+            logger.trace("getting $uri")
             document = getHttp().get(uri)
             httpCache[uri] = document
         }
@@ -204,20 +205,24 @@ class ProfileDelegate {
         }
 
         if (decode) {
-            logger.debug("URL-decoding content of $uri")
+            logger.trace("URL-decoding content of $uri")
             document = URLDecoder.decode(document)
         }
 
-        logger.debug("matching content of $uri against $regex")
+        if (uri) {
+            logger.trace("matching content of $uri against $regex")
+        } else {
+            logger.trace("matching ${document.take(TRUNCATE).inspect()}... against $regex")
+        }
 
         def matchResult = RegexHelper.match(document, regex)
 
         if (matchResult) {
-            logger.debug('success')
+            logger.trace('success')
             matchResult.named.each { name, value -> command.setVar(name, value) }
             scraped = true
         } else {
-            logger.debug('failure')
+            logger.trace('failure')
         }
 
         return scraped

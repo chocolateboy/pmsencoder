@@ -110,8 +110,7 @@ class Profile {
             runActionBlock(profileDelegate)
             return true
         } else {
-            def patternProfileDelegate = new ProfileDelegate(matcher, command)
-            def patternDelegate = new PatternDelegate(patternProfileDelegate)
+            def patternDelegate = new PatternDelegate(profileDelegate)
 
             // notify the Command that we're processing the pattern block. The Command uses a temporary
             // stash, which a) logs assignments at the quietest level (TRACE) and b) can revert

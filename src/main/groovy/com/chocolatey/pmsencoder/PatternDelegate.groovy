@@ -135,13 +135,13 @@ class PatternDelegate {
 
     // DSL method: match { foo > bar }
     private boolean matchClosure(Closure closure) {
-        logger.debug('running match block')
+        logger.trace('running match block')
 
         if (closure()) {
-            logger.debug('success')
+            logger.trace('success')
             return true
         } else {
-            logger.debug('failure')
+            logger.trace('failure')
             return false
         }
     }
@@ -152,15 +152,15 @@ class PatternDelegate {
         } else if (value == null) {
             logger.error('invalid match: value is not defined')
         } else {
-            logger.debug("matching $name against $value")
+            logger.trace("matching $name against ${value.inspect()}")
 
             def matchResult = RegexHelper.match(name, value)
             if (matchResult) {
                 getCommand().stash.putAll(matchResult.named)
-                logger.debug('success')
+                logger.trace('success')
                 return true // abort default failure below
             } else {
-                logger.debug("failure")
+                logger.trace("failure")
             }
         }
 

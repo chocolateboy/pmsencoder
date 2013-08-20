@@ -13,7 +13,7 @@ import org.apache.log4j.Level
 @groovy.transform.CompileStatic
 @groovy.util.logging.Log4j(value="logger")
 public class Command {
-    private Level defaultStashAssignmentLogLevel = Level.DEBUG
+    private static final Level DEFAULT_STASH_ASSIGNMENT_LOG_LEVEL = Level.DEBUG
     private Level stashAssignmentLogLevel = Level.DEBUG
     private Stash oldStash
 
@@ -90,7 +90,7 @@ public class Command {
         assert oldStash != null
         stash = oldStash
         oldStash = null
-        stashAssignmentLogLevel = defaultStashAssignmentLogLevel
+        stashAssignmentLogLevel = DEFAULT_STASH_ASSIGNMENT_LOG_LEVEL
     }
 
     public void commitStashChanges() {
@@ -99,7 +99,7 @@ public class Command {
         stash = oldStash
         oldStash = null
         // merge (with full logging)
-        stashAssignmentLogLevel = defaultStashAssignmentLogLevel
+        stashAssignmentLogLevel = DEFAULT_STASH_ASSIGNMENT_LOG_LEVEL
         newStash.each { name, value -> setVar(name, value) }
     }
 
@@ -118,11 +118,14 @@ public class Command {
 
     // setter implementation with logged stash assignments
     protected Object setVar(Object name, Object value) {
-        if (stashAssignmentLogLevel != null) {
-            logger.log(stashAssignmentLogLevel, "setting $name to $value")
+        if (stash.get(name) != value) {
+            if (stashAssignmentLogLevel != null) {
+                logger.log(stashAssignmentLogLevel, "setting $name to ${value.inspect()}")
+            }
+
+            stash.put(name, value)
         }
 
-        stash.put(name, value)
         return value // for chaining: foo = bar = baz i.e. foo = (bar = baz)
     }
 }

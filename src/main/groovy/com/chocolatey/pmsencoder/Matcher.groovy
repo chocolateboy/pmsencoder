@@ -160,9 +160,9 @@ class Matcher {
                 logger.info("replacing profile: $name")
             } else {
                 if (options) {
-                    logger.info("registering ${stage.toString().toLowerCase()} profile: $name ($options)")
+                    logger.info("registering ${stage} profile: $name ($options)")
                 } else {
-                    logger.info("registering ${stage.toString().toLowerCase()} profile: $name")
+                    logger.info("registering ${stage} profile: $name")
                 }
             }
         }
@@ -315,7 +315,7 @@ class Matcher {
 
     // DSL method
     protected void script(Stage stage, Closure closure) {
-        closure.delegate = new Script(this, stage)
+        closure.delegate = new ScriptDelegate(this, stage)
         closure.resolveStrategy = Closure.DELEGATE_FIRST
         closure()
     }

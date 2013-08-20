@@ -246,3 +246,11 @@ keep a list of Script objects rather than (just) a hash of profiles?
 // XXX can be done already/better with list/string assignment:
 
     downloader = '/usr/bin/downloader -foo bar'
+
+// allow script to set common profile settings (removes a common gotcha when writing tests).
+// profile gets default values from script:
+
+    script (stopOnMatch: true) {
+        profile ('Foo') { } // inherit stopOnMatch: true
+        profile ('Bar') { } // ditto
+    }
