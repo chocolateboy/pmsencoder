@@ -6,7 +6,6 @@ package com.chocolatey.pmsencoder
 
     keys and values can be any type, but keys and GString values
     are converted to String before being set.
-    note: the Java String type is spelled out to avoid GString surprises
 
     LinkedHashMap rather than HashMap to preserve insertion order.
 */

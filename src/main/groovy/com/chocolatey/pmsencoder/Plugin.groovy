@@ -31,12 +31,13 @@ import org.slf4j.LoggerFactory
 
 @groovy.transform.CompileStatic
 public class Plugin implements ExternalListener, FinalizeTranscoderArgsListener, FileListener {
-    private static final String VERSION = '2.0.0-SNAPSHOT'
     private static final String DEFAULT_SCRIPT_DIRECTORY = 'pmsencoder'
     private static final String LOG_CONFIG = 'pmsencoder.log.config'
     private static final String LOG_DIRECTORY = 'pmsencoder.log.directory'
+    private static final String NAME = 'PMSEncoder'
     private static final String SCRIPT_DIRECTORY = 'pmsencoder.script.directory'
     private static final String SCRIPT_POLL = 'pmsencoder.script.poll'
+    private static final String VERSION = '2.0.0-SNAPSHOT'
     // 1 second is flaky - it results in overlapping file change events
     private static final int MIN_SCRIPT_POLL_INTERVAL = 2
     private static Log4jLogger pmsencoderLogger
@@ -47,11 +48,11 @@ public class Plugin implements ExternalListener, FinalizeTranscoderArgsListener,
     private File scriptDirectory
     private long scriptPollInterval
     private Matcher matcher
-    private PmsConfiguration configuration
-    private PMS pms
+    private PmsConfiguration configuration = PMS.getConfiguration()
+    private PMS pms = PMS.get()
 
     public Plugin() {
-        info('initializing PMSEncoder ' + VERSION)
+        info("initializing ${NAME} ${VERSION}")
 
         // log the build ID (i.e. commit hash) and date
         def properties = new Properties()
@@ -71,9 +72,6 @@ public class Plugin implements ExternalListener, FinalizeTranscoderArgsListener,
         } catch (IOException ioe) {
             error("error loading git.properties resource", ioe)
         }
-
-        pms = PMS.get()
-        configuration = PMS.getConfiguration()
 
         // get optional overrides from PMS.conf
         String customLogConfigPath = configuration.getCustomProperty(LOG_CONFIG)
@@ -129,7 +127,6 @@ public class Plugin implements ExternalListener, FinalizeTranscoderArgsListener,
         }
 
         // set up log4j
-
         // set the log path as a system property so that it can be used in log4j_default.xml
         // 1) system property
         // 2) PMS.conf option
@@ -174,13 +171,13 @@ public class Plugin implements ExternalListener, FinalizeTranscoderArgsListener,
         tempLogger.setLevel(LogbackLevel.WARN)
 
         // now we've loaded the logger config file we can initialise the pmsencoder.log logger for this class
-        pmsencoderLogger = Log4jLogger.getLogger(this.getClass().getName())
+        pmsencoderLogger = Log4jLogger.getLogger(getClass().getName())
 
         // make sure we have a matcher before we create the transcoding engine
         createMatcher()
 
         // initialize the transcoding engine
-        pmsencoder = new PMSEncoder(configuration, this)
+        pmsencoder = new PMSEncoder(this)
 
         // register the engine with PMS
         PlayerFactory.registerPlayer(pmsencoder)
@@ -191,11 +188,11 @@ public class Plugin implements ExternalListener, FinalizeTranscoderArgsListener,
 
     // make sure "pmsencoder" is in the list of engines
     private void enable() {
-        def engines = configuration.getEnginesAsList(pms.getRegistry())
+        def engines = configuration.getEnginesAsList()
         def id = pmsencoder.id()
         def index = engines.indexOf(id)
 
-        info("checking engine list: $engines")
+        info("checking engine list: ${engines}")
 
         if (index != -1) {
             info('already enabled')
@@ -203,20 +200,20 @@ public class Plugin implements ExternalListener, FinalizeTranscoderArgsListener,
             def newEngines = new ArrayList<String>(engines)
             newEngines.add(0, id)
             configuration.setEnginesAsList(newEngines)
-            info("added engine: $newEngines")
+            info("added engine: ${newEngines}")
         }
     }
 
     private void loadDefaultLogConfig() {
         // XXX squashed bug - don't call this log4j.xml, as, by default,
         // log4j attempts to load log4j.properties and log4j.xml automatically
-        def defaultLogConfig = this.getClass().getResource('/log4j_default.xml')
-        info("loading built-in log4j config file: $defaultLogConfig")
+        def defaultLogConfig = getClass().getResource('/log4j_default.xml')
+        info("loading built-in log4j config file: ${defaultLogConfig}")
 
         try {
             DOMConfigurator.configure(defaultLogConfig)
         } catch (Exception e) {
-            error("error loading built-in log4j config file ($defaultLogConfig)", e)
+            error("error loading built-in log4j config file (${defaultLogConfig})", e)
         }
     }
 
@@ -228,12 +225,12 @@ public class Plugin implements ExternalListener, FinalizeTranscoderArgsListener,
         (file != null) && file.exists() && file.isDirectory()
     }
 
-    private void info(String message) {
-        pmsLogger.info("PMSEncoder: $message")
+    public static void info(String message) {
+        pmsLogger.info("${NAME}: ${message}")
     }
 
-    private void error(String message, Throwable e) {
-        pmsLogger.error("PMSEncoder: $message", e)
+    public static void error(String message, Throwable e) {
+        pmsLogger.error("${NAME}: ${message}", e)
     }
 
     private void monitorScriptDirectory() {
@@ -243,7 +240,7 @@ public class Plugin implements ExternalListener, FinalizeTranscoderArgsListener,
     }
 
     public void fileChanged(File file) {
-        info("$file has changed; reloading scripts")
+        info("${file} has changed; reloading scripts")
         createMatcher()
     }
 
@@ -327,16 +324,12 @@ public class Plugin implements ExternalListener, FinalizeTranscoderArgsListener,
     }
 
     @Override
-    public JComponent config() {
-        return null
-    }
+    public JComponent config() { null }
 
-    public static String getName() { 'PMSEncoder' }
+    public static String getName() { NAME }
 
     @Override
-    public String name() {
-        return getName()
-    }
+    public String name() { NAME }
 
     @Override
     public void shutdown () {

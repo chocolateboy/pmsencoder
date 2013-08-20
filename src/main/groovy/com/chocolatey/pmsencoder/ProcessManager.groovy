@@ -2,6 +2,7 @@ package com.chocolatey.pmsencoder
 
 import com.sun.jna.Platform
 
+import net.pms.configuration.PmsConfiguration
 import net.pms.io.OutputParams
 import net.pms.io.PipeProcess
 import net.pms.io.ProcessWrapper
@@ -16,6 +17,7 @@ class ProcessManager {
     List<ProcessWrapper> attachedProcesses
     OutputParams outputParams
     private PMSEncoder pmsencoder
+    private static final PmsConfiguration configuration = PMS.getConfiguration()
 
     ProcessManager(PMSEncoder pmsencoder, OutputParams params) {
         this.pmsencoder = pmsencoder
@@ -37,7 +39,7 @@ class ProcessManager {
         try {
             Thread.sleep(milliseconds)
         } catch (InterruptedException e) {
-            PMS.error('PMSEncoder: thread interrupted', e)
+            Plugin.error('thread interrupted', e)
         }
     }
 
@@ -54,9 +56,9 @@ class ProcessManager {
         try {
             return Platform.isWindows() ?
                 '\\\\.\\pipe\\' + basename :
-                (new File(PMS.getConfiguration().getTempFolder(), basename)).getCanonicalPath()
+                (new File(configuration.getTempFolder(), basename)).getCanonicalPath()
         } catch (IOException e) {
-            PMS.error('PMSEncoder: Pipe may not be in temporary directory', e)
+            Plugin.error('Pipe may not be in temporary directory', e)
             return basename
         }
     }
@@ -72,7 +74,7 @@ class ProcessManager {
     public void handleHook(List<String> hookArgs) {
         def cmdArray = listToArray(hookArgs)
         // PMS doesn't require input from this process - so use new OutputParams
-        def params = new OutputParams(PMS.getConfiguration())
+        def params = new OutputParams(configuration)
 
         params.log = true
 
@@ -98,7 +100,7 @@ class ProcessManager {
         def cmdArray = listToArray(downloaderArgs)
 
         // PMS doesn't require input from this process - so use new OutputParams
-        def params = new OutputParams(PMS.getConfiguration())
+        def params = new OutputParams(configuration)
         params.log = true
 
         def downloaderProcess = new ProcessWrapperImpl(cmdArray, params) // may modify cmdArray[0]

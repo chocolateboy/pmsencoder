@@ -30,7 +30,6 @@ public class Command {
     OutputParams params
     Player player
     Stash stash
-    String ffmpegPath
 
     public Command() {
         this(new Stash())
@@ -70,7 +69,6 @@ public class Command {
             downloader:            $downloader
             transcoder:            $transcoder
             stash:                 $stash
-            ffmpegPath:            $ffmpegPath
             audioBitrateOptions:   $audioBitrateOptions
             videoBitrateOptions:   $videoBitrateOptions
             videoTranscodeOptions: $videoTranscodeOptions

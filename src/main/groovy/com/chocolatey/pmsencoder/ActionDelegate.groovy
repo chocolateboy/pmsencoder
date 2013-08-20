@@ -18,7 +18,7 @@ class ActionDelegate {
     }
 
     boolean isOption(String arg) {
-        // a rare use case for Groovy's annoyingly lax definition of false.
+        // a rare use case for Groovy's lax definition of false.
         // and it's not really a use case because it requires three lines of
         // explanation: null and an empty string evaluate as false
 
@@ -143,11 +143,6 @@ class ActionDelegate {
     // DSL method
     boolean setVideoTranscodeOptions(Object maybeList) {
         return maybeList == null ? null : command.setVideoTranscodeOptions(Util.toStringList(maybeList, true))
-    }
-
-    // DSL accessor (ffmpegPath): getter
-    String getFfmpegPath() {
-        return command.getFfmpegPath()
     }
 
     // DSL method

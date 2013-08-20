@@ -16,7 +16,7 @@ enum Stage { BEGIN, INIT, DEFAULT, CHECK, END }
 @Singleton
 @groovy.transform.CompileStatic
 class PMSConf {
-    @Lazy private PmsConfiguration configuration = PMS.getConfiguration()
+    private final PmsConfiguration configuration = PMS.getConfiguration()
 
     public Object getAt(String key) {
         return configuration.getCustomProperty(key?.toString())

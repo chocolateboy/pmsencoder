@@ -21,13 +21,14 @@ import net.pms.network.HTTPResource
 @groovy.transform.CompileStatic
 @groovy.util.logging.Log4j(value="logger")
 public class PMSEncoder extends FFmpegWebVideo {
-    public static final boolean isWindows = Platform.isWindows()
-    private Plugin plugin
-    private final PmsConfiguration configuration
     private final int nbCores
+    private Plugin plugin
+    public static final boolean isWindows = Platform.isWindows()
+    private static final PmsConfiguration configuration = PMS.getConfiguration()
+    private static final String FFMPEG_PATH = normalizePath(configuration.getFfmpegPath())
 
     // FIXME make this private when PMS makes it private
-    public static final String ID = 'pmsencoder'
+    public static final String ID = Plugin.name.toLowerCase()
 
     private long currentThreadId() {
         Thread.currentThread().getId()
@@ -39,27 +40,22 @@ public class PMSEncoder extends FFmpegWebVideo {
     }
 
     @Override
-    public String name() {
-        'PMSEncoder'
-    }
+    public String name() { Plugin.name }
 
-    private String normalizePath(String path) {
+    private static String normalizePath(String path) {
         return isWindows ? path.replaceAll(~'/', '\\\\') : path
     }
 
     @Override
-    public String id() {
-        ID
-    }
+    public String id() { ID }
 
-    public PMSEncoder(PmsConfiguration configuration, Plugin plugin) {
+    public PMSEncoder(Plugin plugin) {
         // FIXME temporary hack for 1.90.0 compatibility.
         // the null FFmpegProtocols instance is required to work around
         // the fact that the FFMpegWebVideo constructor requires this parameter.
         // null is OK (for the time being) since we don't need to call any
         // FFmpegWebVideo methods that use the protocols object
         super(configuration, null)
-        this.configuration = configuration
         this.plugin = plugin
         this.nbCores = configuration.getNumberOfCpuCores()
     }
@@ -90,30 +86,29 @@ public class PMSEncoder extends FFmpegWebVideo {
         // whatever happens, we need a transcoder output FIFO (even if there's a match error, we carry
         // on with the unmodified URI), so we can create that upfront
         processManager.createTranscoderFifo(transcoderOutputBasename)
-        def ffmpegPath = normalizePath(configuration.getFfmpegPath())
-        def command = new Command()
-        def oldStash = command.getStash()
 
+        def command = new Command()
         command.setEvent(Event.TRANSCODE)
         command.setDlna(dlna)
         command.setMedia(media)
         command.setParams(params)
-        command.setFfmpegPath(ffmpegPath)
 
+        def oldStash = command.getStash()
         oldStash.put('uri', oldURI)
 
         plugin.match(command)
 
-        // the whole point of the command abstraction is that the stash Map/transcoder command List
-        // can be changed by the matcher, so make sure we refresh
+        // the command abstraction allows the stash and command lists
+        // to be changed by the matcher, so make sure we refresh
         def newStash = command.getStash()
 
-        // FIXME: groovy++ type inference fail: the subscript and/or concatenation operations
-        // on downloaderArgs and transcoderArgs are causing groovy++ to define them as
+        // FIXME: Groovy++ type inference fail: the subscript and/or concatenation operations
+        // on downloaderArgs and transcoderArgs are causing Groovy++ to define them as
         // Collection<String> rather than List<String>
         List<String> hookArgs = command.getHook()
         List<String> downloaderArgs = command.getDownloader()
         List<String> transcoderArgs = command.getTranscoder()
+
         def newURI = newStash.get('uri')?.toString()
 
         // work around an ffmpeg bug:
@@ -130,38 +125,42 @@ public class PMSEncoder extends FFmpegWebVideo {
             processManager.handleHook(hookArgs)
         }
 
-        // automagically add extra command-line options for the PMS-native downloaders/transcoders
-        // and substitute the configured path for 'FFMPEG'
+        // if the executable is 'FFMPEG', automagically add ffmpeg input and output options
+        // and replace 'FFMPEG' with the configured ffmpeg path
         if (transcoderArgs) {
             Collections.replaceAll(transcoderArgs, 'DOWNLOADER_OUT', downloaderOutputPath)
             Collections.replaceAll(transcoderArgs, 'TRANSCODER_OUT', transcoderOutputPath)
 
-            def transcoderName = transcoderArgs[0]
-
-            if (transcoderName == 'FFMPEG') {
+            // XXX we could have two templates for the ffmpeg path: one (e.g. FFMPEG) with
+            // the current behaviour and another (e.g. FFMPEG_PATH) which just substitutes
+            // the path (i.e. for cases where the user wants full control over the command).
+            // In practice, more control than is provided here shouldn't be needed (if it is,
+            // the underlying issue should be fixed in PMS/PMSEncoder).
+            if (transcoderArgs[0] == 'FFMPEG') {
                 def transcoderInput = downloaderArgs ? downloaderOutputPath : newURI
 
                 /*
                     before:
 
-                         ffmpeg -loglevel warning -y -threads nbcores
-
-                    after (with downloader):
-
-                         /path/to/ffmpeg -loglevel warning -y -threads nbcores -i DOWNLOADER_OUT \
-                            -threads nbcores -output-args TRANSCODER_OUT
+                         FFMPEG -global-args
 
                     after (without downloader):
 
-                         /path/to/ffmpeg -loglevel warning -y -threads nbcores -i URI -threads nbcores \
-                             -output-args TRANSCODER_OUT
+                         /path/to/ffmpeg -global-args -user-args -i URI -output-args
+
+                    after (with downloader):
+
+                         /path/to/ffmpeg -global-args -user-args -i DOWNLOADER_OUT -output-args
+
+                    i.e. user args can be global args (e.g. -loglevel) and/or input args (e.g. -r).
+                    output options can be revoked/overridden via the bitrate and transcode options (see below)
                 */
 
                 // handle TranscodeVideo=WMV|MPEGTSAC3|MPEGPSAC3
                 // and audio/video bitrates
                 def renderer = params.mediaRenderer
 
-                transcoderArgs[0] = ffmpegPath
+                transcoderArgs[0] = FFMPEG_PATH
 
                 // List<String>: more Groovy++ type-inference lamery
                 List<String> args = [
