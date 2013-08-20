@@ -31,7 +31,7 @@ import org.slf4j.LoggerFactory
 
 @groovy.transform.CompileStatic
 public class Plugin implements ExternalListener, FinalizeTranscoderArgsListener, FileListener {
-    private static final String VERSION = '2.0.0-rc1'
+    private static final String VERSION = '2.0.0-SNAPSHOT'
     private static final String DEFAULT_SCRIPT_DIRECTORY = 'pmsencoder'
     private static final String LOG_CONFIG = 'pmsencoder.log.config'
     private static final String LOG_DIRECTORY = 'pmsencoder.log.directory'
