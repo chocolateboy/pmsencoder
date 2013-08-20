@@ -52,11 +52,11 @@ To build PMSEncoder from source, see the [Wiki](https://github.com/chocolateboy/
 * To work around the PMS [bug](http://code.google.com/p/ps3mediaserver/issues/detail?id=759) that causes web video playback to be delayed for ~40s, uncheck "HTTP Engine V2" in the PMS "General Configuration" tab. This can also be done by setting `http_engine_v2 = false` in `PMS.conf`. Then restart PMS. See [below](#http-engine) for caveats.
 * To take PMSEncoder for a spin, try [this `WEB.conf`](https://raw.github.com/chocolateboy/pmsencoder/master/misc/conf/WEB.conf), which contains a list of feeds that are regularly tested.
 * For help with particular feeds/streams/sites, see [here](http://www.ps3mediaserver.org/forum/viewtopic.php?f=6&t=8776&p=46696#p46696).
-* For details on customizing PMSEncoder, see [here](https://github.com/chocolateboy/pmsencoder/wiki/PMS.conf-options).
+* For details on configuring PMSEncoder, see [here](https://github.com/chocolateboy/pmsencoder/wiki/PMS.conf-options).
 
 ### Downloaders
 
-While PMSEncoder has basic support for a few sites built-in, it can be configured to support a much wider range of sites by means of external downloaders. For example, youtube-dl is highly recommended since it supports a much wider range of YouTube videos and, unlike PMSEncoder's built-in YouTube support, is regularly updated to keep track of changes on the YouTube site. It also supports many other sites that are not natively supported by PMSEncoder. Setup is easy: download youtube-dl, close PMS, and add something like the following to your PMS.conf:
+While PMSEncoder has basic support for a few sites built-in, it can be configured to support a much wider range of sites by means of external downloaders. For example, [youtube-dl](http://rg3.github.io/youtube-dl/) is highly recommended since it supports a much wider range of YouTube videos and, unlike PMSEncoder's built-in YouTube support, is regularly updated to keep track of changes on the YouTube site. It also supports many other sites that are not natively supported by PMSEncoder. Setup is easy: download youtube-dl, close PMS, and add something like the following to your PMS.conf:
 
     Windows:
 
@@ -71,9 +71,9 @@ Several downloaders are supported. See [here](https://github.com/chocolateboy/pm
 
 ### Scripting
 
-PMSEncoder can be configured to support any video site by writing a small script, similar to a GreaseMonkey-style userscript. Scripts are written in Groovy with a page-scraping syntax very similar to jQuery. See the source of the [builtin scripts](https://github.com/chocolateboy/pmsencoder/tree/master/src/main/resources/scripts) for more details and [here](https://github.com/chocolateboy/pmsencoder/wiki/PMS.conf-options#pmsencoderscriptdirectory-) for details on where to add your own scripts.
+PMSEncoder can be configured to support any video site by writing a small script, similar to a [GreaseMonkey](http://wiki.greasespot.net/Greasemonkey)-style userscript. Scripts are written in [Groovy](http://groovy.codehaus.org/) with a page-scraping syntax very similar to [jQuery](http://jquery.com/). See the source of the [builtin scripts](https://github.com/chocolateboy/pmsencoder/tree/master/src/main/resources/scripts) for more details and [here](https://github.com/chocolateboy/pmsencoder/wiki/PMS.conf-options#pmsencoderscriptdirectory-) for details on where to add your own scripts.
 
-In addition, PMSEncoder scripts can be used to change or customize ffmpeg commands for local files and to dynamically script all aspects of PMS. Almost all of PMSEncoder's own settings are implemented in scripts and can be customized and overridden by user-created scripts.
+In addition, PMSEncoder scripts can be used to change or customize transcoding commands for local files and to dynamically script all aspects of PMS. Almost all of PMSEncoder's own settings are implemented in scripts and can be customized and overridden by user-created scripts.
 
 ## Troubleshooting
 
