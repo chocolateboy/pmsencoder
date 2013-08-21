@@ -135,21 +135,6 @@ class ActionDelegate {
     }
 
     // DSL method
-    boolean setAudioBitrateOptions(Object maybeList) {
-        return maybeList == null ? null : command.setAudioBitrateOptions(Util.toStringList(maybeList, true))
-    }
-
-    // DSL method
-    boolean setVideoBitrateOptions(Object maybeList) {
-        return maybeList == null ? null : command.setVideoBitrateOptions(Util.toStringList(maybeList, true))
-    }
-
-    // DSL method
-    boolean setVideoTranscodeOptions(Object maybeList) {
-        return maybeList == null ? null : command.setVideoTranscodeOptions(Util.toStringList(maybeList, true))
-    }
-
-    // DSL method
     String shellQuote(Object uri) {
         return Util.shellQuote(uri)
     }

@@ -1,6 +1,6 @@
 package com.chocolatey.pmsencoder
 
-import static com.chocolatey.pmsencoder.Util.guard
+import static Util.guard
 
 import static groovy.io.FileType.FILES
 

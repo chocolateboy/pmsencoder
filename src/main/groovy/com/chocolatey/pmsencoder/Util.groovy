@@ -44,4 +44,10 @@ class Util {
             return Platform.isWindows() ? '"' + uri.replaceAll('"', '""') + '"' : uri
         }
     }
+
+    public static String[] listToArray(List<String> list) {
+        String[] array = new String[ list.size() ]
+        list.toArray(array)
+        return array
+    }
 }

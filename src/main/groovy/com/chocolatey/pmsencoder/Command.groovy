@@ -23,9 +23,6 @@ public class Command {
     List<String> downloader = []
     List<String> hook = []
     List<String> matches = []
-    List<String> audioBitrateOptions = null
-    List<String> videoBitrateOptions = null
-    List<String> videoTranscodeOptions = null
     List<String> transcoder = []
     OutputParams params
     Player player
@@ -69,9 +66,6 @@ public class Command {
             downloader:            ${downloader.inspect()}
             transcoder:            ${transcoder.inspect()}
             stash:                 ${stash.inspect()}
-            audioBitrateOptions:   ${audioBitrateOptions.inspect()}
-            videoBitrateOptions:   ${videoBitrateOptions.inspect()}
-            videoTranscodeOptions: ${videoTranscodeOptions.inspect()}
         }""".substring(1).stripIndent(8)
     }
 

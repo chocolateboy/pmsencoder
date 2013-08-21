@@ -1,6 +1,6 @@
 package com.chocolatey.pmsencoder
 
-import static com.chocolatey.pmsencoder.Util.guard
+import static Util.guard
 
 @groovy.transform.CompileStatic
 class UtilTest extends PMSEncoderTestCase {

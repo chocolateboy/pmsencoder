@@ -47,6 +47,7 @@ script (END) {
                 }
             }
 
+            // TODO port this to finalizeTranscoderArgs
             // uncomment these if you're using the stock ffmpeg in Ubuntu 12.04
             /*
                 audioBitrateOptions = []

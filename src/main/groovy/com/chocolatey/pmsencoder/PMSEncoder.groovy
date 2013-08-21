@@ -1,6 +1,7 @@
 package com.chocolatey.pmsencoder
 
-import static com.chocolatey.pmsencoder.Util.shellQuote
+import static Util.shellQuote
+import static Util.listToArray
 
 import com.sun.jna.Platform
 
@@ -172,32 +173,22 @@ public class PMSEncoder extends FFmpegWebVideo {
                 ]
 
                 transcoderArgs.addAll(args)
-
-                List<String> audioBitrateOptions = command.getAudioBitrateOptions()
-                List<String> videoBitrateOptions = command.getVideoBitrateOptions()
-                List<String> videoTranscodeOptions = command.getVideoTranscodeOptions()
-
-                if (audioBitrateOptions == null) {
-                    transcoderArgs.addAll(getAudioBitrateOptions(dlna, media, params))
-                } else {
-                    transcoderArgs.addAll(audioBitrateOptions)
-                }
-
-                if (videoBitrateOptions == null) {
-                    transcoderArgs.addAll(getVideoBitrateOptions(dlna, media, params))
-                } else {
-                    transcoderArgs.addAll(videoBitrateOptions)
-                }
-
-                if (videoTranscodeOptions == null) {
-                    transcoderArgs.addAll(getVideoTranscodeOptions(dlna, media, params))
-                } else {
-                    transcoderArgs.addAll(videoTranscodeOptions)
-                }
-
+                transcoderArgs.addAll(getAudioBitrateOptions(dlna, media, params))
+                transcoderArgs.addAll(getVideoBitrateOptions(dlna, media, params))
+                transcoderArgs.addAll(getVideoTranscodeOptions(dlna, media, params))
                 transcoderArgs.add(transcoderOutputPath)
             }
         }
+
+        def cmdArray = finalizeTranscoderArgs(
+            newURI,
+            dlna,
+            media,
+            params,
+            listToArray(transcoderArgs)
+        )
+
+        transcoderArgs = cmdArray.toList()
 
         // Groovy's "documentation" doesn't make it clear whether local variables are null-initialized
         // http://stackoverflow.com/questions/4025222

@@ -1,5 +1,7 @@
 package com.chocolatey.pmsencoder
 
+import static Util.listToArray
+
 import com.sun.jna.Platform
 
 import net.pms.configuration.PmsConfiguration
@@ -27,12 +29,6 @@ class ProcessManager {
         outputParams.minBufferSize = params.minFileSize
         outputParams.secondread_minsize = 100000
         outputParams.log = true // for documentation only as it's done automatically for pipe-writing processes
-    }
-
-    private String[] listToArray(List<String> list) {
-        String[] array = new String[ list.size() ]
-        list.toArray(array)
-        return array
     }
 
     private void sleepFor(long milliseconds) {
