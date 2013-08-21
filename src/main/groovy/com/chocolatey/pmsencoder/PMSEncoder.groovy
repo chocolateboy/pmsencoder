@@ -177,8 +177,8 @@ public class PMSEncoder extends FFmpegWebVideo {
 
                 // try to preserve the video and audio quality
                 //
-                // XXX note: we ignore the renderer/global bitrate limits
-                // since a) the PMS options are flaky[1] and b) web video bitrates/bandwidth
+                // XXX note: we ignore the renderer/global bitrate limits (for now)
+                // since a) the PMS FFmpeg options are incomplete[1] and b) web video bitrates/bandwidth
                 // shouldn't usually hit those limits. if they do, there are other options e.g.:
                 //
                 // 1) select lower-quality videos e.g. 640w Apple Trailers, YOUTUBE_DL_MAX_QUALITY &c.
@@ -187,11 +187,11 @@ public class PMSEncoder extends FFmpegWebVideo {
                 // [1] http://www.ps3mediaserver.org/forum/viewtopic.php?f=12&p=80836#p80836
 
                 // set video bitrate options
-                transcoderArgs.add("-q:v")
+                transcoderArgs.add('-q:v')
                 transcoderArgs.add(DEFAULT_QSCALE)
 
                 // set audio bitrate options
-                transcoderArgs.add("-q:a")
+                transcoderArgs.add('-q:a')
                 transcoderArgs.add(DEFAULT_QSCALE)
 
                 transcoderArgs.addAll(getVideoTranscodeOptions(dlna, media, params))
