@@ -62,7 +62,7 @@ class Profile {
             } catch (MatchFailureException e) {
                 logger.trace('pattern block: caught match exception')
                 // one of the match methods failed, so the whole block failed
-                logger.debug("match $name: failure")
+                logger.trace("match $name: failure")
                 return false
             }
 
@@ -93,7 +93,7 @@ class Profile {
     }
 
     boolean match(Command command) {
-        logger.debug("matching profile: $name")
+        logger.trace("matching profile: $name")
 
         // we expect to be called via Matcher.match, which makes
         // sure the events match before calling this method.
