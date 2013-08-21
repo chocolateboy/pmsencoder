@@ -34,20 +34,21 @@ class PMSConf {
 @groovy.util.logging.Log4j(value="logger")
 class Matcher {
     // XXX work around Groovy fail: getHttp goes into an infinite loop if this is lazy
-    private HTTPClient http = new HTTPClient()
+    private final HTTPClient http = new HTTPClient()
     // this is the default Map type, but let's be explicit as we strictly need this type
-    private Map<String, Profile> profiles = new LinkedHashMap<String, Profile>()
+    private final Map<String, Profile> profiles = new LinkedHashMap<String, Profile>()
     private boolean collateProfiles = false
     private final Map<Event, List<Profile>> eventProfiles = [:].withDefault { [] }
-    private PMS pms
+    private final PMS pms
     private List<String> ffmpeg = []
     private List<Integer> youtubeAccept = []
-    private Map<String, Object> globals = new Stash()
-    private PMSConf pmsConf = PMSConf.getInstance()
+    private final Map<String, Object> globals = new Stash()
+    private final PMSConf pmsConf = PMSConf.getInstance()
 
-    // global caches
-    Map<String, Boolean> youTubeDLCache = [:]
-    Map<String, Boolean> getFlashVideosCache = [:]
+    // "global" (i.e. per-Matcher) caches used by ProfileDelegate.isYouTubeDLCompatible
+    // and ProfileDelegate.isGetFlashVideosCompatible
+    final Map<String, Boolean> youTubeDLCache = [:]
+    final Map<String, Boolean> getFlashVideosCache = [:]
 
     static {
         // make String.match(pattern) (i.e. RegexHelper.match(string, pattern))
