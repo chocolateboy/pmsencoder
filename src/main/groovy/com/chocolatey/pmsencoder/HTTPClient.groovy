@@ -1,6 +1,7 @@
 package com.chocolatey.pmsencoder
 
 import groovy.json.JsonSlurper
+import groovy.transform.*
 import groovy.util.slurpersupport.GPathResult
 
 import groovyx.net.http.HTTPBuilder
@@ -24,7 +25,7 @@ import java.nio.charset.Charset
 
 // XXX the URLENC type can probably be used to simplify YouTube fmt_url_map handling
 
-@groovy.transform.CompileStatic
+@CompileStatic
 @groovy.util.logging.Log4j(value="logger")
 class HTTPClient {
     final static private DEFAULT_CHARSET = 'UTF-8'
@@ -100,7 +101,7 @@ class HTTPClient {
         return getNameValuePairs(uri).collectEntries { NameValuePair pair -> [ pair.name, pair.value ] }
     }
 
-    @groovy.transform.CompileStatic(groovy.transform.TypeCheckingMode.SKIP)
+    @CompileStatic(TypeCheckingMode.SKIP)
     private Object getType(String uri, ContentType contentType) {
         // allocate one per request: try to avoid this exception:
         // java.lang.IllegalStateException: Invalid use of SingleClientConnManager: connection still allocated.
@@ -114,7 +115,7 @@ class HTTPClient {
     }
 
     // TODO: return a Map on success (ignore headers with multiple values?)
-    @groovy.transform.CompileStatic(groovy.transform.TypeCheckingMode.SKIP)
+    @CompileStatic(TypeCheckingMode.SKIP)
     public boolean head(Object uri) {
         def http = new HTTPBuilder()
 
@@ -124,7 +125,7 @@ class HTTPClient {
         }
     }
 
-    @groovy.transform.CompileStatic(groovy.transform.TypeCheckingMode.SKIP)
+    @CompileStatic(TypeCheckingMode.SKIP)
     public String target(Object uri) {
         def http = new HTTPBuilder()
 

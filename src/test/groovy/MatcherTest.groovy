@@ -1,6 +1,8 @@
 package com.chocolatey.pmsencoder
 
-@groovy.transform.CompileStatic
+import groovy.transform.*
+
+@CompileStatic
 class MatcherTest extends PMSEncoderTestCase {
     // no match - change nothing
     private void noMatch() {
@@ -17,7 +19,13 @@ class MatcherTest extends PMSEncoderTestCase {
         noMatch()
     }
 
-    @groovy.transform.CompileStatic(groovy.transform.TypeCheckingMode.SKIP)
+    // XXX CompileStatic error:
+    //
+    //         Cannot find matching method com.chocolatey.pmsencoder.MatcherTest#assertMatch(
+    //             java.util.LinkedHashMap <java.lang.String,
+    //             java.io.Serializable>
+    //         )
+    @CompileStatic(TypeCheckingMode.SKIP)
     void testInterpolationInDefaultTranscoderArgs() {
         assertMatch([
             loadDefaultScripts: true,
@@ -25,7 +33,7 @@ class MatcherTest extends PMSEncoderTestCase {
             // make sure nbcores is interpolated here as 3 in -threads 3
             // (this is mocked to 3 in PMSEncoderTestCase)
             wantTranscoder: { List<String> transcoder ->
-                transcoder[4] = '-threads' && transcoder[5] == '3'
+                transcoder[4] == '-threads' && transcoder[5] == '3'
             },
             useDefaultTranscoder: true
         ])

@@ -4,6 +4,8 @@ import static com.chocolatey.pmsencoder.Util.shellQuote
 
 import com.sun.jna.Platform
 
+import groovy.transform.*
+
 import java.util.Collections
 
 import net.pms.PMS
@@ -18,7 +20,7 @@ import net.pms.io.ProcessWrapper
 import net.pms.io.ProcessWrapperImpl
 import net.pms.network.HTTPResource
 
-@groovy.transform.CompileStatic
+@CompileStatic
 @groovy.util.logging.Log4j(value="logger")
 public class PMSEncoder extends FFmpegWebVideo {
     private final int nbCores
@@ -68,7 +70,6 @@ public class PMSEncoder extends FFmpegWebVideo {
     }
 
     @Override
-    @groovy.transform.CompileStatic(groovy.transform.TypeCheckingMode.SKIP)
     public ProcessWrapper launchTranscode(
         DLNAResource dlna,
         DLNAMediaInfo media,

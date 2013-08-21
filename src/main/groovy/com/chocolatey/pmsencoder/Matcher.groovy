@@ -116,7 +116,7 @@ class Matcher {
     boolean match(Command command, boolean useDefaultTranscoder = true) {
         def uri = command.getVarAsString('uri')
 
-        logger.debug("matching (${command.event}): ${uri.inspect()}")
+        logger.debug("matching (${command.event}): ${uri}")
 
         synchronized(collateProfiles) {
             if (collateProfiles) {

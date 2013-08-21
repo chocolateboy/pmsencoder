@@ -1,19 +1,23 @@
 package com.chocolatey.pmsencoder
 
+import groovy.transform.*
+
 import org.apache.http.NameValuePair
 
 // FIXME investigate why this doesn't work. typed closures?
-// @groovy.transform.CompileStatic
+@CompileStatic
 @groovy.util.logging.Log4j(value="logger")
 class ActionDelegate {
     private Closure<List<String>> contextThunk
     @Delegate final ProfileDelegate profileDelegate
     // FIXME: sigh: transitive delegation doesn't work (Groovy bug)
     @Delegate private final Matcher matcher
+    private final Command command
 
     ActionDelegate(ProfileDelegate profileDelegate) {
         this.profileDelegate = profileDelegate
         this.matcher = profileDelegate.matcher
+        this.command = profileDelegate.command
         setContextThunk(this.&getTranscoder) // default context
     }
 
@@ -83,7 +87,7 @@ class ActionDelegate {
     // in Groovy++ without this:
     //
     //     Duplicate method name&signature in class file com/chocolatey/pmsencoder/ActionDelegate$hook$2
-    @groovy.transform.CompileStatic(groovy.transform.TypeCheckingMode.SKIP)
+    // @CompileStatic(TypeCheckingMode.SKIP)
     void hook (Closure closure) {
         if (getHook() == null) {
             logger.error("can't modify null hook command list")
@@ -99,7 +103,7 @@ class ActionDelegate {
         }
     }
 
-    @groovy.transform.CompileStatic(groovy.transform.TypeCheckingMode.SKIP)
+    // @CompileStatic(TypeCheckingMode.SKIP)
     void downloader (Closure closure) {
         if (getDownloader() == null) {
             logger.error("can't modify null downloader command list")
@@ -114,7 +118,7 @@ class ActionDelegate {
         }
     }
 
-    @groovy.transform.CompileStatic(groovy.transform.TypeCheckingMode.SKIP)
+    // @CompileStatic(TypeCheckingMode.SKIP)
     void transcoder (Closure closure) {
         if (getTranscoder() == null) {
             logger.error("can't modify null transcoder command list")
@@ -198,6 +202,7 @@ class ActionDelegate {
 
     List<String> append(List list) {
         def context = getContext()
+        // XXX why does this (spread operator) work under CompileStatic?
         context.addAll(list*.toString())
         return context
     }
@@ -216,14 +221,20 @@ class ActionDelegate {
         return context
     }
 
+    // CompileStatic error (spread operator):
+    //     java.lang.VerifyError: (class: com/chocolatey/pmsencoder/ActionDelegate, method: prepend signature: (Ljava/util/List;)Ljava/util/List;)
+    //     Expecting to find integer on stack
+    @CompileStatic(TypeCheckingMode.SKIP)
     List<String> prepend(List list) {
         // XXX we need to be careful to modify the list in place
         def context = getContext()
 
         if (context.size() <= 1) {
-            context.addAll(list*.toString())
+            // context.addAll(list*.toString())
+            context.addAll(Util.toStringList(list))
         } else {
-            context.addAll(1, list*.toString())
+            // context.addAll(1, list*.toString())
+            context.addAll(1, Util.toStringList(list))
         }
 
         return context
@@ -389,7 +400,6 @@ class ActionDelegate {
 
     // DSL method
     void youtube(List<Integer> formats = getYOUTUBE_ACCEPT()) {
-        def command = getCommand()
         def uri = command.getVarAsString('uri')
         def video_id = command.getVarAsString('youtube_video_id')
         def found = false

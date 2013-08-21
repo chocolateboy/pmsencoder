@@ -1,5 +1,7 @@
 package com.chocolatey.pmsencoder
 
+import groovy.transform.*
+
 import net.pms.dlna.DLNAMediaInfo
 import net.pms.dlna.DLNAResource
 import net.pms.encoders.Player
@@ -26,7 +28,7 @@ import org.jsoup.select.Elements
     http://groovy.codehaus.org/api/groovy/lang/Delegate.html
 */
 
-@groovy.transform.CompileStatic
+@CompileStatic
 @groovy.util.logging.Log4j(value="logger")
 class ProfileDelegate {
     // FIXME: sigh: transitive delegation doesn't work (groovy bug)
@@ -250,7 +252,7 @@ class ProfileDelegate {
             jsoup = getJsoupForUri(command.getVarAsString('uri'))
         }
 
-        return jsoup.select(query.toString())
+        return jsoup.select(query?.toString())
     }
 
     // DSL method
@@ -274,9 +276,7 @@ class ProfileDelegate {
         return jsoup
     }
 
-    @groovy.transform.CompileStatic(groovy.transform.TypeCheckingMode.SKIP)
-    private Document getJsoupForUri(Object obj) {
-        def uri = obj.toString()
+    private Document getJsoupForUri(String uri) {
         def cached = httpCache[uri]
 
         if (cached == null) {
@@ -287,10 +287,21 @@ class ProfileDelegate {
         return getJsoupForString(cached)
     }
 
-    @groovy.transform.CompileStatic(groovy.transform.TypeCheckingMode.SKIP)
-    private Document getJsoupForString(Object obj) {
-        def string = obj.toString()
-        return jsoupCache[string] ?: (jsoupCache[string] = Jsoup.parse(string))
+    // this (ternary operator?):
+    //
+    //     return jsoupCache[string] ?: (jsoupCache[string] = Jsoup.parse(string))
+    //
+    // produces a CompileStatic error:
+    //
+    //     java.lang.VerifyError: (class: com/chocolatey/pmsencoder/ProfileDelegate,
+    //     method: getJsoupForString signature: (Ljava/lang/String;)Lorg/jsoup/nodes/Document;)
+    //     Inconsistent stack height 2 != 1
+    private Document getJsoupForString(String string) {
+        if (!jsoupCache[string]) {
+            jsoupCache[string] = Jsoup.parse(string)
+        }
+
+        return jsoupCache[string]
     }
 
     private Boolean isDownloaderCompatible(Map<String, Boolean> cache, Object maybeList, Object u, List<String> args, String name) {
@@ -310,7 +321,7 @@ class ProfileDelegate {
             cache.put(key, cached)
         }
 
-        logger.info("$name compatible: $cached ($status), key: ${key.inspect()}, uri: ${u.inspect()}")
+        logger.info("$name compatible: $cached ($status), key: ${key.inspect()}, uri: ${uri}")
         return cached
     }
 

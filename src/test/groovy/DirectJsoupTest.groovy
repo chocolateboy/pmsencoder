@@ -1,10 +1,13 @@
 package com.chocolatey.pmsencoder
 
+import groovy.transform.*
+
 // test/exercise/experiment with things we may not be using in scripts yet
 
-@groovy.transform.CompileStatic
+@CompileStatic
 class DirectJsoupTest extends PMSEncoderTestCase {
-    @groovy.transform.CompileStatic(groovy.transform.TypeCheckingMode.SKIP)
+    // CompileStatic error: Cannot find matching method java.lang.Object#text()
+    @CompileStatic(TypeCheckingMode.SKIP)
     void testJsoupDirect() {
         def profileDelegate = getProfileDelegate()
         assert profileDelegate.$(uri: 'http://www.ps3mediaserver.org/')('title').text() == 'PS3 Media Server'
