@@ -1,5 +1,6 @@
 package com.chocolatey.pmsencoder
 
+import groovy.transform.*
 import net.pms.configuration.PmsConfiguration
 import net.pms.PMS
 
@@ -14,7 +15,7 @@ enum Stage { BEGIN, INIT, DEFAULT, CHECK, END }
 
 // no need to extend HashMap<...>: we only need the subscript - i.e. getAt() and putAt() - syntax
 @Singleton
-@groovy.transform.CompileStatic
+@CompileStatic
 class PMSConf {
     private final PmsConfiguration configuration = PMS.getConfiguration()
 
@@ -29,21 +30,20 @@ class PMSConf {
 }
 
 // XXX note: only public methods can be delegated to
-@groovy.transform.CompileStatic
+@CompileStatic
 @groovy.util.logging.Log4j(value="logger")
 class Matcher {
     // XXX work around Groovy fail: getHttp goes into an infinite loop if this is lazy
     private HTTPClient http = new HTTPClient()
     // this is the default Map type, but let's be explicit as we strictly need this type
     private Map<String, Profile> profiles = new LinkedHashMap<String, Profile>()
-    private boolean doSortProfiles = false
-    private List<Profile> sortedProfiles
+    private boolean collateProfiles = false
+    private final Map<Event, List<Profile>> eventProfiles = [:].withDefault { [] }
     private PMS pms
     private List<String> ffmpeg = []
     private List<Integer> youtubeAccept = []
     private Map<String, Object> globals = new Stash()
     private PMSConf pmsConf = PMSConf.getInstance()
-    private Map<Event, Integer> eventConsumers = [:].withDefault { 0 }
 
     // global caches
     Map<String, Boolean> youTubeDLCache = [:]
@@ -65,7 +65,7 @@ class Matcher {
     // FIXME the META-INF way doesn't work: from the Maven output:
     //
     //     WARNING: Module [pmsencoder-extensions] - Unable to load extension class [com.chocolatey.pmsencoder.StringExtension]
-    @groovy.transform.CompileStatic(groovy.transform.TypeCheckingMode.SKIP)
+    @CompileStatic(TypeCheckingMode.SKIP)
     static private void installExtensionMethods() {
         String.metaClass {
             match { Object regex -> RegexHelper.match(delegate, regex) }
@@ -76,13 +76,25 @@ class Matcher {
         }
     }
 
-    // sort the profiles by a) stage b) document order within
-    // a script (which is preserved in the unsorted list)
-    public void sortProfiles() {
-        List<Profile> unsortedProfiles = profiles.values().asList()
+    /*
+     * 1) sort the profiles by a) stage b) document order within
+     * a script (which is preserved in the unsorted list).
+     *
+     * 2) iterate over the profiles and store them in eventProfiles,
+     * which maps each event to a sorted list of profiles
+     * which consume that event e.g.:
+     *
+     *     [
+     *         TRANSCODE: [ profile1, profile2           ] ],
+     *         FINALIZE:  [ profile3, profile4, profile5 ] ],
+     *         ...
+     *     [
+     */
+    private void collateProfiles() {
+        def unsortedProfiles = profiles.values().asList()
 
-        sortedProfiles = unsortedProfiles.sort { Profile profile1, Profile profile2 ->
-            // XXX Groovy truth (0 == false) doesn't work under CompileStatic
+        def sortedProfiles = unsortedProfiles.sort { Profile profile1, Profile profile2 ->
+            // XXX Groovy truth (0 == false) doesn't work here under CompileStatic
             def cmp = profile1.stage.compareTo(profile2.stage)
 
             if (cmp != 0) {
@@ -92,34 +104,51 @@ class Matcher {
             }
         }
 
-        doSortProfiles = false
-    }
-
-    @groovy.transform.CompileStatic(groovy.transform.TypeCheckingMode.SKIP)
-    boolean match(Command command, boolean useDefaultTranscoder = true) {
-        def uri = command.getVarAsString('uri')
-        logger.debug("matching (${command.event}): ${uri.inspect()}")
-
-        // bypass matching altogether if none of the profiles
-        // consume this event
-        if (eventConsumers[command.event] == 0) {
-            return false
+        eventProfiles.clear()
+        sortedProfiles.each { Profile profile ->
+            eventProfiles[profile.event] << profile
         }
 
-        synchronized(doSortProfiles) {
-            if (doSortProfiles) {
-                sortProfiles()
+        collateProfiles = false
+    }
+
+    boolean match(Command command, boolean useDefaultTranscoder = true) {
+        def uri = command.getVarAsString('uri')
+
+        logger.debug("matching (${command.event}): ${uri.inspect()}")
+
+        synchronized(collateProfiles) {
+            if (collateProfiles) {
+                collateProfiles()
             }
         }
 
-        if (useDefaultTranscoder) {
-            command.transcoder = ffmpeg*.toString()
+        def sortedProfiles = eventProfiles[command.event]
+
+        // bypass matching altogether if no profiles
+        // consume this event
+        // XXX hmm, Groovy truth ([] == false) seems to work here...
+        if (!sortedProfiles) {
+            return false
         }
 
-        boolean stopMatching = false
+        if (useDefaultTranscoder) {
+            // XXX the spread operator breaks CompileStatic:
+            //
+            //     java.lang.VerifyError: (class: com/chocolatey/pmsencoder/Matcher,
+            //     method: match signature: (Lcom/chocolatey/pmsencoder/Command;Z)Z)
+            //     Incompatible object argument for function call
+            //
+            // possibly related: https://jira.codehaus.org/browse/GROOVY-6311
+            //
+            // command.transcoder = ffmpeg*.toString()
+            command.transcoder = Util.toStringList(ffmpeg) // clone
+        }
+
+        def stopMatching = false
 
         sortedProfiles.each { Profile profile ->
-            if ((profile.event == command.event) && (stopMatching == false || profile.alwaysRun == true)) {
+            if (stopMatching == false || profile.alwaysRun == true) {
                 if (profile.match(command)) {
                     /*
                         XXX make sure we take the name from the profile itself
@@ -154,11 +183,6 @@ class Matcher {
         String extendz = options['extends']?.toString()
         String replaces = options['replaces']?.toString()
         Event event = (options['on'] != null) ? (options['on'] as Event) : Event.TRANSCODE
-
-        // keep count of the number of profiles that consume each event
-        // so that we can short-circuit matching if no profiles are registered
-        // for a particular event
-        eventConsumers[event] = eventConsumers[event] + 1
 
         def target
 
@@ -222,11 +246,10 @@ class Matcher {
 
     // we could impose a constraint here that a script (file) must
     // contain exactly one script block, but why do that?
-    @groovy.transform.CompileStatic(groovy.transform.TypeCheckingMode.SKIP)
     void load(Reader reader, String filename) {
         // we'll typically be adding new profiles, so notify match() to
         // recalculate the list of sorted profiles when we're done
-        doSortProfiles = true
+        collateProfiles = true
 
         def binding = new Binding([
             script: this.&script
@@ -238,11 +261,13 @@ class Matcher {
         // https://groovy.codeplex.com/wikipage?title=Guillaume%20Laforge%27s%20%22Mars%20Rover%22%20tutorial%20on%20Groovy%20DSL%27s
         def CompilerConfiguration compilerConfiguration = new CompilerConfiguration()
         def ImportCustomizer imports = new ImportCustomizer()
-        imports.addStaticStars(Stage.name)
-        imports.addStaticStars(Event.name)
+
+        // XXX CompileStatic error if these enum members are accessed as properties
+        // imports.addStaticStars(Stage.name, Event.name)
+        // TODO file a bug for this
+        imports.addStaticStars(Stage.getName(), Event.getName())
         compilerConfiguration.addCompilationCustomizers(imports)
 
-        // imports.addStaticStars(Stage.name, Event.name)
         // compilerConfiguration.addCompilationCustomizers(imports)
         def groovy = new GroovyShell(binding, compilerConfiguration)
 
