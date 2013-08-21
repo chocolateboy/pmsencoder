@@ -96,7 +96,7 @@ If the issue still remains:
 2. try to stream a web video
 3. wait until it fails
 3. stop PMS
-5. upload the **full** [`debug.log`](http://www.ps3mediaserver.org/forum/viewtopic.php?f=6&t=3507&p=38484#p38484), [`PMS.conf`](http://www.ps3mediaserver.org/forum/viewtopic.php?f=6&t=3507&p=64418#p64418) and  [`pmsencoder.log`](https://github.com/chocolateboy/pmsencoder/wiki/PMS.conf-options#pmsencoderlogdirectory-) to [Pastebin.com](http://pastebin.com) or [MediaFire](http://www.mediafire.com/)
+5. upload the **full** [`debug.log`](http://www.ps3mediaserver.org/forum/viewtopic.php?f=6&t=3507&p=38484#p38484), [`PMS.conf`](http://www.ps3mediaserver.org/forum/viewtopic.php?f=6&t=3507&p=32731#p32731) and  [`pmsencoder.log`](https://github.com/chocolateboy/pmsencoder/wiki/PMS.conf-options#pmsencoderlogdirectory-) to [Pastebin.com](http://pastebin.com) or [MediaFire](http://www.mediafire.com/)
 6. create a new post in [this thread](http://www.ps3mediaserver.org/forum/viewtopic.php?f=12&t=6644) describing the problem, along with links to the uploaded logfiles and
 any relevant [`WEB.conf`](http://www.ps3mediaserver.org/forum/viewtopic.php?f=6&t=3507&p=64418#p64418) entries
 
