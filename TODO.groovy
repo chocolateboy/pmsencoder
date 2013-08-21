@@ -254,3 +254,6 @@ keep a list of Script objects rather than (just) a hash of profiles?
         profile ('Foo') { } // inherit stopOnMatch: true
         profile ('Bar') { } // ditto
     }
+
+// remove the option to customize audioBitrateOptions, videoBitrateOptions and videoTranscodeOptions but
+// call finalizeTranscoderArgs so that the whole command can be customized
