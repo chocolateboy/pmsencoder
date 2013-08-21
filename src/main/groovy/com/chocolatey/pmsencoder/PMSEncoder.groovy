@@ -29,6 +29,7 @@ public class PMSEncoder extends FFmpegWebVideo {
     public static final boolean isWindows = Platform.isWindows()
     private static final PmsConfiguration configuration = PMS.getConfiguration()
     private static final String FFMPEG_PATH = normalizePath(configuration.getFfmpegPath())
+    private static final String DEFAULT_QSCALE = "3"
 
     // FIXME make this private when PMS makes it private
     public static final String ID = Plugin.name.toLowerCase()
@@ -173,8 +174,26 @@ public class PMSEncoder extends FFmpegWebVideo {
                 ]
 
                 transcoderArgs.addAll(args)
-                transcoderArgs.addAll(getAudioBitrateOptions(dlna, media, params))
-                transcoderArgs.addAll(getVideoBitrateOptions(dlna, media, params))
+
+                // try to preserve the video and audio quality
+                //
+                // XXX note: we ignore the renderer/global bitrate limits
+                // since a) the PMS options are flaky[1] and b) web video bitrates/bandwidth
+                // shouldn't usually hit those limits. if they do, there are other options e.g.:
+                //
+                // 1) select lower-quality videos e.g. 640w Apple Trailers, YOUTUBE_DL_MAX_QUALITY &c.
+                // 2) custom bitrate options can be set via a finalizeTranscoderArgs script
+                //
+                // [1] http://www.ps3mediaserver.org/forum/viewtopic.php?f=12&p=80836#p80836
+
+                // set video bitrate options
+                transcoderArgs.add("-q:v")
+                transcoderArgs.add(DEFAULT_QSCALE)
+
+                // set audio bitrate options
+                transcoderArgs.add("-q:a")
+                transcoderArgs.add(DEFAULT_QSCALE)
+
                 transcoderArgs.addAll(getVideoTranscodeOptions(dlna, media, params))
                 transcoderArgs.add(transcoderOutputPath)
             }
