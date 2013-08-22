@@ -7,11 +7,6 @@
     allow the engine to be demoted
     by default, profiles now halt after matching
 
-    scripts:
-        - add IMDb
-        - add dshow
-        - rm obsolete scripts
-
     DSL changes:
         - add new profile method: uri() - returns current or supplied URI string as a URI object
         - protocol can now be set

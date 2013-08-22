@@ -221,7 +221,7 @@ keep a list of Script objects rather than (just) a hash of profiles?
 
     profile(on: [ TRANSCODE, FINALIZE, COMPATIBLE ]) { ... }
 
-// change pattern/action to when/then?
+// change pattern/action to when/then/always?
 
 // replace hook with:
 

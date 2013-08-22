@@ -26,6 +26,4 @@ script {
             match { true } // OK: stash assignment should be committed
         }
     }
-
-
 }

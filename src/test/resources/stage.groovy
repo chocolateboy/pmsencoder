@@ -22,6 +22,7 @@ script {
     profile('Default 1', stopOnMatch: false) { }
 }
 
+// explicit stage
 script (DEFAULT) {
     profile('Default 2', stopOnMatch: false) { }
 }
@@ -31,6 +32,7 @@ script (DEFAULT) {
     profile('Default 3', stopOnMatch: false) { }
 }
 
+// implicit stage
 script {
     profile('Default 4', stopOnMatch: false) { }
 }
