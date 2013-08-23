@@ -1,20 +1,16 @@
 package com.chocolatey.pmsencoder
 
 import static Util.shellQuote
-import static Util.listToArray
+import static Util.cmdListToArray
 
 import com.sun.jna.Platform
 
 import groovy.transform.*
-
-import java.util.Collections
-
 import net.pms.PMS
 import net.pms.configuration.PmsConfiguration
 import net.pms.dlna.DLNAMediaInfo
 import net.pms.dlna.DLNAResource
 import net.pms.encoders.FFmpegWebVideo
-import net.pms.encoders.Player
 import net.pms.util.PlayerUtil
 import net.pms.io.OutputParams
 import net.pms.io.ProcessWrapper
@@ -204,7 +200,7 @@ public class PMSEncoder extends FFmpegWebVideo {
             dlna,
             media,
             params,
-            listToArray(transcoderArgs)
+            cmdListToArray(transcoderArgs)
         )
 
         transcoderArgs = cmdArray.toList()

@@ -45,8 +45,8 @@ class Util {
         }
     }
 
-    public static <T> T[] listToArray(List<T> list) {
-        T[] array = new T[ list.size() ]
+    public static String[] cmdListToArray(List<String> list) {
+        String[] array = new String[ list.size() ]
         list.toArray(array)
         return array
     }

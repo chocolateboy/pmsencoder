@@ -1,6 +1,6 @@
 package com.chocolatey.pmsencoder
 
-import static Util.listToArray
+import static Util.cmdListToArray
 
 import com.sun.jna.Platform
 
@@ -68,7 +68,7 @@ class ProcessManager {
     }
 
     public void handleHook(List<String> hookArgs) {
-        def cmdArray = listToArray(hookArgs)
+        def cmdArray = cmdListToArray(hookArgs)
 
         // PMS doesn't require input from this process - so use new OutputParams
         def params = new OutputParams(configuration)
@@ -83,7 +83,7 @@ class ProcessManager {
 
     public ProcessWrapperImpl handleDownloadWindows(List<String> downloaderArgs, List<String> transcoderArgs) {
         def cmdList = ([ "cmd.exe", "/C" ] + downloaderArgs + "|" + transcoderArgs) as List<String>
-        def cmdArray = listToArray(cmdList)
+        def cmdArray = cmdListToArray(cmdList)
         def pw = new ProcessWrapperImpl(cmdArray, outputParams) // may modify cmdArray[0]
 
         logger.info("command: ${cmdList.join(' ')}")
@@ -93,7 +93,7 @@ class ProcessManager {
     public void handleDownloadUnix(List<String> downloaderArgs, String downloaderOutputBasename) {
         def downloaderOutputPipe = mkfifo(new PipeProcess(downloaderOutputBasename))
         attachedProcesses << downloaderOutputPipe.getPipeProcess()
-        def cmdArray = listToArray(downloaderArgs)
+        def cmdArray = cmdListToArray(downloaderArgs)
 
         // PMS doesn't require input from this process - so use new OutputParams
         def params = new OutputParams(configuration)
@@ -106,7 +106,7 @@ class ProcessManager {
     }
 
     public ProcessWrapperImpl handleTranscode(List<String> transcoderArgs) {
-        def cmdArray = listToArray(transcoderArgs)
+        def cmdArray = cmdListToArray(transcoderArgs)
         def transcoderProcess = new ProcessWrapperImpl(cmdArray, outputParams) // may modify cmdArray[0]
         logger.info("transcoder command: ${transcoderArgs.join(' ')}")
         return transcoderProcess
