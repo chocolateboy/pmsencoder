@@ -1,10 +1,12 @@
 .classpath
+debug.log
+*.exe
+.idea
+pmsencoder.iml
 pmsencoder.log
+pom.xml.versionsBackup
 .project
 .settings
+src/main/resources/git.properties
 tags
 target/
-pom.xml.versionsBackup
-*.exe
-debug.log
-src/main/resources/git.properties
