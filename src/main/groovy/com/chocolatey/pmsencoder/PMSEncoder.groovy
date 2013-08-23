@@ -1,21 +1,20 @@
 package com.chocolatey.pmsencoder
 
-import static Util.shellQuote
-import static Util.cmdListToArray
-
 import com.sun.jna.Platform
-
-import groovy.transform.*
+import groovy.transform.CompileStatic
 import net.pms.PMS
 import net.pms.configuration.PmsConfiguration
 import net.pms.dlna.DLNAMediaInfo
 import net.pms.dlna.DLNAResource
 import net.pms.encoders.FFmpegWebVideo
-import net.pms.util.PlayerUtil
 import net.pms.io.OutputParams
 import net.pms.io.ProcessWrapper
 import net.pms.io.ProcessWrapperImpl
 import net.pms.network.HTTPResource
+import net.pms.util.PlayerUtil
+
+import static Util.cmdListToArray
+import static Util.shellQuote
 
 @CompileStatic
 @groovy.util.logging.Log4j(value="logger")

@@ -1,6 +1,7 @@
 package com.chocolatey.pmsencoder
 
-import groovy.transform.*
+import groovy.transform.CompileStatic
+import groovy.transform.TypeCheckingMode
 
 // test/exercise/experiment with things we may not be using in scripts yet
 

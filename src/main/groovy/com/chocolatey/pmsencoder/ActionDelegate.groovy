@@ -1,8 +1,7 @@
 package com.chocolatey.pmsencoder
 
-import groovy.transform.*
-
-import org.apache.http.NameValuePair
+import groovy.transform.CompileStatic
+import groovy.transform.TypeCheckingMode
 
 // FIXME investigate why this doesn't work. typed closures?
 @CompileStatic

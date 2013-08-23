@@ -16,9 +16,9 @@
  */
 package no.geosoft.cc.io;
 
-import java.util.*;
 import java.io.File;
 import java.lang.ref.WeakReference;
+import java.util.*;
 
 /**
  * Class for monitoring changes in disk files.

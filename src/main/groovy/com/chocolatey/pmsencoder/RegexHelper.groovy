@@ -1,7 +1,7 @@
 package com.chocolatey.pmsencoder
 
-import com.google.code.regexp.Matcher
 import com.google.code.regexp.MatchResult as NativeMatchResult
+import com.google.code.regexp.Matcher
 import com.google.code.regexp.Pattern
 
 import static java.util.regex.Pattern.DOTALL

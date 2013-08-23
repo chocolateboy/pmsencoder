@@ -1,7 +1,4 @@
 package com.chocolatey.pmsencoder
-
-import java.lang.NoClassDefFoundError
-
 /*
     prior to Groovy++ 0.4.99, HTTPBuilder (via HTTPClient) was acting flaky under
     MIXED typing. seems to be fixed now

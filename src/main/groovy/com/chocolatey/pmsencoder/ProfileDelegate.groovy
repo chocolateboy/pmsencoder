@@ -1,14 +1,10 @@
 package com.chocolatey.pmsencoder
 
-import groovy.transform.*
-
+import groovy.transform.CompileStatic
 import net.pms.dlna.DLNAMediaInfo
 import net.pms.dlna.DLNAResource
 import net.pms.encoders.Player
 import net.pms.io.OutputParams
-
-import org.apache.http.NameValuePair
-
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
 import org.jsoup.select.Elements

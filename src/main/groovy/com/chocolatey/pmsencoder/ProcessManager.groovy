@@ -1,15 +1,14 @@
 package com.chocolatey.pmsencoder
 
-import static Util.cmdListToArray
-
 import com.sun.jna.Platform
-
+import net.pms.PMS
 import net.pms.configuration.PmsConfiguration
 import net.pms.io.OutputParams
 import net.pms.io.PipeProcess
 import net.pms.io.ProcessWrapper
 import net.pms.io.ProcessWrapperImpl
-import net.pms.PMS
+
+import static Util.cmdListToArray
 
 @groovy.transform.CompileStatic
 @groovy.util.logging.Log4j(value="logger")

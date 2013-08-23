@@ -1,12 +1,8 @@
 package com.chocolatey.pmsencoder
 
-import static Util.guard
-
-import static groovy.io.FileType.FILES
-
-import javax.swing.JComponent
-import javax.swing.JFrame
-
+import ch.qos.logback.classic.Level as LogbackLevel
+import ch.qos.logback.classic.Logger as LogbackLogger
+import net.pms.PMS
 import net.pms.configuration.PmsConfiguration
 import net.pms.dlna.DLNAMediaInfo
 import net.pms.dlna.DLNAResource
@@ -16,18 +12,16 @@ import net.pms.external.ExternalListener
 import net.pms.external.FinalizeTranscoderArgsListener
 import net.pms.io.OutputParams
 import net.pms.logging.DebugLogPathDefiner
-import net.pms.PMS
 import net.pms.util.FileUtil
-
 import no.geosoft.cc.io.FileListener
 import no.geosoft.cc.io.FileMonitor
-
 import org.apache.log4j.Logger as Log4jLogger
 import org.apache.log4j.xml.DOMConfigurator
-
-import ch.qos.logback.classic.Logger as LogbackLogger
-import ch.qos.logback.classic.Level as LogbackLevel
 import org.slf4j.LoggerFactory
+
+import javax.swing.*
+
+import static Util.guard
 
 @groovy.transform.CompileStatic
 public class Plugin implements ExternalListener, FinalizeTranscoderArgsListener, FileListener {

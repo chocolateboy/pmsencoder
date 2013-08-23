@@ -2,8 +2,6 @@ package com.chocolatey.pmsencoder
 
 import com.sun.jna.Platform
 
-import net.pms.PMS
-
 @groovy.transform.CompileStatic
 class Util {
     public static List<String> toStringList(Object maybeList, boolean split = false) {

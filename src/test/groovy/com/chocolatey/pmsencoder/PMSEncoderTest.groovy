@@ -1,7 +1,5 @@
 package com.chocolatey.pmsencoder
 
-import net.pms.PMS
-
 @groovy.transform.CompileStatic
 class PMSEncoderTest extends PMSEncoderTestCase {
     void testStashCopy() {

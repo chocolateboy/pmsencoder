@@ -1,24 +1,22 @@
 package com.chocolatey.pmsencoder
 
 import groovy.json.JsonSlurper
-import groovy.transform.*
+import groovy.transform.CompileStatic
+import groovy.transform.TypeCheckingMode
 import groovy.util.slurpersupport.GPathResult
-
+import groovyx.net.http.ContentType
 import groovyx.net.http.HTTPBuilder
-import groovyx.net.http.ParserRegistry
-
-import org.apache.http.client.methods.HttpUriRequest
-import org.apache.http.client.utils.URLEncodedUtils
 import org.apache.http.HttpHost
 import org.apache.http.NameValuePair
+import org.apache.http.client.methods.HttpUriRequest
+import org.apache.http.client.utils.URLEncodedUtils
 import org.apache.http.protocol.ExecutionContext
 import org.apache.http.protocol.HttpContext
 
-import groovyx.net.http.ContentType
+import java.nio.charset.Charset
+
 import static groovyx.net.http.Method.GET
 import static groovyx.net.http.Method.HEAD
-
-import java.nio.charset.Charset
 
 // return types taken from:
 // ParserRegistry: http://tinyurl.com/395cjkb

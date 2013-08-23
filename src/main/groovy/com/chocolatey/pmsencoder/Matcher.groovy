@@ -1,13 +1,11 @@
 package com.chocolatey.pmsencoder
 
-import groovy.transform.*
-import net.pms.configuration.PmsConfiguration
+import groovy.transform.CompileStatic
+import groovy.transform.TypeCheckingMode
 import net.pms.PMS
-
+import net.pms.configuration.PmsConfiguration
 import org.codehaus.groovy.control.CompilerConfiguration
 import org.codehaus.groovy.control.customizers.ImportCustomizer
-
-import org.jsoup.nodes.Document
 
 import static groovy.io.FileType.FILES
 

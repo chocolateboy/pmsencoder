@@ -1,13 +1,12 @@
 package com.chocolatey.pmsencoder
 
-import groovy.util.GroovyTestCase
-import mockit.*
-import net.pms.configuration.PmsConfiguration
-import net.pms.PMS
-import org.apache.log4j.xml.DOMConfigurator
-
-import ch.qos.logback.classic.Logger as LogbackLogger
 import ch.qos.logback.classic.Level as LogbackLevel
+import ch.qos.logback.classic.Logger as LogbackLogger
+import mockit.Mock
+import mockit.MockUp
+import net.pms.PMS
+import net.pms.configuration.PmsConfiguration
+import org.apache.log4j.xml.DOMConfigurator
 import org.slf4j.LoggerFactory
 
 // there's no point trying to optimize this while we're still using JUnit:
