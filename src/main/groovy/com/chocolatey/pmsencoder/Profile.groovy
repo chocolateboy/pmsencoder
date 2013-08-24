@@ -1,8 +1,11 @@
 package com.chocolatey.pmsencoder
 
+import groovy.transform.CompileStatic
+import groovy.util.logging.Log4j
+
 // this holds a reference to the pattern and action blocks, and isn't delegated to
-@groovy.transform.CompileStatic
-@groovy.util.logging.Log4j(value="logger")
+@CompileStatic
+@Log4j(value="logger")
 class Profile {
     private final Matcher matcher
     private Closure patternBlock

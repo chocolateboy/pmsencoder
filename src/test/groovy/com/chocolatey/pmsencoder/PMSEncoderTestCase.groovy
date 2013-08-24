@@ -15,7 +15,6 @@ import org.slf4j.LoggerFactory
 abstract class PMSEncoderTestCase extends GroovyTestCase {
     protected Matcher matcher
     private PMS pms
-    private URL defaultScript
 
     static {
         // FIXME hack to shut httpclient the hell up
@@ -29,13 +28,11 @@ abstract class PMSEncoderTestCase extends GroovyTestCase {
         def log4jConfig = this.getClass().getResource('/log4j_test.xml')
         DOMConfigurator.configure(log4jConfig)
 
-        defaultScript = this.getClass().getResource('/DEFAULT.groovy')
-
         new MockUp<PmsConfiguration>() {
-            private static final Map<String, Object> PMS_CONFIGURATION = new HashMap<String, Object>()
+            private static final Map<String, Object> pmsConfiguration = new HashMap<String, Object>()
 
             static {
-                PMS_CONFIGURATION.put('rtmpdump.path', '/usr/bin/rtmpdump')
+                pmsConfiguration.put('rtmpdump.path', '/usr/bin/rtmpdump')
             }
 
             @Mock
@@ -43,12 +40,12 @@ abstract class PMSEncoderTestCase extends GroovyTestCase {
 
             @Mock
             public Object getCustomProperty(String key) {
-                return PMS_CONFIGURATION.get(key)
+                return pmsConfiguration.get(key)
             }
 
             @Mock
             public void setCustomProperty(String key, Object value) {
-                PMS_CONFIGURATION.put(key, value)
+                pmsConfiguration.put(key, value)
             }
         }
 
@@ -85,7 +82,7 @@ abstract class PMSEncoderTestCase extends GroovyTestCase {
     }
 
     // allow ActionDelegate methods to be tested without having to do so indirectly through scripts
-    public ActionDelegate getAction(Command command = null) {
+    public ActionDelegate getActionDelegate(Command command = null) {
         return new ActionDelegate(getProfileDelegate())
     }
 

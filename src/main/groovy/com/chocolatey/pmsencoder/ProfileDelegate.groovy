@@ -1,6 +1,7 @@
 package com.chocolatey.pmsencoder
 
 import groovy.transform.CompileStatic
+import groovy.util.logging.Log4j
 import net.pms.dlna.DLNAMediaInfo
 import net.pms.dlna.DLNAResource
 import net.pms.encoders.Player
@@ -25,7 +26,7 @@ import org.jsoup.select.Elements
 */
 
 @CompileStatic
-@groovy.util.logging.Log4j(value="logger")
+@Log4j(value="logger")
 class ProfileDelegate {
     // FIXME: sigh: transitive delegation doesn't work (groovy bug)
     // so make this public so dependent classes can manually delegate to it
@@ -103,12 +104,13 @@ class ProfileDelegate {
         command.params
     }
 
-    // DSL accessor (params): getter
+    // DSL accessor (player): getter
     public Player getPlayer() {
         command.player
     }
 
-    public String getProtocol(Object obj) {
+    // DSL method (protocol)
+    public static getProtocol(Object obj) {
         if (obj == null) {
             return null
         } else {
@@ -122,7 +124,7 @@ class ProfileDelegate {
     }
 
     // protocol: setter
-    public String setProtocol(Object newProtocol) {
+    public void setProtocol(Object newProtocol) {
         def u = command.getVarAsString('uri')
         String oldProtocol = getProtocol(u)
 
@@ -159,7 +161,7 @@ class ProfileDelegate {
 
     // DSL method
     // delegated to so must be public
-    public URI uri(Object u) {
+    public static URI uri(Object u) {
         new URI(u?.toString())
     }
 
@@ -188,6 +190,7 @@ class ProfileDelegate {
         String uri = (options['uri'] == null) ? command.getVarAsString('uri') : options['uri']
         String document = (options['source'] == null) ? httpCache[uri] : options['source']
         boolean decode = options['decode'] == null ? false : options['decode']
+        String encoding = options['encoding'] == null ? 'UTF-8' : options['encoding']
 
         def scraped = false
 
@@ -204,7 +207,7 @@ class ProfileDelegate {
 
         if (decode) {
             logger.trace("URL-decoding content of $uri")
-            document = URLDecoder.decode(document)
+            document = URLDecoder.decode(document, encoding)
         }
 
         if (uri) {
@@ -300,7 +303,7 @@ class ProfileDelegate {
         return jsoupCache[string]
     }
 
-    private Boolean isDownloaderCompatible(Map<String, Boolean> cache, Object maybeList, Object u, List<String> args, String name) {
+    private static Boolean isDownloaderCompatible(Map<String, Boolean> cache, Object maybeList, Object u, List<String> args, String name) {
         URI uri = uri(u)
         String key = String.format('%s://%s', uri.scheme, uri.host)
         Boolean cached = cache.get(key)

@@ -3,7 +3,7 @@ package com.chocolatey.pmsencoder
 @groovy.transform.CompileStatic
 class ActionTest extends PMSEncoderTestCase {
     void testIsOption() {
-        def action = getAction()
+        def action = getActionDelegate()
 
         assert action.isOption('-foo')
         assert action.isOption('-Foo')
@@ -23,7 +23,7 @@ class ActionTest extends PMSEncoderTestCase {
     }
 
     void testIsNotOption() {
-        def action = getAction()
+        def action = getActionDelegate()
 
         assert !action.isOption(null)
         assert !action.isOption('')

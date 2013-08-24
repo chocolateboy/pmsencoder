@@ -2,6 +2,7 @@ package com.chocolatey.pmsencoder
 
 import com.sun.jna.Platform
 import groovy.transform.CompileStatic
+import groovy.util.logging.Log4j
 import net.pms.PMS
 import net.pms.configuration.PmsConfiguration
 import net.pms.dlna.DLNAMediaInfo
@@ -17,7 +18,7 @@ import static Util.cmdListToArray
 import static Util.shellQuote
 
 @CompileStatic
-@groovy.util.logging.Log4j(value="logger")
+@Log4j(value="logger")
 public class PMSEncoder extends FFmpegWebVideo {
     private final int nbCores
     private Plugin plugin
@@ -29,7 +30,7 @@ public class PMSEncoder extends FFmpegWebVideo {
     // FIXME make this private when PMS makes it private
     public static final String ID = Plugin.name.toLowerCase()
 
-    private long currentThreadId() {
+    private static long currentThreadId() {
         Thread.currentThread().getId()
     }
 
@@ -66,6 +67,7 @@ public class PMSEncoder extends FFmpegWebVideo {
         return PlayerUtil.isWebVideo(dlna)
     }
 
+    @SuppressWarnings("GroovyUnsynchronizedMethodOverridesSynchronizedMethod")
     @Override
     public ProcessWrapper launchTranscode(
         DLNAResource dlna,
@@ -99,14 +101,9 @@ public class PMSEncoder extends FFmpegWebVideo {
         // the command abstraction allows the stash and command lists
         // to be changed by the matcher, so make sure we refresh
         def newStash = command.getStash()
-
-        // FIXME: Groovy++ type inference fail: the subscript and/or concatenation operations
-        // on downloaderArgs and transcoderArgs are causing Groovy++ to define them as
-        // Collection<String> rather than List<String>
-        List<String> hookArgs = command.getHook()
-        List<String> downloaderArgs = command.getDownloader()
-        List<String> transcoderArgs = command.getTranscoder()
-
+        def hookArgs = command.getHook()
+        def downloaderArgs = command.getDownloader()
+        def transcoderArgs = command.getTranscoder()
         def newURI = newStash.get('uri')?.toString()
 
         // work around an ffmpeg bug:
@@ -156,7 +153,6 @@ public class PMSEncoder extends FFmpegWebVideo {
 
                 // handle TranscodeVideo=WMV|MPEGTSAC3|MPEGPSAC3
                 // and audio/video bitrates
-                def renderer = params.mediaRenderer
 
                 transcoderArgs[0] = FFMPEG_PATH
 

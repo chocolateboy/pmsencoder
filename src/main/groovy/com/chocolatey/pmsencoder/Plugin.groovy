@@ -2,6 +2,9 @@ package com.chocolatey.pmsencoder
 
 import ch.qos.logback.classic.Level as LogbackLevel
 import ch.qos.logback.classic.Logger as LogbackLogger
+
+import groovy.transform.CompileStatic
+
 import net.pms.PMS
 import net.pms.configuration.PmsConfiguration
 import net.pms.dlna.DLNAMediaInfo
@@ -13,17 +16,23 @@ import net.pms.external.FinalizeTranscoderArgsListener
 import net.pms.io.OutputParams
 import net.pms.logging.DebugLogPathDefiner
 import net.pms.util.FileUtil
+
 import no.geosoft.cc.io.FileListener
 import no.geosoft.cc.io.FileMonitor
+
 import org.apache.log4j.Logger as Log4jLogger
 import org.apache.log4j.xml.DOMConfigurator
+
 import org.slf4j.LoggerFactory
 
 import javax.swing.*
+import javax.xml.parsers.FactoryConfigurationError
 
-import static Util.guard
+import static com.chocolatey.pmsencoder.Util.guard
+import static com.chocolatey.pmsencoder.Util.directoryExists
+import static com.chocolatey.pmsencoder.Util.fileExists
 
-@groovy.transform.CompileStatic
+@CompileStatic
 public class Plugin implements ExternalListener, FinalizeTranscoderArgsListener, FileListener {
     private static final String DEFAULT_SCRIPT_DIRECTORY = 'pmsencoder'
     private static final String LOG_CONFIG = 'pmsencoder.log.config'
@@ -42,7 +51,7 @@ public class Plugin implements ExternalListener, FinalizeTranscoderArgsListener,
     private File scriptDirectory
     private long scriptPollInterval
     private Matcher matcher
-    private PmsConfiguration configuration = PMS.getConfiguration()
+    private final PmsConfiguration configuration = PMS.getConfiguration()
     private PMS pms = PMS.get()
 
     public Plugin() {
@@ -131,7 +140,7 @@ public class Plugin implements ExternalListener, FinalizeTranscoderArgsListener,
 
         info("log directory: " + System.getProperty(LOG_DIRECTORY))
 
-        def customLogConfig
+        String customLogConfig = null
 
         if (customLogConfigPath) {
             def customLogConfigFile = new File(customLogConfigPath)
@@ -150,7 +159,7 @@ public class Plugin implements ExternalListener, FinalizeTranscoderArgsListener,
 
             try {
                 DOMConfigurator.configure(customLogConfig)
-            } catch (Exception e) {
+            } catch (FactoryConfigurationError e) {
                 error("error loading log4j config file ($customLogConfig)", e)
                 loadDefaultLogConfig()
             }
@@ -202,6 +211,7 @@ public class Plugin implements ExternalListener, FinalizeTranscoderArgsListener,
         // XXX squashed bug - don't call this log4j.xml, as, by default,
         // log4j attempts to load log4j.properties and log4j.xml automatically
         def defaultLogConfig = getClass().getResource('/log4j_default.xml')
+
         info("loading built-in log4j config file: ${defaultLogConfig}")
 
         try {
@@ -209,14 +219,6 @@ public class Plugin implements ExternalListener, FinalizeTranscoderArgsListener,
         } catch (Exception e) {
             error("error loading built-in log4j config file (${defaultLogConfig})", e)
         }
-    }
-
-    private boolean fileExists(File file) {
-        (file != null) && file.exists() && file.isFile()
-    }
-
-    private boolean directoryExists(File file) {
-        (file != null) && file.exists() && file.isDirectory()
     }
 
     public static void info(String message) {
@@ -253,11 +255,9 @@ public class Plugin implements ExternalListener, FinalizeTranscoderArgsListener,
     }
 
     public boolean match(Command command) {
-        def stash = command.stash
         def event = command.event
         def uri = command.getVarAsString('uri')
-
-        boolean matched // Groovy++ type inference fail
+        def matched = false
 
         pmsencoderLogger.trace("matching (${event}): ${uri}")
 

@@ -3,6 +3,7 @@ package com.chocolatey.pmsencoder
 import groovy.json.JsonSlurper
 import groovy.transform.CompileStatic
 import groovy.transform.TypeCheckingMode
+import groovy.util.logging.Log4j
 import groovy.util.slurpersupport.GPathResult
 import groovyx.net.http.ContentType
 import groovyx.net.http.HTTPBuilder
@@ -24,7 +25,7 @@ import static groovyx.net.http.Method.HEAD
 // XXX the URLENC type can probably be used to simplify YouTube fmt_url_map handling
 
 @CompileStatic
-@groovy.util.logging.Log4j(value="logger")
+@Log4j(value="logger")
 class HTTPClient {
     final static private DEFAULT_CHARSET = 'UTF-8'
     private JsonSlurper jsonSlurper = new JsonSlurper()
@@ -62,7 +63,7 @@ class HTTPClient {
     }
 
     // allow the getNameValueX(Object) methods to handle a query string or a URI with a query string
-    private String getQuery(Object str) {
+    private static String getQuery(Object str) {
         if (str != null) {
             try {
                 // valid URIs include:
@@ -71,32 +72,32 @@ class HTTPClient {
                 // if query is defined (e.g. a full URI), return it, otherwise return the string as is
                 def uri = new URI(str.toString())
                 return uri.query ?: str
-            } catch (URISyntaxException use) { } // not a full URI or query string
+            } catch (URISyntaxException ignored) { } // not a full URI or query string
         }
 
         return str
     }
 
-    public List<NameValuePair> getNameValuePairs(Object str, String charset = DEFAULT_CHARSET) {
-        // introduced in HttpClient 4.2
+    public static List<NameValuePair> getNameValuePairs(Object str, String charset = DEFAULT_CHARSET) {
+        // parse(String, Charset): introduced in HttpClient 4.2
         return URLEncodedUtils.parse(getQuery(str), Charset.forName(charset))
     }
 
-    public List<NameValuePair> getNameValuePairs(URI uri, String charset = DEFAULT_CHARSET) {
+    public static List<NameValuePair> getNameValuePairs(URI uri, String charset = DEFAULT_CHARSET) {
         return URLEncodedUtils.parse(uri, charset)
     }
 
-    public Map<String, String> getNameValueMap(Object str, String charset = DEFAULT_CHARSET) {
+    public static Map<String, String> getNameValueMap(Object str, String charset = DEFAULT_CHARSET) {
         /*
             collectEntries (new in Groovy 1.7.9) transforms (via the supplied closure)
             a list of elements into a list of pairs and then
             assembles a map from those pairs. mapBy, mapFrom, or toMapBy might have been a clearer name...
         */
-        return getNameValuePairs(getQuery(str)).collectEntries { NameValuePair pair -> [ pair.name, pair.value ] }
+        return getNameValuePairs(getQuery(str), charset).collectEntries { NameValuePair pair -> [ pair.name, pair.value ] }
     }
 
-    public Map<String, String> getNameValueMap(URI uri, String charset = DEFAULT_CHARSET) {
-        return getNameValuePairs(uri).collectEntries { NameValuePair pair -> [ pair.name, pair.value ] }
+    public static Map<String, String> getNameValueMap(URI uri, String charset = DEFAULT_CHARSET) {
+        return getNameValuePairs(uri, charset).collectEntries { NameValuePair pair -> [ pair.name, pair.value ] }
     }
 
     @CompileStatic(TypeCheckingMode.SKIP)
@@ -137,7 +138,7 @@ class HTTPClient {
 
     // XXX wtf?! all this to get the destination URI
     // http://hc.apache.org/httpcomponents-client-dev/tutorial/html/httpagent.html#d4e1195
-    private String getTargetURI(HttpContext cxt) {
+    private static String getTargetURI(HttpContext cxt) {
         def hostURI = (cxt.getAttribute(ExecutionContext.HTTP_TARGET_HOST) as HttpHost).toURI()
         def finalRequest = cxt.getAttribute(ExecutionContext.HTTP_REQUEST) as HttpUriRequest
         def targetURI = null

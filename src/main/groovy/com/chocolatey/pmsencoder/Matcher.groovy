@@ -2,6 +2,7 @@ package com.chocolatey.pmsencoder
 
 import groovy.transform.CompileStatic
 import groovy.transform.TypeCheckingMode
+import groovy.util.logging.Log4j
 import net.pms.PMS
 import net.pms.configuration.PmsConfiguration
 import org.codehaus.groovy.control.CompilerConfiguration
@@ -29,7 +30,7 @@ class PMSConf {
 
 // XXX note: only public methods can be delegated to
 @CompileStatic
-@groovy.util.logging.Log4j(value="logger")
+@Log4j(value="logger")
 class Matcher {
     // XXX work around Groovy fail: getHttp goes into an infinite loop if this is lazy
     private final HTTPClient http = new HTTPClient()
@@ -93,9 +94,9 @@ class Matcher {
         def unsortedProfiles = profiles.values().asList()
 
         def sortedProfiles = unsortedProfiles.sort { Profile profile1, Profile profile2 ->
-            // XXX Groovy truth (0 == false) doesn't work here under CompileStatic
             def cmp = profile1.stage.compareTo(profile2.stage)
 
+            // XXX Groovy truth (0 == false) doesn't work here under CompileStatic
             if (cmp != 0) {
                 return cmp
             } else {
@@ -107,8 +108,13 @@ class Matcher {
         sortedProfiles.each { Profile profile ->
             eventProfiles[profile.event] << profile
         }
+    }
 
-        collateProfiles = false
+    private synchronized void checkCollateProfiles() {
+        if (collateProfiles) {
+            collateProfiles()
+            collateProfiles = false
+        }
     }
 
     boolean match(Command command, boolean useDefaultTranscoder = true) {
@@ -116,11 +122,7 @@ class Matcher {
 
         logger.debug("matching (${command.event}): ${uri}")
 
-        synchronized(collateProfiles) {
-            if (collateProfiles) {
-                collateProfiles()
-            }
-        }
+        checkCollateProfiles()
 
         def sortedProfiles = eventProfiles[command.event]
 
@@ -222,6 +224,9 @@ class Matcher {
             // this is why name is defined both as the key of the map and in the profile
             // itself. the key allows replacement
             profiles[target] = profile
+
+            // we've added (or modified) a profile, which means they will need to be (re-)collated when match() is called
+            collateProfiles = true
         } catch (Throwable e) {
             logger.error("invalid profile ($name): " + e.getMessage())
         }
@@ -246,10 +251,6 @@ class Matcher {
     // we could impose a constraint here that a script (file) must
     // contain exactly one script block, but why do that?
     void load(Reader reader, String filename) {
-        // we'll typically be adding new profiles, so notify match() to
-        // recalculate the list of sorted profiles when we're done
-        collateProfiles = true
-
         def binding = new Binding([
             script: this.&script
         ])

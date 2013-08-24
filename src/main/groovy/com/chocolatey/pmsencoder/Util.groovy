@@ -48,4 +48,12 @@ class Util {
         list.toArray(array)
         return array
     }
+
+    public static boolean fileExists(File file) {
+        (file != null) && file.exists() && file.isFile()
+    }
+
+    public static boolean directoryExists(File file) {
+        (file != null) && file.exists() && file.isDirectory()
+    }
 }
