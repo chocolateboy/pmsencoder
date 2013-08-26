@@ -82,7 +82,7 @@ class Matcher {
      *
      * 2) iterate over the profiles and store them in eventProfiles,
      * which maps each event to a sorted list of profiles
-     * which consume that event e.g.:
+     * that consume that event e.g.:
      *
      *     [
      *         TRANSCODE: [ profile1, profile2           ] ],
@@ -176,8 +176,8 @@ class Matcher {
     }
 
     // DSL method
-    // a Profile consists of a name, a pattern block and an action block - all
-    // determined when the script is loaded/compiled
+    // a Profile consists of a name, a map of options, a pattern block
+    // and an action block - all determined when the script is loaded/compiled
     public void registerProfile(String name, Stage stage, Map<String, Object> options, Closure closure) {
         Boolean stopOnMatch = options.containsKey('stopOnMatch') ? options['stopOnMatch'] : true
         Boolean alwaysRun = options.containsKey('alwaysRun') ? options['alwaysRun'] : false
@@ -207,8 +207,8 @@ class Matcher {
         def profile = new Profile(this, name, stage, stopOnMatch, alwaysRun, event)
 
         try {
-            // run the profile block at compile-time to extract its (optional) pattern and action blocks,
-            // but invoke them at runtime
+            // run the profile block at compile time to extract its (optional)
+            // pattern and action blocks, but invoke them at runtime
             profile.extractBlocks(closure)
 
             if (extendz != null) {
@@ -225,7 +225,8 @@ class Matcher {
             // itself. the key allows replacement
             profiles[target] = profile
 
-            // we've added (or modified) a profile, which means they will need to be (re-)collated when match() is called
+            // we've added (or modified) a profile, which means we'll need to
+            // (re-)collate them when match() is called
             collateProfiles = true
         } catch (Throwable e) {
             logger.error("invalid profile ($name): " + e.getMessage())
@@ -255,23 +256,24 @@ class Matcher {
             script: this.&script
         ])
 
+        // https://groovy.codeplex.com/wikipage?title=Guillaume%20Laforge%27s%20%22Mars%20Rover%22%20tutorial%20on%20Groovy%20DSL%27s
         // XXX these should be static fields (they don't change) but Groovy
         // throws unhelpful errors if we try to configure them in a static initializer
         // XXX ditto if we configure them in the constructor.
-        // https://groovy.codeplex.com/wikipage?title=Guillaume%20Laforge%27s%20%22Mars%20Rover%22%20tutorial%20on%20Groovy%20DSL%27s
         def CompilerConfiguration compilerConfiguration = new CompilerConfiguration()
         def ImportCustomizer imports = new ImportCustomizer()
 
-        // XXX CompileStatic error if these enum members are accessed as properties
-        // imports.addStaticStars(Stage.name, Event.name)
+        // XXX CompileStatic error if these enum members are accessed as properties e.g.:
+        //
+        //     imports.addStaticStars(Stage.name, Event.name)
+        //
         // TODO file a bug for this
         imports.addStaticStars(Stage.getName(), Event.getName())
         compilerConfiguration.addCompilationCustomizers(imports)
 
-        // compilerConfiguration.addCompilationCustomizers(imports)
         def groovy = new GroovyShell(binding, compilerConfiguration)
 
-        // the file (or URL) basename (e.g. foo for foo.groovy) determines the classname
+        // the file (or URL) basename (e.g. 'foo' for foo.groovy) determines the classname
         // (e.g. foo.class). this can cause problems if a userscript has a name that conflicts
         // with a DSL identifier e.g. hook.groovy ("you tried to assign a ... to a class").
         // we can work around this by prefixing each class name with a poor-man's namespace
