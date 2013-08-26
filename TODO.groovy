@@ -45,25 +45,17 @@ videofeed ('Web/YouTube/Favourites') {
 
 // tests for append
 
-// when documenting scripting, note poor man's script versioning via Github's "Switch Tags" menu
-
-// print a copy 'n' pasteable version of the ffmpeg command-line
-
-// add namespace support?
-
-    script (namespace: 'http://www.example.com', author: 'chocolateboy', version: 1.04) { ... }
-
 // use a web interface because a) Swing sucks and b) headless servers. Only use swing to enable/disable the web server
 // and set the port.
 
 // investigate using busybox-w32/ash instead of cmd.exe on Windows
 
-// Pattern: add extension matcher (use URI):
+// Pattern: add extension matcher (use the stash URI):
 
     extension 'm3u8'
     extension ([ 'mp4', 'm4v' ])
 
-// profile: add "extension" variable
+// profile: add 'extension' variable
 
 /*
 Groovy++ bytecode compilation error (both at compile-time and runtime): see Plugin.groovy
@@ -96,11 +88,11 @@ Groovy++ bytecode compilation error (both at compile-time and runtime): see Plug
 
     script stages:
 
-        begin
-        init
-        default
-        check
-        end
+        BEGIN
+        INIT
+        DEFAULT
+        CHECK
+        END
 
 document this:
 
@@ -120,9 +112,9 @@ keep a list of Script objects rather than (just) a hash of profiles?
 
 // No need to expose pms. Just use PMS.get() as normal
 
-// store the original URI: e.g.:
+// documentation/example: dlna.getSystemName() can be used to access the original URI e.g.:
 
-    if (originalUri.protocol == 'concat') { ... }
+    if (dlna.systemName.toURI().protocol == 'concat') { ... }
 
 // bring back reject: e.g.:
 
@@ -188,7 +180,7 @@ keep a list of Script objects rather than (just) a hash of profiles?
 
 // add XML support to the jSoup methods:
 
-    $(xml: true)('test')
+    $(xml: true, 'test')
 
 // http.head(): implement a HeaderMap that implements String getValue() and List<String> getValues()
 
@@ -196,7 +188,7 @@ keep a list of Script objects rather than (just) a hash of profiles?
     headers.getValue('Content-type') // getValues('Content-type').empty() ? null : getValues('Content-type').get(0)
     headers.getValues('Warning')
 
-// Alternatively, make them all (comma-joined) strings: http://greenbytes.de/tech/webdav/rfc2616.html#message.headers
+// Alternatively/also, return (comma-joined) strings: http://greenbytes.de/tech/webdav/rfc2616.html#message.headers
 
     headers.get('Warnings')
 
@@ -204,40 +196,41 @@ keep a list of Script objects rather than (just) a hash of profiles?
 
 // add web audio engine
 
-// there are other places where a matcher can be useful e.g. isCompatible
-// this would allow PMSEncoder to fall through to another engine (e.g. VLC)
-// rather than having to construct a command line for another engine, which
-// might be a pain to build options for (e.g. VLC)
-//
-// add an "on" field to profile to simplify/unify hooks i.e.
-// "finalizeTransdcodeArgs", "isCompatible" matcher only runs profile
-// if the supplied event is in the profile's list of events to match
+// implement isCompatible hook; this would allow PMSEncoder to fall through
+// to another engine (e.g. VLC). invert the hook name (e.g. SKIP,
+// INCOMPATIBLE, REJECT, UNSUPPORTED) so that isCompatible returns false if a
+// profile matches:
 
-    profile(on: TRANSCODE) { ... } // launchTranscode (default)
-    profile(on: FINALIZE) { ... } // finalizeTranscoderArgs
-    profile(on: COMPATIBLE) { ... } // isCompatible
+    profile(on: INCOMPATIBLE) {
+        match { domain == 'example.com' }
+    }
 
-// or:
+// change pattern/action to when/then? what about profiles with no 'when' block? allow 'then'
+// to be called as e.g. 'always'?
 
-    profile(on: [ TRANSCODE, FINALIZE, COMPATIBLE ]) { ... }
+    profile('No When Block 1') {
+        then { ... }
+    }
 
-// change pattern/action to when/then/always?
+    profile('No When Block 2') {
+        always { ... }
+    }
 
 // replace hook with:
 
-        exec  stringOrList
+        exec  stringOrList // blocking
         async stringOrList
 
 // e.g.
 
-        async ([ NOTIFY_SEND, 'PMSEncoder', "Playing ${dlna.getName()}" ]) {
+        async ([ NOTIFY_SEND, 'PMSEncoder', "Playing ${dlna.getName()}" ]) { rv ->
             // optional callback
         }
 
         def rv = exec '/usr/bin/foo --bar --baz'
         // rv.stdout, rv.stderr, rv.status
 
-// alow the command contexts to be assigned an executable?
+// allow the command contexts to be initialised with an executable?
 
     downloader ('/usr/bin/mydownloader') {
         set '-foo': 'bar'
@@ -251,6 +244,13 @@ keep a list of Script objects rather than (just) a hash of profiles?
 // profile gets default values from script:
 
     script (stopOnMatch: true) {
-        profile ('Foo') { } // inherit stopOnMatch: true
-        profile ('Bar') { } // ditto
+        profile ('Foo')                     { } // inherit stopOnMatch: true
+        profile ('Bar', stopOnMatch: false) { } // override
     }
+
+// test: add testResolve method to test the builtin resolvers:
+
+    testResolve(
+        'http://www.example.com/foo.html',
+        'http://cdn.example.com/video/foo.mp4'
+    )
