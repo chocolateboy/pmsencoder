@@ -24,4 +24,12 @@ class EventTest extends PMSEncoderTestCase {
             wantMatches: [ 'Finalize' ],
         ])
     }
+
+    void testIncompatibleEvent() {
+        assertMatch([
+            event: Event.INCOMPATIBLE,
+            script: '/event.groovy',
+            wantMatches: [ 'Incompatible' ],
+        ])
+    }
 }

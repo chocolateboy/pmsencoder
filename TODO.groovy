@@ -196,13 +196,11 @@ keep a list of Script objects rather than (just) a hash of profiles?
 
 // add web audio engine
 
-// implement isCompatible hook; this would allow PMSEncoder to fall through
-// to another engine (e.g. VLC). invert the hook name (e.g. SKIP,
-// INCOMPATIBLE, REJECT, UNSUPPORTED) so that isCompatible returns false if a
-// profile matches:
+// http://www.ps3mediaserver.org/forum/viewtopic.php?f=6&t=16828&p=p79334#p79334
+// other possible names: SKIP, DISABLE, REJECT, UNSUPPORTED, DECLINE
 
-    profile(on: INCOMPATIBLE) {
-        match { domain == 'example.com' }
+    profile (on: INCOMPATIBLE) {
+        match { protocol == 'udp' }
     }
 
 // change pattern/action to when/then? what about profiles with no 'when' block? allow 'then'

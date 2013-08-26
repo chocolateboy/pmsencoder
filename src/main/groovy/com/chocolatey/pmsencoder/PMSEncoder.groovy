@@ -18,14 +18,14 @@ import static Util.cmdListToArray
 import static Util.shellQuote
 
 @CompileStatic
-@Log4j(value="logger")
+@Log4j(value='logger')
 public class PMSEncoder extends FFmpegWebVideo {
     private final int nbCores
     private Plugin plugin
     public static final boolean isWindows = Platform.isWindows()
     private static final PmsConfiguration configuration = PMS.getConfiguration()
     private static final String FFMPEG_PATH = normalizePath(configuration.getFfmpegPath())
-    private static final String DEFAULT_QSCALE = "3"
+    private static final String DEFAULT_QSCALE = '3'
 
     // FIXME make this private when PMS makes it private
     public static final String ID = Plugin.name.toLowerCase()
@@ -60,14 +60,31 @@ public class PMSEncoder extends FFmpegWebVideo {
         this.nbCores = configuration.getNumberOfCpuCores()
     }
 
+    // by default, we support every protocol i.e. allow scripts
+    // to handle custom protocols
     @Override
     public boolean isCompatible(DLNAResource dlna) {
-        // support every protocol i.e. allow scripts
-        // to handle custom protocols
-        return PlayerUtil.isWebVideo(dlna)
+        if (PlayerUtil.isWebVideo(dlna)) {
+            // allow PMSEncoder to be disabled for resources
+            // that are better handled by another engine (e.g. VLC)
+            // http://www.ps3mediaserver.org/forum/viewtopic.php?f=6&t=16828&p=79334#p79334
+            // FIXME this is untested
+            def command = new Command()
+            command.setEvent(Event.INCOMPATIBLE)
+            command.setDlna(dlna)
+
+            def stash = command.getStash()
+            stash.put('uri', dlna.getSystemName())
+
+            // disable PMSEncoder for this resource if any
+            // profiles match this event/resource
+            return !plugin.match(command)
+        } else {
+            return false
+        }
     }
 
-    @SuppressWarnings("GroovyUnsynchronizedMethodOverridesSynchronizedMethod")
+    @SuppressWarnings('GroovyUnsynchronizedMethodOverridesSynchronizedMethod')
     @Override
     public ProcessWrapper launchTranscode(
         DLNAResource dlna,
@@ -161,7 +178,7 @@ public class PMSEncoder extends FFmpegWebVideo {
                     // end input args
                     '-i', transcoderInput,
                     // output args
-                    '-threads', "" + nbCores
+                    '-threads', '' + nbCores
                 ]
 
                 transcoderArgs.addAll(args)

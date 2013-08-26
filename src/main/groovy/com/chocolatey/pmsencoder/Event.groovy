@@ -2,8 +2,9 @@ package com.chocolatey.pmsencoder
 
 @groovy.transform.CompileStatic
 enum Event {
-    TRANSCODE("launchTranscode"),
-    FINALIZE("finalizeTranscoderArgs");
+    FINALIZE('finalizeTranscoderArgs'),
+    INCOMPATIBLE('isCompatible'),
+    TRANSCODE('launchTranscode');
 
     private String name
 
