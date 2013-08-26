@@ -254,12 +254,17 @@ public class Plugin implements ExternalListener, FinalizeTranscoderArgsListener,
         }
     }
 
-    public boolean match(Command command) {
+    public boolean match(Command command, boolean verbose = true) {
         def event = command.event
         def uri = command.getVarAsString('uri')
         def matched = false
 
-        pmsencoderLogger.trace("matching (${event}): ${uri}")
+        if (matcher.consumesEvent(event)) {
+            pmsencoderLogger.info("matching (${event}): ${uri}")
+        } else {
+            pmsencoderLogger.trace("no profiles registered for ${event}, skipping match for: ${uri}")
+            return false
+        }
 
         try {
             matched = matcher.match(command)
@@ -268,9 +273,15 @@ public class Plugin implements ExternalListener, FinalizeTranscoderArgsListener,
             error('match error', e)
         }
 
-        def matches = command.getMatches()
+        def matches = command.matches
         def nMatches = matches.size()
         def sMatches = matches.inspect()
+
+        if (matched && verbose) {
+            pmsencoderLogger.debug("command: ${command}")
+        } else {
+            pmsencoderLogger.trace("command: ${command}")
+        }
 
         if (nMatches == 0) {
             pmsencoderLogger.info("0 matches for (${event}): ${uri}")

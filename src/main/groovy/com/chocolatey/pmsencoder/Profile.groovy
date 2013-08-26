@@ -74,7 +74,7 @@ class Profile {
             logger.trace('pattern block: matched OK')
         }
 
-        logger.debug("match $name: success")
+        logger.trace("match $name: success")
         return true
     }
 

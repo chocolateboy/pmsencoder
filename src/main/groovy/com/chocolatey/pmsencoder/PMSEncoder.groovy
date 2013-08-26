@@ -68,7 +68,6 @@ public class PMSEncoder extends FFmpegWebVideo {
             // allow PMSEncoder to be disabled for resources
             // that are better handled by another engine (e.g. VLC)
             // http://www.ps3mediaserver.org/forum/viewtopic.php?f=6&t=16828&p=79334#p79334
-            // FIXME this is untested
             def command = new Command()
             command.setEvent(Event.INCOMPATIBLE)
             command.setDlna(dlna)
@@ -77,8 +76,11 @@ public class PMSEncoder extends FFmpegWebVideo {
             stash.put('uri', dlna.getSystemName())
 
             // disable PMSEncoder for this resource if any
-            // profiles match this event/resource
-            return !plugin.match(command)
+            // profiles match this event/resource.
+            // false: log/dump the command at trace
+            // level (verbose = false) rather than the default
+            // debug level (verbose = true) to avoid logspam
+            return !plugin.match(command, false)
         } else {
             return false
         }

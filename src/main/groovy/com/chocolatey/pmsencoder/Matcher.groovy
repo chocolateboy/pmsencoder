@@ -110,6 +110,15 @@ class Matcher {
         }
     }
 
+    // called by Plugin.match to control logging
+    boolean consumesEvent(Event event) {
+        // XXX squashed bug: make sure eventProfiles has
+        // been properly (re-)initialised before checking
+        // for consumers
+        checkCollateProfiles()
+        eventProfiles[event].size() > 0
+    }
+
     private synchronized void checkCollateProfiles() {
         if (collateProfiles) {
             collateProfiles()
@@ -119,8 +128,6 @@ class Matcher {
 
     boolean match(Command command, boolean useDefaultTranscoder = true) {
         def uri = command.getVarAsString('uri')
-
-        logger.debug("matching (${command.event}): ${uri}")
 
         checkCollateProfiles()
 
@@ -167,12 +174,7 @@ class Matcher {
             }
         }
 
-        def matched = command.matches.size() > 0
-        if (matched) {
-            logger.debug("command: ${command}")
-        }
-
-        return matched
+        return command.matches.size() > 0
     }
 
     // DSL method
