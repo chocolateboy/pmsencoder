@@ -144,7 +144,7 @@ keep a list of Script objects rather than (just) a hash of profiles?
 
     import static example.getJson
 
-    profile('Example') {
+    profile ('Example') {
         pattern {
             // don't match if the query fails
             match {
@@ -206,11 +206,11 @@ keep a list of Script objects rather than (just) a hash of profiles?
 // change pattern/action to when/then? what about profiles with no 'when' block? allow 'then'
 // to be called as e.g. 'always'?
 
-    profile('No When Block 1') {
+    profile ('No When Block 1') {
         then { ... }
     }
 
-    profile('No When Block 2') {
+    profile ('No When Block 2') {
         always { ... }
     }
 

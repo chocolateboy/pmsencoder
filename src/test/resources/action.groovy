@@ -1,5 +1,5 @@
 script {
-    profile('Scrape') {
+    profile ('Scrape') {
         pattern {
             match { uri == 'http://action.com' }
         }

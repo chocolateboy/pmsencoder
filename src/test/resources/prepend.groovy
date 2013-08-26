@@ -1,5 +1,5 @@
 script {
-    profile('Prepend Object Zero') { // prepend a single object when the list is empty
+    profile ('Prepend Object Zero') { // prepend a single object when the list is empty
         pattern {
             domain 'prepend.object.zero'
         }
@@ -11,7 +11,7 @@ script {
         }
     }
 
-    profile('Prepend Object One') { // prepend a single object when the list contains one element
+    profile ('Prepend Object One') { // prepend a single object when the list contains one element
         pattern {
             domain 'prepend.object.one'
         }
@@ -26,7 +26,7 @@ script {
         }
     }
 
-    profile('Prepend Object Two') { // prepend a single object when the list contains one element
+    profile ('Prepend Object Two') { // prepend a single object when the list contains one element
         pattern {
             domain 'prepend.object.two'
         }
@@ -41,7 +41,7 @@ script {
         }
     }
 
-    profile('Prepend List Zero') { // prepend a list when the list contains one element
+    profile ('Prepend List Zero') { // prepend a list when the list contains one element
         pattern {
             domain 'prepend.list.zero'
         }
@@ -55,7 +55,7 @@ script {
         }
     }
 
-    profile('Prepend List One') { // prepend a list when the list contains one element
+    profile ('Prepend List One') { // prepend a list when the list contains one element
         pattern {
             domain 'prepend.list.one'
         }
@@ -69,7 +69,7 @@ script {
         }
     }
 
-    profile('Prepend List Two') { // prepend a list when the list contains two elements
+    profile ('Prepend List Two') { // prepend a list when the list contains two elements
         pattern {
             domain 'prepend.list.two'
         }

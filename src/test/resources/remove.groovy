@@ -1,5 +1,5 @@
 script {
-    profile('Remove Name') {
+    profile ('Remove Name') {
         pattern {
             domain 'remove.name'
         }
@@ -10,7 +10,7 @@ script {
         }
     }
 
-    profile('Remove Value') {
+    profile ('Remove Value') {
         pattern {
             domain 'remove.value'
         }
@@ -21,7 +21,7 @@ script {
         }
     }
 
-    profile('Digit Value') {
+    profile ('Digit Value') {
         pattern {
             domain 'digit.value'
         }
@@ -32,7 +32,7 @@ script {
         }
     }
 
-    profile('Hyphen Value') {
+    profile ('Hyphen Value') {
         pattern {
             domain 'hyphen.value'
         }

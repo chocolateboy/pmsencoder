@@ -1,5 +1,5 @@
 script {
-    profile('Extension Methods') {
+    profile ('Extension Methods') {
         pattern {
             match { "hello, world!".match(/(?<name>\w+)!$/)['name'] == 'world' }
         }
