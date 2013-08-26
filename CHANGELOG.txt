@@ -1,7 +1,7 @@
 2.0.0 TBC
 
     output video in the renderer's preferred format (i.e. don't downscale HD video if the renderer supports HD)
-    scripts can now implement finalizeTranscoderArgs hooks
+    scripts can now implement hooks for finalizeTranscoderArgs and isCompatible
     use ffmpeg for all protocols
     fix rtmp2pms.pl and rtmp2pms.js to work with quoted parameter values and embedded commas
     allow the engine to be demoted
