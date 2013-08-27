@@ -50,7 +50,7 @@ abstract class PMSEncoderTestCase extends GroovyTestCase {
         }
 
         new MockUp<PMS>() {
-            static final PmsConfiguration pmsConfig = new PmsConfiguration()
+            private static final PmsConfiguration pmsConfig = new PmsConfiguration()
 
             @Mock
             public boolean init () { true }
@@ -106,7 +106,7 @@ abstract class PMSEncoderTestCase extends GroovyTestCase {
                 URL url
 
                 if (it instanceof URL) {
-                    // needed to fix a CompileStatic error, but according to
+                    // needed to fix a CompileStatic error even though, according to
                     // the "documentation", a successful instanceof is meant to
                     // resolve the type (like Kotlin)
                     url = it as URL
@@ -201,7 +201,7 @@ abstract class PMSEncoderTestCase extends GroovyTestCase {
 
             This contradicts TFM.
 
-            Loosely-typing them as mere Closures works around this.
+            Loosely-typing them as raw Closures works around this.
         */
         if (wantStash != null) {
             if (wantStash instanceof Closure) {

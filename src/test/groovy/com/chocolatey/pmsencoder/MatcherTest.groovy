@@ -22,10 +22,10 @@ class MatcherTest extends PMSEncoderTestCase {
 
     // XXX CompileStatic error:
     //
-    //         Cannot find matching method com.chocolatey.pmsencoder.MatcherTest#assertMatch(
-    //             java.util.LinkedHashMap <java.lang.String,
-    //             java.io.Serializable>
-    //         )
+    //     Cannot find matching method com.chocolatey.pmsencoder.MatcherTest#assertMatch(
+    //         java.util.LinkedHashMap <java.lang.String,
+    //         java.io.Serializable>
+    //     )
     @CompileStatic(TypeCheckingMode.SKIP)
     void testInterpolationInDefaultTranscoderArgs() {
         assertMatch([
