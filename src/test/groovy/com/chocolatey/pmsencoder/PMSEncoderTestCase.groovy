@@ -14,7 +14,6 @@ import org.slf4j.LoggerFactory
 @groovy.transform.CompileStatic
 abstract class PMSEncoderTestCase extends GroovyTestCase {
     protected Matcher matcher
-    private PMS pms
 
     static {
         // FIXME hack to shut httpclient the hell up
@@ -64,8 +63,7 @@ abstract class PMSEncoderTestCase extends GroovyTestCase {
             public static PmsConfiguration getConfiguration() { pmsConfig }
         }
 
-        pms = PMS.get()
-        matcher = new Matcher(pms)
+        matcher = new Matcher()
     }
 
     private Object getValue(Map<String, Object> map, String key, Object defaultValue = null) {

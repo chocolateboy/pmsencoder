@@ -241,7 +241,7 @@ public class Plugin implements ExternalListener, FinalizeTranscoderArgsListener,
     }
 
     private synchronized void createMatcher() {
-        matcher = new Matcher(pms)
+        matcher = new Matcher()
 
         try {
             matcher.loadDefaultScripts()

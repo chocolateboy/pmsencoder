@@ -38,7 +38,7 @@ class Matcher {
     private final Map<String, Profile> profiles = new LinkedHashMap<String, Profile>()
     private boolean collateProfiles = false
     private final Map<Event, List<Profile>> eventProfiles = [:].withDefault { [] }
-    private final PMS pms
+    private static final PMS pms = PMS.get()
     private List<String> ffmpeg = []
     private List<Integer> youtubeAccept = []
     private final Map<String, Object> globals = new Stash()
@@ -55,9 +55,7 @@ class Matcher {
         installExtensionMethods()
     }
 
-    Matcher(PMS pms) {
-        this.pms = pms
-    }
+    Matcher() { }
 
     // install extension methods: (G)String.match(pattern) -> RegexHelper.match(delegate, pattern).
     // the obvious place to put this is in Plugin, but the test suite doesn't load that class.
