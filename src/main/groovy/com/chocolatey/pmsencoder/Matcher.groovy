@@ -51,7 +51,7 @@ class Matcher {
 
     static {
         // make String.match(pattern) (i.e. RegexHelper.match(string, pattern))
-        // available to scripts (FIXME currently global)
+        // available to scripts
         installExtensionMethods()
     }
 

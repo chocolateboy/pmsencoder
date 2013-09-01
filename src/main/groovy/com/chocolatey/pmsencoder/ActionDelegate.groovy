@@ -3,7 +3,6 @@ package com.chocolatey.pmsencoder
 import groovy.transform.CompileStatic
 import groovy.transform.TypeCheckingMode
 
-// FIXME investigate why this doesn't work. typed closures?
 @CompileStatic
 @groovy.util.logging.Log4j(value="logger")
 class ActionDelegate {
@@ -82,11 +81,6 @@ class ActionDelegate {
         contextThunk.call()
     }
 
-    // FIXME: weird compiler errors complaining about methods with the same name/signature
-    // in Groovy++ without this:
-    //
-    //     Duplicate method name&signature in class file com/chocolatey/pmsencoder/ActionDelegate$hook$2
-    // @CompileStatic(TypeCheckingMode.SKIP)
     void hook (Closure closure) {
         if (getHook() == null) {
             logger.error("can't modify null hook command list")
