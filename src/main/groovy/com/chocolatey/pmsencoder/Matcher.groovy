@@ -64,7 +64,7 @@ class Matcher {
     //
     //     WARNING: Module [pmsencoder-extensions] - Unable to load extension class [com.chocolatey.pmsencoder.StringExtension]
     @CompileStatic(TypeCheckingMode.SKIP)
-    static private void installExtensionMethods() {
+    private static void installExtensionMethods() {
         String.metaClass {
             match { Object regex -> RegexHelper.match(delegate, regex) }
         }

@@ -27,7 +27,7 @@ import static groovyx.net.http.Method.HEAD
 @CompileStatic
 @Log4j(value="logger")
 class HTTPClient {
-    final static private DEFAULT_CHARSET = 'UTF-8'
+    private static final DEFAULT_CHARSET = 'UTF-8'
     private JsonSlurper jsonSlurper = new JsonSlurper()
     private XmlSlurper xmlSlurper = new XmlSlurper()
 
