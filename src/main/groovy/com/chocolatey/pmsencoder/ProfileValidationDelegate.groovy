@@ -1,6 +1,8 @@
 package com.chocolatey.pmsencoder
 
-@groovy.transform.CompileStatic
+import groovy.transform.CompileStatic
+
+@CompileStatic
 class ProfileValidationDelegate {
     public Closure patternBlock
     public Closure actionBlock
@@ -28,7 +30,7 @@ class ProfileValidationDelegate {
         }
     }
 
-    public void runProfileBlock(Closure closure) {
+    public void runProfileBlock(@DelegatesTo(ProfileValidationDelegate) Closure closure) {
         closure.delegate = this
         closure.resolveStrategy = Closure.DELEGATE_FIRST
         closure()

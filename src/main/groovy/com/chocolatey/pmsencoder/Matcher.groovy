@@ -353,7 +353,7 @@ class Matcher {
     }
 
     // DSL method
-    protected void script(Stage stage, Closure closure) {
+    protected void script(Stage stage, @DelegatesTo(Matcher) Closure closure) {
         closure.delegate = new ScriptDelegate(this, stage)
         closure.resolveStrategy = Closure.DELEGATE_FIRST
         closure()
