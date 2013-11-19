@@ -9,4 +9,12 @@ script (BEGIN) {
     YOUTUBE_DL = pmsConf['youtube-dl.path']
     // see https://secure.wikimedia.org/wikipedia/en/wiki/YouTube#Quality_and_codecs
     YOUTUBE_DL_MAX_QUALITY = pmsConf['youtube-dl.max-quality'] ?: 37 // (1080p)
+
+    if (YOUTUBE_DL) {
+        if ((new File(YOUTUBE_DL)).canExecute()) {
+            YOUTUBE_DL_PATH = [ YOUTUBE_DL ]
+        } else if (PYTHON) {
+            YOUTUBE_DL_PATH = [ PYTHON, YOUTUBE_DL ]
+        }
+    }
 }

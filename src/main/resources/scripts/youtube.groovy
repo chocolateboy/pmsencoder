@@ -1,16 +1,6 @@
 // videofeed.Web,YouTube=http://gdata.youtube.com/feeds/base/users/freddiew/uploads?alt=rss&v=2&orderby=published
 script {
     profile ('YouTube-DL') {
-        def YOUTUBE_DL_PATH
-
-        if (YOUTUBE_DL) {
-            if ((new File(YOUTUBE_DL)).canExecute()) {
-                YOUTUBE_DL_PATH = [ YOUTUBE_DL ]
-            } else if (PYTHON) {
-                YOUTUBE_DL_PATH = [ PYTHON, YOUTUBE_DL ]
-            }
-        }
-
         pattern {
             match { YOUTUBE_DL_PATH }
             protocol([ 'http', 'https' ])
