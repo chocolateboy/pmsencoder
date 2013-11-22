@@ -96,7 +96,7 @@ public class PMSEncoder extends FFmpegWebVideo {
         def oldURI = dlna.getSystemName()
         def processManager = new ProcessManager(this, params)
         def threadId = currentThreadId() // make sure concurrent threads don't use the same filename
-        def uniqueId = System.currentTimeMillis() + '_' + threadId
+        def uniqueId = threadId + '_' + System.currentTimeMillis()
         def transcoderOutputBasename = "pmsencoder_transcoder_out_${uniqueId}" // always used (read by PMS)
         def transcoderOutputPath = processManager.getFifoPath(transcoderOutputBasename)
         def downloaderOutputBasename = "pmsencoder_downloader_out_${uniqueId}"
