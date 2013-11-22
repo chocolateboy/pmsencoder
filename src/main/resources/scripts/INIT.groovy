@@ -60,12 +60,13 @@ script (INIT) {
 
     if (!YOUTUBE_ACCEPT) {
         YOUTUBE_ACCEPT = [
-            37,  // 1080p
-            22,  // 720p
-            35,  // 480p
-            34,  // 360p
-            18,  // Medium
-            5    // 240p
+            37,  // 1080p XXX no longer available
+            22,  // 720x1280 mp4
+            35,  // 480p XXX no longer available
+            34,  // 360p XXX no longer available
+            18,  // 360x640 mp4
+            43,  // 360x640 webm
+            5    // 240x400 flv
         ]
     }
 }
