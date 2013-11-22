@@ -17,7 +17,7 @@
     Groovy++ 0.2.26: https://groups.google.com/group/groovyplusplus/msg/a765fe77975650db
 */
 
-// script management: disable/enable scripts/settings through the Swing UI (cf. GreaseMonkey)
+// script management: disable/enable scripts/settings through the Swing UI (cf. Greasemonkey)
 
 /*
   investigate adding seek support for YouTube videos:
