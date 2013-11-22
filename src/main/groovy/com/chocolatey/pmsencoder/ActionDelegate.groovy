@@ -313,8 +313,8 @@ class ActionDelegate {
                     [
                         token: '...',
                         url_encoded_fmt_stream_map: '...',
-                        video_id: 9bZkp7q19f0,
-                        author: HDCYT,
+                        video_id: '031Dshcnso4',
+                        author: 'FreddieW (RocketJump)',
                         ...
                     ]
                 */
