@@ -1,6 +1,7 @@
 scripts/BEGIN.groovy
 scripts/INIT.groovy
 scripts/apple_trailers.groovy
+scripts/comedy_central.groovy
 scripts/dshow.groovy
 scripts/eurogamer.groovy
 scripts/gamestar.groovy

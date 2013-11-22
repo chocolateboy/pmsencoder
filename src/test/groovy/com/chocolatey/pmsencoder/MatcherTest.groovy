@@ -52,18 +52,18 @@ class MatcherTest extends PMSEncoderTestCase {
     }
 
     void testYouTube() {
-        youTubeCommon('35')
+        youTubeCommon('22')
     }
 
     // verify that globally modifying YOUTUBE_ACCEPT works
     void testYOUTUBE_ACCEPT() {
         def script = this.getClass().getResource('/youtube_accept.groovy')
-        youTubeCommon('34', script)
+        youTubeCommon('18', script)
     }
 
     private void youTubeCommon(String fmt, URL script = null) {
         def youtube = 'http://www.youtube.com'
-        def uri = "$youtube/watch?v=_OBlgSz8sSM"
+        def uri = "$youtube/watch?v=9bZkp7q19f0"
         assertMatch([
             loadDefaultScripts: true,
             uri: uri,
@@ -78,10 +78,10 @@ class MatcherTest extends PMSEncoderTestCase {
                 ]
 
                 def video_id = stash.get('youtube_video_id')
-                assert video_id == '_OBlgSz8sSM'
+                assert video_id == '9bZkp7q19f0'
                 assert stash.get('youtube_fmt') == fmt
                 assert stash.get('youtube_uri') == uri
-                assert stash.get('uri') =~ '\\.youtube\\.com/videoplayback\\?'
+                assert stash.get('uri') =~ '\\.(?:youtube|googlevideo)\\.com/videoplayback\\?'
                 return true
             },
             wantTranscoder: []

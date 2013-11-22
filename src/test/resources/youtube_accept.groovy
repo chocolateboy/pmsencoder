@@ -1,3 +1,3 @@
 script {
-    YOUTUBE_ACCEPT -= [ 35 ]
+    YOUTUBE_ACCEPT -= [ 22 ]
 }
