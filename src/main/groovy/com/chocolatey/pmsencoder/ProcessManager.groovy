@@ -11,7 +11,7 @@ import net.pms.io.ProcessWrapperImpl
 import static Util.cmdListToArray
 
 @groovy.transform.CompileStatic
-@groovy.util.logging.Log4j(value="logger")
+@groovy.util.logging.Log4j(value='logger')
 class ProcessManager {
     static final long LAUNCH_TRANSCODE_SLEEP = 200
     static final long MKFIFO_SLEEP = 200
@@ -19,6 +19,32 @@ class ProcessManager {
     OutputParams outputParams
     private PMSEncoder pmsencoder
     private static final PmsConfiguration configuration = PMS.getConfiguration()
+    private static final String cmdExe = Platform.isWindows() ? getCmdExe() : null
+
+    // find the cmd.exe path
+    private static String getCmdExe() {
+        def cmd = String.format('%s\\System32\\cmd.exe', System.getenv('SystemRoot') ?: 'C:\\Windows')
+        def comSpec = System.getenv('ComSpec')?.trim()
+
+        if (comSpec) {
+            // XXX watch out for multiple entries: http://superuser.com/questions/446595/is-it-valid-for-comspec-to-have-multiple-entries
+            def status = 'OK'
+
+            if (!Util.fileExists(comSpec)) {
+                status = 'not found'
+            } else if (!Util.isExecutable(comSpec)) {
+                status = 'not executable'
+            } else {
+                cmd = comSpec
+            }
+
+            Plugin.debug("ComSpec ($status): ${comSpec.inspect()}")
+        }
+
+        cmd = Util.shellQuote(cmd)
+        Plugin.debug("cmd.exe: $cmd")
+        return cmd
+    }
 
     ProcessManager(PMSEncoder pmsencoder, OutputParams params) {
         this.pmsencoder = pmsencoder
@@ -81,7 +107,7 @@ class ProcessManager {
     }
 
     public ProcessWrapperImpl handleDownloadWindows(List<String> downloaderArgs, List<String> transcoderArgs) {
-        def cmdList = ([ "cmd.exe", "/C" ] + downloaderArgs + "|" + transcoderArgs) as List<String>
+        def cmdList = ([ cmdExe, '/C' ] + downloaderArgs + '|' + transcoderArgs) as List<String>
         def cmdArray = cmdListToArray(cmdList)
         def pw = new ProcessWrapperImpl(cmdArray, outputParams) // may modify cmdArray[0]
 

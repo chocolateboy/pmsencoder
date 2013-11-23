@@ -3,6 +3,8 @@ package com.chocolatey.pmsencoder
 import ch.qos.logback.classic.Level as LogbackLevel
 import ch.qos.logback.classic.Logger as LogbackLogger
 
+import com.sun.jna.Platform
+
 import groovy.transform.CompileStatic
 
 import net.pms.PMS
@@ -221,8 +223,16 @@ public class Plugin implements ExternalListener, FinalizeTranscoderArgsListener,
         }
     }
 
+    public static void debug(String message) {
+        pmsLogger.debug("${NAME}: ${message}")
+    }
+
     public static void info(String message) {
         pmsLogger.info("${NAME}: ${message}")
+    }
+
+    public static void warn(String message) {
+        pmsLogger.warn("${NAME}: ${message}")
     }
 
     public static void error(String message, Throwable e) {

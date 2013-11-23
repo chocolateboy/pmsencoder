@@ -53,7 +53,26 @@ class Util {
         (file != null) && file.exists() && file.isFile()
     }
 
+    public static boolean fileExists(String path) {
+        def file = new File(path)
+        fileExists(file)
+    }
+
     public static boolean directoryExists(File file) {
         (file != null) && file.exists() && file.isDirectory()
+    }
+
+    public static boolean directoryExists(String path) {
+        def file = new File(path)
+        directoryExists(file)
+    }
+
+    public static boolean isExecutable(File file) {
+        fileExists(file) && file.canExecute()
+    }
+
+    public static boolean isExecutable(String path) {
+        def file = new File(path)
+        isExecutable(file)
     }
 }
