@@ -140,18 +140,13 @@ public class PMSEncoder extends FFmpegWebVideo {
             processManager.handleHook(hookArgs)
         }
 
-        // if the executable is 'FFMPEG', automagically add ffmpeg input and output options
-        // and replace 'FFMPEG' with the configured ffmpeg path
         if (transcoderArgs) {
             Collections.replaceAll(transcoderArgs, 'DOWNLOADER_OUT', downloaderOutputPath)
             Collections.replaceAll(transcoderArgs, 'TRANSCODER_OUT', transcoderOutputPath)
             Collections.replaceAll(transcoderArgs, 'URI', newURI)
 
-            // XXX we could have two templates for the ffmpeg path: one (e.g. FFMPEG) with
-            // the current behaviour and another (e.g. FFMPEG_PATH) which just substitutes
-            // the path (i.e. for cases where the user wants full control over the command).
-            // In practice, more control than is provided here shouldn't be needed (if it is,
-            // the underlying issue should be fixed in PMS/PMSEncoder).
+            // if the executable is 'FFMPEG', automagically add ffmpeg input and output options
+            // and replace 'FFMPEG' with the configured ffmpeg path
             if (transcoderArgs[0] == 'FFMPEG') {
                 def transcoderInput = downloaderArgs ? downloaderOutputPath : newURI
 
