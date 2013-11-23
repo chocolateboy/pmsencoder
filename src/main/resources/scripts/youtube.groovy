@@ -9,9 +9,9 @@ script {
 
         action {
             if (YOUTUBE_DL_MAX_QUALITY) {
-                downloader = YOUTUBE_DL_PATH + [ '--max-quality', YOUTUBE_DL_MAX_QUALITY, '--quiet', '-o', 'DOWNLOADER_OUT', uri ]
+                downloader = YOUTUBE_DL_PATH + [ '--max-quality', YOUTUBE_DL_MAX_QUALITY, '--quiet', '-o', 'DOWNLOADER_OUT', 'URI' ]
             } else {
-                downloader = YOUTUBE_DL_PATH + [ '--quiet', '-o', 'DOWNLOADER_OUT', uri ]
+                downloader = YOUTUBE_DL_PATH + [ '--quiet', '-o', 'DOWNLOADER_OUT', 'URI' ]
             }
         }
     }

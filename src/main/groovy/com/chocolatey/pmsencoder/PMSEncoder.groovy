@@ -136,7 +136,12 @@ public class PMSEncoder extends FFmpegWebVideo {
         newURI = shellQuote(newURI)
 
         if (hookArgs) {
+            Collections.replaceAll(hookArgs, 'URI', newURI)
             processManager.handleHook(hookArgs)
+        }
+
+        if (downloaderArgs) {
+            Collections.replaceAll(downloaderArgs, 'URI', newURI)
         }
 
         // if the executable is 'FFMPEG', automagically add ffmpeg input and output options
@@ -144,6 +149,7 @@ public class PMSEncoder extends FFmpegWebVideo {
         if (transcoderArgs) {
             Collections.replaceAll(transcoderArgs, 'DOWNLOADER_OUT', downloaderOutputPath)
             Collections.replaceAll(transcoderArgs, 'TRANSCODER_OUT', transcoderOutputPath)
+            Collections.replaceAll(transcoderArgs, 'URI', newURI)
 
             // XXX we could have two templates for the ffmpeg path: one (e.g. FFMPEG) with
             // the current behaviour and another (e.g. FFMPEG_PATH) which just substitutes

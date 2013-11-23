@@ -28,9 +28,9 @@ script (CHECK) {
         action {
             if (Platform.isWindows()) {
                 // --quiet: make sure it doesn't write to stdout
-                downloader = GET_FLASH_VIDEOS_PATH + [ '--quality', 'high', '--quiet', '--yes', '--filename', 'DOWNLOADER_OUT', uri ]
+                downloader = GET_FLASH_VIDEOS_PATH + [ '--quality', 'high', '--quiet', '--yes', '--filename', 'DOWNLOADER_OUT', 'URI' ]
             } else {
-                downloader = GET_FLASH_VIDEOS_PATH + [ '--quality', 'high', '--yes', '--filename', 'DOWNLOADER_OUT', uri ]
+                downloader = GET_FLASH_VIDEOS_PATH + [ '--quality', 'high', '--yes', '--filename', 'DOWNLOADER_OUT', 'URI' ]
             }
         }
     }

@@ -13,7 +13,7 @@ script (INIT) {
         }
 
         action {
-            def uris = (YOUTUBE_DL_PATH + [ '-g', uri ]).execute().text.readLines(); logger.debug("URIs: ${uris.inspect()}")
+            def uris = (YOUTUBE_DL_PATH + [ '-g', shellQuote(uri) ]).execute().text.readLines(); logger.debug("URIs: ${uris.inspect()}")
             def files = uris.collect({ "file '$it'" }).join(SEPARATOR)
             def filename = String.format(FILENAME, Thread.currentThread().getId(), System.currentTimeMillis())
             def file = new File(TEMP_FOLDER, filename); logger.trace("concat file: ${file.getAbsolutePath()}")

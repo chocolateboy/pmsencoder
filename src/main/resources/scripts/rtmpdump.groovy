@@ -33,7 +33,7 @@ script (INIT) {
                     case '-r':
                     case '--rtmp':
                         if (value) {
-                            uri = shellQuote(value)
+                            uri = value
                             seenURL = true
                         }
                         break
@@ -50,7 +50,7 @@ script (INIT) {
 
             if (seenURL) {
                 // rtmpdump doesn't log to stdout, so no need to use -q on Windows
-                downloader = "$RTMPDUMP -o $DOWNLOADER_OUT -r ${uri}"
+                downloader = "$RTMPDUMP -o $DOWNLOADER_OUT -r URI"
                 downloader += rtmpdumpArgs
             } else {
                 logger.error("invalid rtmpdump:// URI: no -r or --rtmp parameter supplied: ${uri}")
