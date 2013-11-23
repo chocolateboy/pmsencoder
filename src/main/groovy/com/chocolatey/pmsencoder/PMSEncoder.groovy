@@ -140,10 +140,6 @@ public class PMSEncoder extends FFmpegWebVideo {
             processManager.handleHook(hookArgs)
         }
 
-        if (downloaderArgs) {
-            Collections.replaceAll(downloaderArgs, 'URI', newURI)
-        }
-
         // if the executable is 'FFMPEG', automagically add ffmpeg input and output options
         // and replace 'FFMPEG' with the configured ffmpeg path
         if (transcoderArgs) {
@@ -231,6 +227,7 @@ public class PMSEncoder extends FFmpegWebVideo {
 
         if (downloaderArgs) {
             Collections.replaceAll(downloaderArgs, 'DOWNLOADER_OUT', downloaderOutputPath)
+            Collections.replaceAll(downloaderArgs, 'URI', newURI)
 
             if (isWindows) {
                 transcoderProcess = processManager.handleDownloadWindows(downloaderArgs, transcoderArgs)
