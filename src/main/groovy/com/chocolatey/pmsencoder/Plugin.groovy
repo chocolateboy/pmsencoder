@@ -42,7 +42,7 @@ public class Plugin implements ExternalListener, FinalizeTranscoderArgsListener,
     private static final String NAME = 'PMSEncoder'
     private static final String SCRIPT_DIRECTORY = 'pmsencoder.script.directory'
     private static final String SCRIPT_POLL = 'pmsencoder.script.poll'
-    private static final String VERSION = '2.0.0-rc3'
+    private static final String VERSION = '2.0.0-SNAPSHOT'
     // 1 second is flaky - it results in overlapping file change events
     private static final int MIN_SCRIPT_POLL_INTERVAL = 2
     private static Log4jLogger pmsencoderLogger
