@@ -15,7 +15,6 @@ import net.pms.network.HTTPResource
 import net.pms.util.PlayerUtil
 
 import static Util.cmdListToArray
-import static Util.shellQuote
 
 @CompileStatic
 @Log4j(value='logger')
@@ -132,8 +131,6 @@ public class PMSEncoder extends FFmpegWebVideo {
         if (newURI.startsWith('mms:')) {
             newURI = 'mmsh:' + newURI.substring(4);
         }
-
-        newURI = shellQuote(newURI)
 
         if (hookArgs) {
             Collections.replaceAll(hookArgs, 'URI', newURI)

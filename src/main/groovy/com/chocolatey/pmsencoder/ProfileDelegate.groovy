@@ -303,7 +303,7 @@ class ProfileDelegate {
         return jsoupCache[string]
     }
 
-    private static Boolean isDownloaderCompatible(Map<String, Boolean> cache, Object maybeList, Object u, List<String> args, String name) {
+    private static Boolean isDownloaderCompatible(Map<String, Boolean> cache, Object maybeList, String u, List<String> args, String name) {
         URI uri = uri(u)
         String key = String.format('%s://%s', uri.scheme, uri.host)
         Boolean cached = cache.get(key)
@@ -325,23 +325,25 @@ class ProfileDelegate {
     }
 
     // DSL method
-    public Boolean isYouTubeDLCompatible(Object maybeList, Object uri) {
+    public Boolean isYouTubeDLCompatible(Object maybeList, Object u) {
+        String uri = u?.toString()
         return isDownloaderCompatible(
             getYouTubeDLCache(),
             maybeList,
             uri,
-            [ '-g', Util.shellQuote(uri) ],
+            [ '-g', uri ],
             'youtube-dl'
         )
     }
 
     // DSL method
-    public Boolean isGetFlashVideosCompatible(Object maybeList, Object uri) {
+    public Boolean isGetFlashVideosCompatible(Object maybeList, Object u) {
+        String uri = u?.toString()
         return isDownloaderCompatible(
             getGetFlashVideosCache(),
             maybeList,
             uri,
-            [ '-i', Util.shellQuote(uri) ],
+            [ '-i', uri ],
             'get-flash-videos'
         )
     }

@@ -32,15 +32,40 @@ class Util {
         return result
     }
 
-    public static String shellQuote(Object obj) {
-        if (obj == null) {
-            return null
-        } else {
-            String uri = obj.toString()
-            // double quote a URI to make it safe for cmd.exe
-            // XXX need to test this
-            return Platform.isWindows() ? '"' + uri.replaceAll('"', '""') + '"' : uri
+    // there is no sane documentation for cmd.exe and there are no[1] useful examples online for
+    // our use case (cmd.exe + Java (ProcessBuilder) string array + shell redirection (pipe)) e.g.:
+    //
+    //    [
+    //        'cmd.exe', '/C', 'downloader.exe', '--input', 'URI', '--output', 'DOWNLOADER_OUT',
+    //        '|',
+    //        'transcoder.exe', '--input', 'DOWNLOADER_OUT', '--output', 'TRANSCODER_OUT'
+    //    ]
+    //
+    // since we already have a working implementation that only escapes URIs, we're going to do the
+    // bare minimum to avoid errors rather than trying to achieve "correctness", which is unattainable
+    // because: Microsoft. we only escape values that a) contain spaces or b) cmd.exe special characters
+    // e.g. |, > &c. things like nested single or double quotes can be handled (by trial and error)
+    // if they become an issue, but, with the exception of the rtmpdump[2] --jtv option (which takes a
+    // JSON argument(!)), they don't crop up in any of the builtin downloader/transcoder arguments
+    // and are atypical characters for streaming video/feed URIs.
+    //
+    // [1] although it's the opposite of a tutorial, the release notes for JDK 7u25
+    // contain partial, tantalising hints for working with^H^H^H^H around cmd.exe without tears:
+    // http://www.oracle.com/technetwork/java/javase/7u25-relnotes-1955741.html#jruntime
+    //
+    // [2] which can be phased out (as a downloader) in favour of the builtin ffmpeg support
+    public static String shellQuoteString(Object obj) {
+        String str = obj?.toString()
+
+        if ((str != null) && Platform.isWindows() && (str =~ /\s|[&<>()@^|]/)) {
+            str = '"' + str + '"'
         }
+
+        return str
+    }
+
+    public static List<String> shellQuoteList(List<?> list) {
+        return list.collect { shellQuoteString(it) }
     }
 
     public static String[] cmdListToArray(List<String> list) {

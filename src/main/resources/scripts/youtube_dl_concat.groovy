@@ -13,7 +13,9 @@ script (INIT) {
         }
 
         action {
-            def uris = (YOUTUBE_DL_PATH + [ '-g', shellQuote(uri) ]).execute().text.readLines(); logger.debug("URIs: ${uris.inspect()}")
+            // doesn't use cmd.exe, so no need to quote the URI
+            def command = YOUTUBE_DL_PATH + [ '-g', uri ]
+            def uris = command.execute().text.readLines(); logger.debug("URIs: ${uris.inspect()}")
             def files = uris.collect({ "file '$it'" }).join(SEPARATOR)
             def filename = String.format(FILENAME, Thread.currentThread().getId(), System.currentTimeMillis())
             def file = new File(TEMP_FOLDER, filename); logger.trace("concat file: ${file.getAbsolutePath()}")

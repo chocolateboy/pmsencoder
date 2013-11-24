@@ -9,6 +9,8 @@ import net.pms.io.ProcessWrapper
 import net.pms.io.ProcessWrapperImpl
 
 import static Util.cmdListToArray
+import static Util.shellQuoteList
+import static Util.shellQuoteString
 
 @groovy.transform.CompileStatic
 @groovy.util.logging.Log4j(value='logger')
@@ -41,8 +43,7 @@ class ProcessManager {
             Plugin.debug("ComSpec ($status): ${comSpec.inspect()}")
         }
 
-        cmd = Util.shellQuote(cmd)
-        Plugin.debug("cmd.exe: $cmd")
+        Plugin.debug("cmd.exe: ${cmd.inspect()}")
         return cmd
     }
 
@@ -107,7 +108,7 @@ class ProcessManager {
     }
 
     public ProcessWrapperImpl handleDownloadWindows(List<String> downloaderArgs, List<String> transcoderArgs) {
-        def cmdList = ([ cmdExe, '/C' ] + downloaderArgs + '|' + transcoderArgs) as List<String>
+        def cmdList = ([ shellQuoteString(cmdExe), '/C' ] + shellQuoteList(downloaderArgs) + '|' + shellQuoteList(transcoderArgs)) as List<String>
         def cmdArray = cmdListToArray(cmdList)
         def pw = new ProcessWrapperImpl(cmdArray, outputParams) // may modify cmdArray[0]
 
@@ -131,7 +132,7 @@ class ProcessManager {
     }
 
     public ProcessWrapperImpl handleTranscode(List<String> transcoderArgs) {
-        def cmdArray = cmdListToArray(transcoderArgs)
+        def cmdArray = cmdListToArray(shellQuoteList(transcoderArgs))
         def transcoderProcess = new ProcessWrapperImpl(cmdArray, outputParams) // may modify cmdArray[0]
         logger.info("transcoder command: ${transcoderArgs.join(' ')}")
         return transcoderProcess

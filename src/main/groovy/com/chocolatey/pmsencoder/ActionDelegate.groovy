@@ -128,11 +128,6 @@ class ActionDelegate {
     }
 
     // DSL method
-    String shellQuote(Object uri) {
-        return Util.shellQuote(uri)
-    }
-
-    // DSL method
     void set(Map map) {
         // the sort order is predictable (for tests) as long as we (and Groovy) use LinkedHashMap
         map.each { name, value -> setOption(name.toString(), value?.toString()) }

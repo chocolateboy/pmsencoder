@@ -25,7 +25,6 @@ script (INIT) {
                 def value = param.value
 
                 switch (name) {
-                    // Special case: don't quote this (JSON) value on Windows
                     case '-j':
                     case '--jtv':
                         rtmpdumpArgs << name << value
@@ -42,15 +41,14 @@ script (INIT) {
                         break // ignore
                     default:
                         rtmpdumpArgs << name
-                        // not all values are URIs, but shellQuote() is harmless (except for -j) on Windows and a no-op on other platforms
                         if (value)
-                            rtmpdumpArgs << shellQuote(value)
+                            rtmpdumpArgs << value
                 }
             }
 
             if (seenURL) {
                 // rtmpdump doesn't log to stdout, so no need to use -q on Windows
-                downloader = "$RTMPDUMP -o DOWNLOADER_OUT -r URI"
+                downloader = [ $RTMPDUMP, '-o', 'DOWNLOADER_OUT', '-r', 'URI' ]
                 downloader += rtmpdumpArgs
             } else {
                 logger.error("invalid rtmpdump:// URI: no -r or --rtmp parameter supplied: ${uri}")
