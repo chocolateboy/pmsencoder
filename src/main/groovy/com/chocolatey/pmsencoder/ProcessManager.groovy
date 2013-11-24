@@ -50,10 +50,19 @@ class ProcessManager {
     ProcessManager(PMSEncoder pmsencoder, OutputParams params) {
         this.pmsencoder = pmsencoder
         this.outputParams = params
+
         attachedProcesses = new ArrayList<ProcessWrapper>()
+
         // modify the output params object *before* the match so it can optionally be customized
+
+        // minFileSize (MB) corresponds to the PMS.conf option minimum_web_buffer_size (default: 1)
+        // i.e. buffer (only) 1 MB before sending the file
         outputParams.minBufferSize = params.minFileSize
+
+        // XXX cargo-culted from legacy web engines
+        // the default is 1,000,000
         outputParams.secondread_minsize = 100000
+
         outputParams.log = true // for documentation only as it's done automatically for pipe-writing processes
     }
 
