@@ -34,15 +34,41 @@ public class PMSEncoder extends FFmpegWebVideo {
     }
 
     @Override
-    public String mimeType() {
-        return HTTPResource.VIDEO_TRANSCODE // i.e. the mime-type that matches the renderer's VideoTranscode profile
-    }
-
-    @Override
     public String name() { Plugin.name }
 
     private static String normalizePath(String path) {
         return isWindows ? path.replaceAll(~'/', '\\\\') : path
+    }
+
+    private void setVideoTranscodeOptions(List<String> transcoder, OutputParams params) {
+        def renderer = params.mediaRenderer
+
+        if (renderer.isTranscodeToWMV()) { // WMV
+            transcoder.add('-c:v');
+            transcoder.add('wmv2');
+
+            transcoder.add('-c:a');
+            transcoder.add('wmav2');
+
+            transcoder.add('-f');
+            transcoder.add('asf');
+
+            // http://www.ps3mediaserver.org/forum/viewtopic.php?f=6&t=16590
+            // XXX WMA Pro (wmapro) supports > 2 channels, but ffmpeg doesn't have an encoder for it
+            transcoder.add('-ac')
+            transcoder.add('2')
+        } else { // MPEGPSAC3 or MPEGTSAC3
+            transcoder.add('-c:a');
+            transcoder.add('ac3');
+
+            // Output file format
+            transcoder.add('-f');
+            if (renderer.isTranscodeToMPEGTSAC3()) { // MPEGTSAC3
+                transcoder.add('mpegts');
+            } else { // default: MPEGPSAC3
+                transcoder.add('vob');
+            }
+        }
     }
 
     @Override
@@ -119,9 +145,9 @@ public class PMSEncoder extends FFmpegWebVideo {
         // the command abstraction allows the stash and command lists
         // to be changed by the matcher, so make sure we refresh
         def newStash = command.getStash()
-        def hookArgs = command.getHook()
-        def downloaderArgs = command.getDownloader()
-        def transcoderArgs = command.getTranscoder()
+        def hook = command.getHook()
+        def downloader = command.getDownloader()
+        def transcoder = command.getTranscoder()
         def newURI = newStash.get('uri')?.toString()
 
         // work around an ffmpeg bug:
@@ -132,20 +158,20 @@ public class PMSEncoder extends FFmpegWebVideo {
             newURI = 'mmsh:' + newURI.substring(4);
         }
 
-        if (hookArgs) {
-            Collections.replaceAll(hookArgs, 'URI', newURI)
-            processManager.handleHook(hookArgs)
+        if (hook) {
+            Collections.replaceAll(hook, 'URI', newURI)
+            processManager.handleHook(hook)
         }
 
-        if (transcoderArgs) {
-            Collections.replaceAll(transcoderArgs, 'DOWNLOADER_OUT', downloaderOutputPath)
-            Collections.replaceAll(transcoderArgs, 'TRANSCODER_OUT', transcoderOutputPath)
-            Collections.replaceAll(transcoderArgs, 'URI', newURI)
+        if (transcoder) {
+            Collections.replaceAll(transcoder, 'DOWNLOADER_OUT', downloaderOutputPath)
+            Collections.replaceAll(transcoder, 'TRANSCODER_OUT', transcoderOutputPath)
+            Collections.replaceAll(transcoder, 'URI', newURI)
 
             // if the executable is 'FFMPEG', automagically add ffmpeg input and output options
             // and replace 'FFMPEG' with the configured ffmpeg path
-            if (transcoderArgs[0] == 'FFMPEG') {
-                def transcoderInput = downloaderArgs ? downloaderOutputPath : newURI
+            if (transcoder[0] == 'FFMPEG') {
+                def transcoderInput = downloader ? downloaderOutputPath : newURI
 
                 /*
                     before:
@@ -164,10 +190,7 @@ public class PMSEncoder extends FFmpegWebVideo {
                     output options can be revoked/overridden via the bitrate and transcode options (see below)
                 */
 
-                // handle TranscodeVideo=WMV|MPEGTSAC3|MPEGPSAC3
-                // and audio/video bitrates
-
-                transcoderArgs[0] = FFMPEG_PATH
+                transcoder[0] = FFMPEG_PATH
 
                 // List<String>: more Groovy++ type-inference lamery
                 List<String> args = [
@@ -177,7 +200,13 @@ public class PMSEncoder extends FFmpegWebVideo {
                     '-threads', '' + nbCores
                 ]
 
-                transcoderArgs.addAll(args)
+                transcoder.addAll(args)
+
+                // handle TranscodeVideo=WMV|MPEGTSAC3|MPEGPSAC3
+                // and audio/video bitrates
+
+                // set output format options: container, video codec and audio codec
+                setVideoTranscodeOptions(transcoder, params)
 
                 // try to preserve the video and audio quality
                 //
@@ -191,15 +220,14 @@ public class PMSEncoder extends FFmpegWebVideo {
                 // [1] http://www.ps3mediaserver.org/forum/viewtopic.php?f=12&p=80836#p80836
 
                 // set video bitrate options
-                transcoderArgs.add('-q:v')
-                transcoderArgs.add(DEFAULT_QSCALE)
+                transcoder.add('-q:v')
+                transcoder.add(DEFAULT_QSCALE)
 
                 // set audio bitrate options
-                transcoderArgs.add('-q:a')
-                transcoderArgs.add(DEFAULT_QSCALE)
+                transcoder.add('-q:a')
+                transcoder.add(DEFAULT_QSCALE)
 
-                transcoderArgs.addAll(getVideoTranscodeOptions(dlna, media, params))
-                transcoderArgs.add(transcoderOutputPath)
+                transcoder.add(transcoderOutputPath)
             }
         }
 
@@ -208,28 +236,28 @@ public class PMSEncoder extends FFmpegWebVideo {
             dlna,
             media,
             params,
-            cmdListToArray(transcoderArgs)
+            cmdListToArray(transcoder)
         )
 
-        transcoderArgs = cmdArray.toList()
+        transcoder = cmdArray.toList()
 
         // Groovy's "documentation" doesn't make it clear whether local variables are null-initialized
         // http://stackoverflow.com/questions/4025222
         ProcessWrapperImpl transcoderProcess = null
 
-        if (downloaderArgs) {
-            Collections.replaceAll(downloaderArgs, 'DOWNLOADER_OUT', downloaderOutputPath)
-            Collections.replaceAll(downloaderArgs, 'URI', newURI)
+        if (downloader) {
+            Collections.replaceAll(downloader, 'DOWNLOADER_OUT', downloaderOutputPath)
+            Collections.replaceAll(downloader, 'URI', newURI)
 
             if (isWindows) {
-                transcoderProcess = processManager.handleDownloadWindows(downloaderArgs, transcoderArgs)
+                transcoderProcess = processManager.handleDownloadWindows(downloader, transcoder)
             } else {
-                processManager.handleDownloadUnix(downloaderArgs, downloaderOutputBasename)
+                processManager.handleDownloadUnix(downloader, downloaderOutputBasename)
             }
         }
 
         if (transcoderProcess == null) {
-            transcoderProcess = processManager.handleTranscode(transcoderArgs)
+            transcoderProcess = processManager.handleTranscode(transcoder)
         }
 
         return processManager.launchTranscode(transcoderProcess)
