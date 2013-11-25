@@ -221,3 +221,5 @@ TODO: determine behaviour (if any) if a replacement has a different stage
         'http://www.example.com/foo.html',
         'http://cdn.example.com/video/foo.mp4'
     )
+
+// automatically update PMSEncoder/YouTube-DL: org.apache.commons.io.FileUtils.copyURLToFile
