@@ -63,6 +63,12 @@ abstract class PMSEncoderTestCase extends GroovyTestCase {
             public static PmsConfiguration getConfiguration() { pmsConfig }
         }
 
+        // make sure system files (e.g. youtube-dl) don't interfere with tests
+        new MockUp<FileUtil>() {
+            @Mock
+            public static String which(String filename) { null }
+        }
+
         matcher = new Matcher()
     }
 

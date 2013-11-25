@@ -4,21 +4,11 @@
 // CHECK: youtube-dl (DEFAULT) is the preferred downloader
 // so this must be run after it
 
-import static com.chocolatey.pmsencoder.Util.isExecutable
+import static com.chocolatey.pmsencoder.FileUtil.isExecutable
 import com.sun.jna.Platform
 
 script (CHECK) {
     profile ('Get Flash Videos') {
-        def GET_FLASH_VIDEOS_PATH
-
-        if (GET_FLASH_VIDEOS) {
-            if (isExecutable(GET_FLASH_VIDEOS)) {
-                GET_FLASH_VIDEOS_PATH = [ GET_FLASH_VIDEOS ]
-            } else if (PERL) {
-                GET_FLASH_VIDEOS_PATH = [ PERL, GET_FLASH_VIDEOS ]
-            }
-        }
-
         pattern {
             match { GET_FLASH_VIDEOS_PATH }
             protocols([ 'http', 'https' ])

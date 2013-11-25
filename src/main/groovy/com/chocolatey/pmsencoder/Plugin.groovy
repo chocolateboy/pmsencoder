@@ -31,8 +31,8 @@ import javax.swing.*
 import javax.xml.parsers.FactoryConfigurationError
 
 import static com.chocolatey.pmsencoder.Util.guard
-import static com.chocolatey.pmsencoder.Util.directoryExists
-import static com.chocolatey.pmsencoder.Util.fileExists
+import static com.chocolatey.pmsencoder.FileUtil.directoryExists
+import static com.chocolatey.pmsencoder.FileUtil.fileExists
 
 @CompileStatic
 public class Plugin implements ExternalListener, FinalizeTranscoderArgsListener, FileListener {

@@ -32,9 +32,9 @@ class ProcessManager {
             // XXX watch out for multiple entries: http://superuser.com/questions/446595/is-it-valid-for-comspec-to-have-multiple-entries
             def status = 'OK'
 
-            if (!Util.fileExists(comSpec)) {
+            if (!FileUtil.fileExists(comSpec)) {
                 status = 'not found'
-            } else if (!Util.isExecutable(comSpec)) {
+            } else if (!FileUtil.isExecutable(comSpec)) {
                 status = 'not executable'
             } else {
                 cmd = comSpec
