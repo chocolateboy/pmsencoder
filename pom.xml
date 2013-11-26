@@ -8,7 +8,7 @@
     <name>PMSEncoder</name>
     <description>A plugin for PS3 Media Server that adds support for scriptable web video streaming.</description>
     <properties>
-        <groovy-version>2.1.6</groovy-version>
+        <groovy-version>2.1.9</groovy-version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <junit-version>4.11</junit-version>
         <pms-version>1.90.0</pms-version>
@@ -100,13 +100,13 @@
         <dependency>
             <groupId>org.jsoup</groupId>
             <artifactId>jsoup</artifactId>
-            <version>1.7.2</version>
+            <version>1.7.3</version>
         </dependency>
 
         <dependency>
             <groupId>org.apache.httpcomponents</groupId>
             <artifactId>httpclient</artifactId>
-            <version>4.3-beta2</version>
+            <version>4.3.1</version>
             <!--  XXX cargo-culted from the PMS POM, not sure if it's needed here -->
             <exclusions>
                 <!--  no need for commons-logging, as jcl-over-slf4j provides the impl -->
@@ -120,7 +120,7 @@
         <dependency>
             <groupId>com.github.tony19</groupId>
             <artifactId>named-regexp</artifactId>
-            <version>0.2.2</version>
+            <version>0.2.3</version>
         </dependency>
     </dependencies>
 
