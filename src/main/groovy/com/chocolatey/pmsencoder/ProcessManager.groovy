@@ -47,6 +47,50 @@ class ProcessManager {
         return cmd
     }
 
+    /*
+        if a downloader is used on Windows, we use cmd.exe (rather than named pipes) to pipe its output to the transcoder e.g.:
+
+            cmd.exe /C "downloader.exe --input http://example.com --output - | transcoder.exe --input -"
+
+        cmd.exe's command parsing is so badly documented that it may as well be undocumented.
+        From the scattered and inconsistent notes online, it appears that we need to double-quote arguments that contain
+        spaces or special (to cmd.exe) characters and escape embedded double quotes with a backslash.
+
+        A heroic attempt to decipher the lunacy of cmd.exe's parser can be found here [1]:
+
+            http://windowsinspired.com/the-correct-way-to-quote-command-line-arguments/
+            http://windowsinspired.com/understanding-the-command-line-string-and-arguments-received-by-a-windows-program/
+            http://windowsinspired.com/how-a-windows-programs-splits-its-command-line-into-individual-arguments/
+
+        The release notes for JDK 7u25 also include some hints about working with (i.e. around) cmd.exe:
+
+            http://www.oracle.com/technetwork/java/javase/7u25-relnotes-1955741.html#jruntime
+    */
+    private static String shellQuoteString(Object obj) {
+        String str = obj?.toString()
+
+        assert str != null
+
+        // XXX there's a missing case here: "Escape any literal backslashes that occur immediately prior to either
+        // a double quote or an e-quote character so they're not interpreted as an escape character."
+        // http://windowsinspired.com/how-a-windows-programs-splits-its-command-line-into-individual-arguments/
+        if (Platform.isWindows()) {
+            if (str.contains('"')) { // escape embedded double quotes
+                str = str.replaceAll('"', '\\"')
+            }
+
+            if (str =~ /\s|[&<>()@^|]/) { // quote options that include spaces or special characters
+                str = '"' + str + '"'
+            }
+        }
+
+        return str
+    }
+
+    private static List<String> shellQuoteList(List<?> list) {
+        return list.collect { shellQuoteString(it) }
+    }
+
     ProcessManager(PMSEncoder pmsencoder, OutputParams params) {
         this.pmsencoder = pmsencoder
         this.outputParams = params
@@ -117,7 +161,8 @@ class ProcessManager {
     }
 
     public ProcessWrapperImpl handleDownloadWindows(List<String> downloaderArgs, List<String> transcoderArgs) {
-        def cmdList = ([ shellQuoteString(cmdExe), '/C' ] + shellQuoteList(downloaderArgs) + '|' + shellQuoteList(transcoderArgs)) as List<String>
+        def cmd = (shellQuoteList(downloaderArgs) + '|' + shellQuoteList(transcoderArgs)).join(' ')
+        def cmdList = [ shellQuoteString(cmdExe), '/C', cmd ]
         def cmdArray = cmdListToArray(cmdList)
         def pw = new ProcessWrapperImpl(cmdArray, outputParams) // may modify cmdArray[0]
 
