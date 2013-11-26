@@ -13,4 +13,9 @@ script (BEGIN) {
     YOUTUBE_DL_MAX_QUALITY = pmsConf['youtube-dl.max-quality'] ?: 37 // (1080p)
     YOUTUBE_DL_PATH = getPath(PYTHON, YOUTUBE_DL)
     GET_FLASH_VIDEOS_PATH = getPath(PERL, GET_FLASH_VIDEOS)
+
+    // log the youtube-dl version
+    if (YOUTUBE_DL_PATH) {
+        YOUTUBE_DL_VERSION = (YOUTUBE_DL_PATH + [ '--version' ]).execute().text.trim()
+    }
 }
