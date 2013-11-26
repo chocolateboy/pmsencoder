@@ -13,13 +13,16 @@ class FileUtil {
 
     private static List<String> getPath(Object _interpreter, Object _script) {
         List<String> path = null
-        String interpreter = _interpreter?.toString()
         String script = _script?.toString()
 
-        if (isExecutable(script)) {
-            path = [ script ]
-        } else if (interpreter) {
-            path = [ interpreter, script ]
+        if (script) {
+            String interpreter = _interpreter?.toString()
+
+            if (isExecutable(script)) {
+                path = [ script ]
+            } else if (interpreter) {
+                path = [ interpreter, script ]
+            }
         }
 
         return path
@@ -58,8 +61,7 @@ class FileUtil {
     }
 
     public static boolean directoryExists(String path) {
-        def file = new File(path)
-        directoryExists(file)
+        (path != null) && directoryExists(new File(path))
     }
 
     public static boolean isExecutable(File file) {
@@ -67,7 +69,6 @@ class FileUtil {
     }
 
     public static boolean isExecutable(String path) {
-        def file = new File(path)
-        isExecutable(file)
+        (path != null) && isExecutable(new File(path))
     }
 }
