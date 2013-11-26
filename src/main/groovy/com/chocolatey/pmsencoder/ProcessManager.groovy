@@ -56,7 +56,7 @@ class ProcessManager {
         From the scattered and inconsistent notes online, it appears that we need to double-quote arguments that contain
         spaces or special (to cmd.exe) characters and escape embedded double quotes with a backslash.
 
-        A heroic attempt to decipher the lunacy of cmd.exe's parser can be found here [1]:
+        A heroic attempt to decipher the lunacy of cmd.exe's parser can be found here:
 
             http://windowsinspired.com/the-correct-way-to-quote-command-line-arguments/
             http://windowsinspired.com/understanding-the-command-line-string-and-arguments-received-by-a-windows-program/
