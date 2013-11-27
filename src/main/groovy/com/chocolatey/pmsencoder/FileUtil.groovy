@@ -11,7 +11,7 @@ class FileUtil {
         paths.add(0, (new File('plugins').getAbsolutePath()))
     }
 
-    private static List<String> getPath(Object _interpreter, Object _script) {
+    public static List<String> getPath(Object _interpreter, Object _script) {
         List<String> path = null
         String script = _script?.toString()
 
