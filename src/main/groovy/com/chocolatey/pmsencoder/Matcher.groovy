@@ -306,7 +306,7 @@ class Matcher {
     }
 
     private URL getResource(String name) {
-        return this.getClass().getResource("/$name");
+        return this.getClass().getResource("/$name")
     }
 
     void loadDefaultScripts() {

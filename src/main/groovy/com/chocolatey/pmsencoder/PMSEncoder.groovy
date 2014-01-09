@@ -44,29 +44,29 @@ public class PMSEncoder extends FFmpegWebVideo {
         def renderer = params.mediaRenderer
 
         if (renderer.isTranscodeToWMV()) { // WMV
-            transcoder.add('-c:v');
-            transcoder.add('wmv2');
+            transcoder.add('-c:v')
+            transcoder.add('wmv2')
 
-            transcoder.add('-c:a');
-            transcoder.add('wmav2');
+            transcoder.add('-c:a')
+            transcoder.add('wmav2')
 
-            transcoder.add('-f');
-            transcoder.add('asf');
+            transcoder.add('-f')
+            transcoder.add('asf')
 
             // http://www.ps3mediaserver.org/forum/viewtopic.php?f=6&t=16590
             // XXX WMA Pro (wmapro) supports > 2 channels, but ffmpeg doesn't have an encoder for it
             transcoder.add('-ac')
             transcoder.add('2')
         } else { // MPEGPSAC3 or MPEGTSAC3
-            transcoder.add('-c:a');
-            transcoder.add('ac3');
+            transcoder.add('-c:a')
+            transcoder.add('ac3')
 
             // Output file format
-            transcoder.add('-f');
+            transcoder.add('-f')
             if (renderer.isTranscodeToMPEGTSAC3()) { // MPEGTSAC3
-                transcoder.add('mpegts');
+                transcoder.add('mpegts')
             } else { // default: MPEGPSAC3
-                transcoder.add('vob');
+                transcoder.add('vob')
             }
         }
     }
@@ -155,7 +155,7 @@ public class PMSEncoder extends FFmpegWebVideo {
         // FIXME: use protocols.getFilename(newURI) when
         // FFmpegProtocols is fixed (PMS > 1.90.0)
         if (newURI.startsWith('mms:')) {
-            newURI = 'mmsh:' + newURI.substring(4);
+            newURI = 'mmsh:' + newURI.substring(4)
         }
 
         if (hook) {
