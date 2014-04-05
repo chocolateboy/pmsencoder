@@ -327,6 +327,9 @@
                         <!--
                              disable this for now since we're not using it and it breaks Travis
                              builds (XXX and the workaround above doesn't work)
+
+                             FIXME this should be in an explicitly-selected profile e.g.
+                             mvn -P disable_git_describe_id
                          -->
                         <skip>true</skip>
                     </gitDescribe>

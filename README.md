@@ -1,6 +1,6 @@
 # PMSEncoder
 
-<!-- [![Build Status](http://pms.smoeller.de/buildStatus/icon?job=pmsencoder)](http://pms.smoeller.de/job/pmsencoder/) -->
+[![Build Status](https://travis-ci.org/chocolateboy/pmsencoder.svg?branch=master)](https://travis-ci.org/chocolateboy/pmsencoder)
 
 - [Description](#description)
 - [Prerequisites](#prerequisites)
