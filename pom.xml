@@ -315,8 +315,21 @@
                     <verbose>false</verbose>
                     <generateGitPropertiesFile>true</generateGitPropertiesFile>
                     <generateGitPropertiesFilename>src/main/resources/git.properties</generateGitPropertiesFilename>
-                    <!-- don't break a build that has too few commits checked out (e.g. Travis) to generate a git describe ID -->
+                    <!--
+                         don't break a build that has too few commits checked out (e.g. Travis) to
+                         generate a git describe ID. see:
+
+                             https://github.com/ktoso/maven-git-commit-id-plugin/issues/63
+                             https://github.com/ktoso/maven-git-commit-id-plugin/issues/96
+                    -->
                     <failOnUnableToExtractRepoInfo>false</failOnUnableToExtractRepoInfo>
+                    <gitDescribe>
+                        <!--
+                             disable this for now since we're not using it and it breaks Travis
+                             builds (XXX and the workaround above doesn't work)
+                         -->
+                        <skip>true</skip>
+                    </gitDescribe>
                 </configuration>
             </plugin>
 
