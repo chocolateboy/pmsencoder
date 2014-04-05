@@ -1,29 +1,30 @@
-import groovyx.net.http.URIBuilder
-
 // videofeed.Web,Comedy Central=http://extechops.net/full-episode-feeds/daily-show.rss
 // videofeed.Web,Comedy Central=http://extechops.net/full-episode-feeds/colbert-report.rss
 
-script (INIT) {
+import groovyx.net.http.URIBuilder
+
+script (INIT) { // run before YouTube-DL (DEFAULT)
     def SEPARATOR = System.getProperty('line.separator')
     def FILENAME = 'pmsencoder_ffmpeg_concat_%d_%d.txt'
     def TEMP_FOLDER = pms.getConfiguration().getTempFolder()
 
-    // XXX not sure if this is needed for the previously-used domains (without the .cc)
-    // or even if they're still used
+    /*
+     * XXX youtube-dl doesn't grok Comedy Central pages whose paths start with /episodes, but does handle
+     * those that start with /full-episodes, so replace the former with the latter:
+     *
+     *     from: http://thedailyshow.cc.com/episodes/wqf1x5/april-2--2014---samuel-l--jackson
+     *     to:   http://thedailyshow.cc.com/full-episodes/wqf1x5/april-2--2014---samuel-l--jackson
+     */
     profile ('Comedy Central: /episodes/ -> /full-episodes/', stopOnMatch: false) {
         pattern {
             // this is a workaround for a youtube-dl bug (or at least a missing feature)
             match { YOUTUBE_DL_PATH }
+
+            // XXX not sure if this is needed for the previously-used domains (without the .cc)
+            // or if they're still used
             domains([ 'thedailyshow.cc.com', 'thecolbertreport.cc.com' ])
         }
 
-        /*
-         * XXX youtube-dl doesn't grok Comedy Central pages whose paths start with /episodes, but does handle
-         * those that start with /full-episodes, so replace the former with the latter:
-         *
-         *     from: http://thedailyshow.com/episodes/wqf1x5/april-2--2014---samuel-l--jackson
-         *     to:   http://thedailyshow.com/full-episodes/wqf1x5/april-2--2014---samuel-l--jackson
-         */
         action {
             /*
              * XXX this would be much clearer/simpler if path was (also) exposed as a List e.g.:
@@ -38,7 +39,7 @@ script (INIT) {
             def u = new URIBuilder(uri)
             def steps = u.path.split('/')
 
-            // path starts with a forward slash (and split preserves it), so steps is e.g.:
+            // path starts with a forward slash (and split() preserves it), so steps is e.g.:
             // [ '', 'episodes', 'wqf1x5', 'april-2--2014---samuel-l--jackson' ]
             if (steps[1] == 'episodes') {
                 steps[1] = 'full-episodes'

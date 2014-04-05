@@ -58,7 +58,7 @@ videofeed ('Web/YouTube/Favourites') {
         builtin scripts
         user scripts
 
-    script stages:
+    script stages/phases:
 
         BEGIN
         INIT
