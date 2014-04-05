@@ -1,4 +1,4 @@
-2.0.0 TBC
+2.0.0 Sat Apr 5 09:47:31 2014
 
     output video in the renderer's preferred format (i.e. don't downscale HD video if the renderer supports HD)
     scripts can now implement hooks for finalizeTranscoderArgs and isCompatible

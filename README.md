@@ -29,7 +29,7 @@ These instructions assume you have the [latest version](http://www.ps3mediaserve
 
 ## Installation
 
-* download the [PMSEncoder jar file](https://github.com/chocolateboy/pmsencoder/releases/download/v2.0.0-rc3/pmsencoder-2.0.0-rc3.jar) and place it in the PMS [`plugins`](http://www.ps3mediaserver.org/forum/viewtopic.php?f=6&t=3507&p=32731#p32731) directory
+* download the [PMSEncoder jar file](https://github.com/chocolateboy/pmsencoder/releases/download/v2.0.0/pmsencoder-2.0.0.jar) and place it in the PMS [`plugins`](http://www.ps3mediaserver.org/forum/viewtopic.php?f=6&t=3507&p=32731#p32731) directory
 * restart PMS
 
 ### Upgrading
@@ -37,7 +37,7 @@ These instructions assume you have the [latest version](http://www.ps3mediaserve
 To upgrade to a new version of the plugin:
 
 * check the [release notes](https://github.com/chocolateboy/pmsencoder/wiki/Release-Notes) to see if there are any breaking changes or other incompatibilities
-* replace the old jar file in the [`plugins`](http://www.ps3mediaserver.org/forum/viewtopic.php?f=6&t=3507&p=32731#p32731) directory with the [new version](https://github.com/chocolateboy/pmsencoder/releases/download/v2.0.0-rc3/pmsencoder-2.0.0-rc3.jar) and restart PMS
+* replace the old jar file in the [`plugins`](http://www.ps3mediaserver.org/forum/viewtopic.php?f=6&t=3507&p=32731#p32731) directory with the [new version](https://github.com/chocolateboy/pmsencoder/releases/download/v2.0.0/pmsencoder-2.0.0.jar) and restart PMS
 
 ### Uninstalling
 
@@ -106,7 +106,7 @@ For more details, discussion and troubleshooting tips, see the [wiki](http://wik
 
 ## Version
 
-2.0.0-rc3
+2.0.0
 
 ## License
 
