@@ -11,7 +11,7 @@
 - [Tips](#tips)
 - [Downloaders](#downloaders)
     - [Windows](#windows)
-    - [Linux, Mac OS X &c.](#linux-mac-os-x-&c)
+    - [Linux, Mac OS X &c.](#linux-mac-os-x-c)
     - [All platforms](#all-platforms)
 - [Scripting](#scripting)
 - [Troubleshooting](#troubleshooting)
