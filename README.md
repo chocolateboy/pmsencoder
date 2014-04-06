@@ -71,7 +71,7 @@ Setup is simple:
 
 youtube-dl is updated regularly (sometimes several times a day). Homebrew ([Mac OS X](http://brew.sh/), [Linux](https://github.com/Homebrew/linuxbrew)) is recommended to get the latest version:
 
-* brew install youtube-dl rtmpdump
+    brew install youtube-dl rtmpdump
 
 #### All platforms
 
