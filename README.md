@@ -9,11 +9,11 @@
     - [Uninstalling](#uninstalling)
     - [Building](#building)
 - [Tips](#tips)
-    - [Downloaders](#downloaders)
-	- [Windows](#windows)
-	- [Linux, Mac OS X &c.](#linux-mac-os-x-&c)
-	- [All platforms](#all-platforms)
-    - [Scripting](#scripting)
+- [Downloaders](#downloaders)
+    - [Windows](#windows)
+    - [Linux, Mac OS X &c.](#linux-mac-os-x-&c)
+    - [All platforms](#all-platforms)
+- [Scripting](#scripting)
 - [Troubleshooting](#troubleshooting)
     - [Reporting Issues](#reporting-issues)
     - [Support](#support)
@@ -57,7 +57,7 @@ To build PMSEncoder from source, see the [Wiki](https://github.com/chocolateboy/
 * For help with particular feeds/streams/sites, see [here](http://www.ps3mediaserver.org/forum/viewtopic.php?f=6&t=8776&p=46696#p46696).
 * For details on configuring PMSEncoder, see [here](https://github.com/chocolateboy/pmsencoder/wiki/PMS.conf-options).
 
-### Downloaders
+## Downloaders
 
 While PMSEncoder has basic support for a few sites built-in, it can be configured to support a much wider range of sites by means of external downloaders. Specifically, [youtube-dl](http://rg3.github.io/youtube-dl/) is highly recommended since it supports a much wider range of YouTube videos and, unlike PMSEncoder's built-in YouTube support, is regularly updated to keep track of changes on the YouTube site. It also supports many other sites that are not natively supported by PMSEncoder.
 
@@ -65,18 +65,18 @@ Several downloaders are supported. See [here](https://github.com/chocolateboy/pm
 
 Setup is simple:
 
-#### Windows
+### Windows
 
 * Save [youtube-dl.exe](http://youtube-dl.org/latest/youtube-dl.exe) (direct link) to the [PMS plugins directory](http://www.ps3mediaserver.org/forum/viewtopic.php?f=6&t=3507&p=32731#p32731).
 * **Optional but recommended**: extract rtmpdump.exe from the latest [rtmpdump-windows.zip](http://rtmpdump.mplayerhq.hu/download/) and save it to the PMS plugins directory.
 
-#### Linux, Mac OS X &c.
+### Linux, Mac OS X &c.
 
 youtube-dl is updated regularly (sometimes several times a day). Homebrew ([Mac OS X](http://brew.sh/), [Linux](https://github.com/Homebrew/linuxbrew)) is recommended to get the latest version:
 
     brew install youtube-dl rtmpdump
 
-#### All platforms
+### All platforms
 
 Downloaders can be configured in one of three ways:
 
@@ -84,7 +84,7 @@ Downloaders can be configured in one of three ways:
 2. by placing them in [PATH directories](https://en.wikipedia.org/wiki/PATH_%28variable%29).
 3. by providing explicit paths to the executables in PMS.conf as described [here](https://github.com/chocolateboy/pmsencoder/wiki/PMS.conf%20options#application-settings-).
 
-### Scripting
+## Scripting
 
 PMSEncoder can be configured to support any video site by writing a small script, similar to a Greasemonkey-style userscript. Scripts are written in [Groovy](http://groovy.codehaus.org/) with a page-scraping syntax very similar to jQuery. See the source of the [builtin scripts](https://github.com/chocolateboy/pmsencoder/tree/master/src/main/resources/scripts) for more details and [here](https://github.com/chocolateboy/pmsencoder/wiki/PMS.conf-options#pmsencoderscriptdirectory-) for details on where to add your own scripts.
 
