@@ -59,7 +59,7 @@ To build PMSEncoder from source, see the [Wiki](https://github.com/chocolateboy/
 
 ## Downloaders
 
-While PMSEncoder has basic support for a few sites built-in, it can be configured to support a much wider range of sites by means of external downloaders. Specifically, [youtube-dl](http://rg3.github.io/youtube-dl/) is highly recommended since it supports a much wider range of YouTube videos and, unlike PMSEncoder's built-in YouTube support, is regularly updated to keep track of changes on the YouTube site. It also supports many other sites that are not natively supported by PMSEncoder.
+While PMSEncoder has basic support for a few sites built-in, it can be configured to support a much wider range of sites by means of external downloaders. Specifically, [youtube-dl](http://rg3.github.io/youtube-dl/) is highly recommended since it supports a much wider range of YouTube videos and, unlike PMSEncoder's built-in YouTube support, is regularly updated to keep track of changes on the YouTube site. It also supports [many other sites](http://rg3.github.io/youtube-dl/supportedsites.html) that are not natively supported by PMSEncoder.
 
 Several downloaders are supported. See [here](https://github.com/chocolateboy/pmsencoder/wiki/PMS.conf-options#application-settings-) for more details.
 
