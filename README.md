@@ -78,7 +78,7 @@ youtube-dl is updated regularly (sometimes several times a day). Homebrew ([Mac 
 
 ### All platforms
 
-Downloaders can be configured in one of three ways:
+Downloaders can be enabled in one of three ways:
 
 1. by placing them in the [PMS plugins directory](http://www.ps3mediaserver.org/forum/viewtopic.php?f=6&t=3507&p=32731#p32731).
 2. by placing them in [PATH directories](https://en.wikipedia.org/wiki/PATH_%28variable%29).
