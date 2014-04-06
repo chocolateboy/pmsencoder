@@ -61,11 +61,13 @@ While PMSEncoder has basic support for a few sites built-in, it can be configure
     Windows:
 
         # make sure there are no spaces in the path
-        youtube-dl.path = C:\\Apps\\youtube-dl.exe
+        youtube-dl.path = C:\\ProgramData\\PMS\\youtube-dl.exe
 
     Linux, Mac OS X &c.:
 
         youtube-dl.path = /path/to/youtube-dl
+
+Alternatively, PMSEncoder will automatically detect downloaders if they're a) in a location in the `PATH` environment variable or b) placed in the PMS `plugins` folder.
 
 Several downloaders are supported. See [here](https://github.com/chocolateboy/pmsencoder/wiki/PMS.conf-options#application-settings-) for more details.
 
