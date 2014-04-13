@@ -68,7 +68,7 @@ Setup is simple:
 ### Windows
 
 * Save [youtube-dl.exe](http://youtube-dl.org/latest/youtube-dl.exe) (direct link) to the [PMS plugins directory](http://www.ps3mediaserver.org/forum/viewtopic.php?f=6&t=3507&p=32731#p32731).
-* **Optional but recommended**: extract rtmpdump.exe from the latest [rtmpdump-windows.zip](http://rtmpdump.mplayerhq.hu/download/) and save it to the PMS plugins directory.
+* **Optional but recommended**: extract rtmpdump.exe from the latest [rtmpdump-windows.zip](http://rtmpdump.mplayerhq.hu/download/rtmpdump-2.4-git-010913-windows.zip) (direct link) and save it to the PMS plugins directory.
 
 ### Linux, Mac OS X &c.
 
