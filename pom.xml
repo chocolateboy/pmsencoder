@@ -283,7 +283,7 @@
                             <artifactId>ps3mediaserver</artifactId>
                             <version>${pms-version}</version>
                             <packaging>jar</packaging>
-                            <downloadUrl>http://surfnet.dl.sourceforge.net/project/ps3mediaserver/pms-${pms-version}-generic-linux-unix.tar.gz</downloadUrl>
+                            <downloadUrl>http://downloads.sourceforge.net/project/ps3mediaserver/pms-${pms-version}-generic-linux-unix.tar.gz</downloadUrl>
                             <install>true</install>
                             <force>false</force>
                             <checksum>7df9673a35439f5e4f5f469e9e9ce6cb59b652b3</checksum>
